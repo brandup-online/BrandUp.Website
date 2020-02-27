@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using BrandUp.Website.Identiry;
+using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace BrandUp.Website.Builder
@@ -16,6 +18,8 @@ namespace BrandUp.Website.Builder
 
         private static void AddCoreServices(IServiceCollection services)
         {
+            services.AddSingleton<IAccessProvider, EmptyAccessProvider>();
+            services.AddTransient<ITagHelperComponent, TagHelpers.EmbeddingTagHelperComponent>();
         }
     }
 
