@@ -76,7 +76,10 @@ namespace ExampleWebSite
             });
 
             services
-                .AddWebsite();
+                .AddWebsite(options =>
+                {
+                    options.MapConfiguration(Configuration);
+                });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

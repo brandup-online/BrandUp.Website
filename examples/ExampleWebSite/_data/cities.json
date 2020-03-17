@@ -1,0 +1,24 @@
+{
+  "cities": [
+    {
+      "sourceId": "f8fa45f0-da1b-48a7-88d9-6245a08cc0f0",
+      "ownerName": "",
+      "names": [ "", "msk" ],
+      "title": "Москва",
+      "titleWhere": "Москве",
+      "titleWherePre": "в",
+      "googleSearchConsoleVerificationKeys": [ "a81716bb199b466c" ],
+      "yandexCounter": {
+        "id": 57541273,
+        "clickmap": true,
+        "trackLinks": true,
+        "accurateTrackBounce": 3000,
+        "webvisor": false
+      },
+      "googleAnalytics": {
+        "number": "UA-158583938-1"
+      },
+      "timeZone": "Europe/Moscow"
+    }
+  ]
+}

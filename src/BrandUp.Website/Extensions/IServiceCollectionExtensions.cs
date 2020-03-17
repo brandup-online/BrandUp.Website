@@ -11,7 +11,7 @@ namespace BrandUp.Website
             return AddWebsite(services, options => { });
         }
 
-        public static IWebsiteBuilder AddWebsite(this IServiceCollection services, Action<WebSiteOptions> setupAction)
+        public static IWebsiteBuilder AddWebsite(this IServiceCollection services, Action<WebsiteOptions> setupAction)
         {
             services.Configure(setupAction);
             return new WebsiteBuilder(services);

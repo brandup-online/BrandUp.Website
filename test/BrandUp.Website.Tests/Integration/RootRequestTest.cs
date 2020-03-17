@@ -61,7 +61,7 @@ namespace BrandUp.Website.Tests.Integration
             {
                 //services.AddWebsite();
 
-                services.Configure<WebSiteOptions>((options) =>
+                services.Configure<WebsiteOptions>((options) =>
                 {
                     options.Aliases = new string[] { "test.ru" };
                 });

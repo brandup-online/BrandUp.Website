@@ -1,6 +1,9 @@
 ﻿using BrandUp.Website.Identiry;
+using BrandUp.Website.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace BrandUp.Website.Builder
@@ -20,6 +23,19 @@ namespace BrandUp.Website.Builder
         {
             services.AddSingleton<IAccessProvider, EmptyAccessProvider>();
             services.AddTransient<ITagHelperComponent, TagHelpers.EmbeddingTagHelperComponent>();
+            services.AddTransient(s =>
+            {
+                var wo = s.GetRequiredService<IOptions<WebsiteOptions>>();
+                return wo.Value.Events;
+            });
+
+            services.AddScoped(serviceProvider =>
+            {
+                var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+                return httpContextAccessor.HttpContext.GetWebsiteContext();
+            });
+
+            services.AddScoped<IWebsiteClock, DefaultWebsiteClock>();
         }
     }
 

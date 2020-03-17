@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BrandUp.Website.TagHelpers
@@ -12,13 +15,15 @@ namespace BrandUp.Website.TagHelpers
         const string LoadingClass = "bp-state-loading";
 
         private readonly IJsonHelper jsonHelper;
+        private readonly WebsiteEvents websiteEvents;
 
         [HtmlAttributeNotBound, ViewContext]
         public ViewContext ViewContext { get; set; }
 
-        public EmbeddingTagHelperComponent(IJsonHelper jsonHelper)
+        public EmbeddingTagHelperComponent(IJsonHelper jsonHelper, WebsiteEvents websiteEvents)
         {
             this.jsonHelper = jsonHelper ?? throw new ArgumentNullException(nameof(jsonHelper));
+            this.websiteEvents = websiteEvents ?? throw new ArgumentNullException(nameof(websiteEvents));
         }
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
@@ -27,7 +32,23 @@ namespace BrandUp.Website.TagHelpers
             {
                 if (string.Equals(context.TagName, "head", StringComparison.OrdinalIgnoreCase))
                 {
+                    var websiteOptions = ViewContext.HttpContext.RequestServices.GetRequiredService<IOptions<WebsiteOptions>>().Value;
+
                     output.PostContent.AppendHtml($"    <meta charset=\"utf-8\" />{Environment.NewLine}");
+                    if (websiteOptions.Adaptive != null && websiteOptions.Adaptive.Enable)
+                    {
+                        var viewportParams = new List<string>
+                        {
+                            $"width={websiteOptions.Adaptive.Width}",
+                            $"initial-scale={websiteOptions.Adaptive.InitialScale}"
+                        };
+                        if (!string.IsNullOrEmpty(websiteOptions.Adaptive.MinimumScale))
+                            viewportParams.Add($"initial-scale={websiteOptions.Adaptive.MinimumScale}");
+                        if (!string.IsNullOrEmpty(websiteOptions.Adaptive.MaximumScale))
+                            viewportParams.Add($"initial-scale={websiteOptions.Adaptive.MaximumScale}");
+
+                        output.PostContent.AppendHtml($"    <meta name=\"viewport\" content=\"{string.Join(", ", viewportParams)}\" />{Environment.NewLine}");
+                    }
                     output.PostContent.AppendHtml($"    <title>{appPageModel.Title}</title>{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Description))
@@ -53,9 +74,10 @@ namespace BrandUp.Website.TagHelpers
                     var appClientModel = await appPageModel.GetAppClientModelAsync(ViewContext.HttpContext.RequestAborted);
 
                     output.PostContent.AppendHtml($"    <script>var appInitOptions = {jsonHelper.Serialize(appClientModel)}</script>{Environment.NewLine}");
-                }
 
-                if (string.Equals(context.TagName, "body", StringComparison.OrdinalIgnoreCase))
+                    await websiteEvents.OnRenderHeadTag(new OnRenderTagContext(ViewContext, context, output));
+                }
+                else if (string.Equals(context.TagName, "body", StringComparison.OrdinalIgnoreCase))
                 {
                     string cssClass = null;
                     if (output.Attributes.TryGetAttribute("class", out TagHelperAttribute attribute))
@@ -70,6 +92,8 @@ namespace BrandUp.Website.TagHelpers
                         cssClass += " " + appPageModel.CssClass;
 
                     output.Attributes.SetAttribute("class", cssClass);
+
+                    await websiteEvents.OnRenderBodyTag(new OnRenderTagContext(ViewContext, context, output));
                 }
             }
         }
