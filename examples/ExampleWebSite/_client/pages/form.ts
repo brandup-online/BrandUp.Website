@@ -25,26 +25,6 @@ export class FormPage<TModel extends PageClientModel> extends MirSnaPage<TModel>
                 return;
             this.__submit(form);
         });
-
-        this.element.addEventListener("invalid", (event: Event) => {
-            event.preventDefault();
-
-            const elem = event.target as HTMLInputElement;
-            elem.classList.add("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.add("invalid-required");
-            }
-        }, true);
-
-        this.element.addEventListener("change", (event: Event) => {
-            const elem = event.target as HTMLInputElement;
-            elem.classList.remove("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.remove("invalid-required");
-            }
-        });
     }
 
     private __submit(form: HTMLFormElement, url = "", handler: string = null) {
