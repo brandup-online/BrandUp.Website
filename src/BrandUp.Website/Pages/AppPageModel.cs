@@ -22,6 +22,7 @@ namespace BrandUp.Website.Pages
         private IPageNavigationProvider pageNavigationProvider;
         readonly static DateTime StartDate = DateTime.UtcNow;
 
+        public WebsiteContext WebsiteContext { get; private set; }
         public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Start;
         public Dictionary<string, object> NavigationState { get; } = new Dictionary<string, object>();
 
@@ -60,6 +61,8 @@ namespace BrandUp.Website.Pages
 
         public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
         {
+            WebsiteContext = HttpContext.RequestServices.GetRequiredService<WebsiteContext>();
+
             if (Request.Query.ContainsKey("_content"))
                 RequestMode = AppPageRequestMode.Content;
             else if (Request.Query.ContainsKey("_nav"))
@@ -118,9 +121,7 @@ namespace BrandUp.Website.Pages
                 }
             }
             else
-            {
                 NavigationState.Add("_start", StartDate.Ticks);
-            }
 
             await OnInitializeAsync(context);
 
@@ -141,6 +142,9 @@ namespace BrandUp.Website.Pages
 
         public void RenderPage(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
         {
+            if (page == null)
+                throw new ArgumentNullException(nameof(page));
+
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
         }
@@ -185,18 +189,6 @@ namespace BrandUp.Website.Pages
             var baseUri = requestUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
 
             if (httpRequest.Query.ContainsKey("_nav"))
-            {
-                var query = QueryHelpers.ParseQuery(requestUri.Query);
-                query.Remove("_nav");
-                var qb = new QueryBuilder();
-                foreach (var kv in query)
-                    qb.Add(kv.Key, (IEnumerable<string>)kv.Value);
-
-                requestUrl = baseUri + qb.ToQueryString();
-            }
-
-            // Временный код, для совместимости.
-            if (httpRequest.Query.ContainsKey("handler") && httpRequest.Query["handler"] == "navigation")
             {
                 var query = QueryHelpers.ParseQuery(requestUri.Query);
                 query.Remove("_nav");
