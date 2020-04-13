@@ -7,6 +7,7 @@ namespace BrandUp.Website
     {
         Task<IWebsite> FindWebsiteByNameAsync(string name);
         Task<string[]> GetAliasesAsync(IWebsite website);
+        Task<TimeZoneInfo> GetTimeZoneAsync(IWebsite website);
     }
 
     public interface IWebsite
@@ -14,6 +15,5 @@ namespace BrandUp.Website
         string Id { get; }
         string Name { get; }
         string Title { get; }
-        TimeZoneInfo TimeZone { get; }
     }
 }

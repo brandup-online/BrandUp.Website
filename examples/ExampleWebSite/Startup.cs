@@ -80,6 +80,9 @@ namespace ExampleWebSite
                 {
                     options.MapConfiguration(Configuration);
                 });
+
+            services.AddSingleton<IWebsiteStore, WebsiteStore>();
+            services.AddSingleton<IWebsiteProvider, SubdomainWebsiteProvider>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

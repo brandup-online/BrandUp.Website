@@ -17,11 +17,12 @@ namespace BrandUp.Website.Middlewares
         private readonly IWebsiteProvider websiteProvider;
         private readonly string webSiteHost;
 
-        public WebSiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions, IWebsiteStore websiteStore)
+        public WebSiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions, IWebsiteStore websiteStore, IWebsiteProvider websiteProvider)
         {
             this.next = next ?? throw new ArgumentNullException(nameof(next));
             this.webSiteOptions = webSiteOptions ?? throw new ArgumentNullException(nameof(webSiteOptions));
             this.websiteStore = websiteStore ?? throw new ArgumentNullException(nameof(websiteStore));
+            this.websiteProvider = websiteProvider ?? throw new ArgumentNullException(nameof(websiteProvider));
 
             webSiteHost = this.webSiteOptions.Value.Host.ToLower();
         }
@@ -108,7 +109,9 @@ namespace BrandUp.Website.Middlewares
                 }
             }
 
-            var websiteContext = new WebsiteContext(context, website);
+            var websitemTimeZone = await websiteStore.GetTimeZoneAsync(website);
+
+            var websiteContext = new WebsiteContext(context, website, websitemTimeZone);
 
             context.Items.Add(HttpContextWebsiteKey, websiteContext);
 

@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="TimeZoneConverter" Version="3.2.0" />
     <ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
   </ItemGroup>
 

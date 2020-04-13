@@ -7,7 +7,7 @@ namespace BrandUp.Website.Infrastructure
         readonly private WebsiteContext websiteContext;
 
         public DateTime Utc => DateTime.UtcNow;
-        public DateTime Local => TimeZoneInfo.ConvertTime(Utc, websiteContext.Website.TimeZone);
+        public DateTime Local => TimeZoneInfo.ConvertTime(Utc, websiteContext.TimeZone);
 
         public DefaultWebsiteClock(WebsiteContext websiteContext)
         {
