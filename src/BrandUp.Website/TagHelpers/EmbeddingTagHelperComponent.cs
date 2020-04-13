@@ -49,7 +49,10 @@ namespace BrandUp.Website.TagHelpers
 
                         output.PostContent.AppendHtml($"    <meta name=\"viewport\" content=\"{string.Join(", ", viewportParams)}\" />{Environment.NewLine}");
                     }
-                    output.PostContent.AppendHtml($"    <title>{appPageModel.Title}</title>{Environment.NewLine}");
+
+                    var renderTitleContext = new OnRenderPageTitleContext(appPageModel);
+                    await websiteEvents.OnRenderPageTitle(renderTitleContext);
+                    output.PostContent.AppendHtml($"    <title>{renderTitleContext.Title ?? ""}</title>{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Description))
                         output.PostContent.AppendHtml($"    <meta name=\"description\" content=\"{appPageModel.Description}\">{Environment.NewLine}");

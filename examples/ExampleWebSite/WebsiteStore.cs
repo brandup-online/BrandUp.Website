@@ -81,25 +81,25 @@ namespace ExampleWebSite
         }
 
         #endregion
+    }
 
-        class Website : IWebsite
+    public class Website : IWebsite
+    {
+        [JsonProperty("sourceId")]
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Title { get; set; }
+        public string[] NameAliases { get; set; }
+        public string TitleWhere { get; set; }
+        public string TitleWherePre { get; set; }
+        public string TimeZone { get; set; }
+
+        public Website(string id, string name, string title, string timeZone)
         {
-            [JsonProperty("sourceId")]
-            public string Id { get; set; }
-            public string Name { get; set; }
-            public string Title { get; set; }
-            public string[] NameAliases { get; set; }
-            public string TitleWhere { get; set; }
-            public string TitleWherePre { get; set; }
-            public string TimeZone { get; set; }
-
-            public Website(string id, string name, string title, string timeZone)
-            {
-                Id = id ?? throw new ArgumentNullException(nameof(id));
-                Name = name ?? throw new ArgumentNullException(nameof(name));
-                Title = title ?? throw new ArgumentNullException(nameof(title));
-                TimeZone = timeZone ?? throw new ArgumentNullException(nameof(timeZone));
-            }
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Title = title ?? throw new ArgumentNullException(nameof(title));
+            TimeZone = timeZone ?? throw new ArgumentNullException(nameof(timeZone));
         }
     }
 }

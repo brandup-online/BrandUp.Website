@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace ExampleWebSite
 {
@@ -75,10 +76,19 @@ namespace ExampleWebSite
                 options.AllowSynchronousIO = true;
             });
 
+            services.AddHttpContextAccessor();
+
             services
                 .AddWebsite(options =>
                 {
                     options.MapConfiguration(Configuration);
+
+                    options.Events.OnRenderPageTitle = (context) =>
+                    {
+                        context.Title = context.PageModel.Title + " – BrandUp.Website";
+
+                        return Task.CompletedTask;
+                    };
                 });
 
             services.AddSingleton<IWebsiteStore, WebsiteStore>();
