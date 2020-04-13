@@ -1,0 +1,205 @@
+﻿@import "vars.less";
+
+.bp-elem {
+    font-family: @Font-Family;
+    font-size: @Font-Size;
+    line-height: @LineHeight;
+    color: @Text-Color;
+    font-weight: normal;
+    font-style: normal;
+    text-align: left;
+
+    & input,
+    & select,
+    & button {
+        font-family: @Font-Family;
+        font-size: @Font-Size;
+        color: @Text-Color;
+    }
+
+    & a {
+        color: @Link-Color;
+
+        &:hover {
+            color: @Link-Color-Hover;
+        }
+    }
+}
+
+.bp-toolbar {
+    position: fixed;
+    left: 30px;
+    bottom: 30px;
+    background: @Primary-Color;
+    border-radius: @Border-Radius;
+    height: 50px;
+    display: flex;
+    flex-flow: row nowrap;
+    z-index: 500;
+    box-shadow: 2px 2px 20px rgba(0,0,0,0.4);
+
+    &.opened-menu {
+        & .bp-toolbar-menu {
+            display: block;
+        }
+    }
+
+    @media all and (max-width: 800px) {
+        left: 20px;
+        bottom: 20px;
+    }
+
+    @media all and (max-width: 400px) {
+        left: 10px;
+        bottom: 10px;
+    }
+}
+
+.bp-toolbar-right {
+    left: auto;
+    right: 30px;
+
+    @media all and (max-width: 800px) {
+        right: 20px;
+    }
+
+    @media all and (max-width: 400px) {
+        right: 10px;
+    }
+}
+
+button.bp-toolbar-button {
+    box-sizing: border-box;
+    background: none;
+    border: 0;
+    outline: none;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    opacity: 0.8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & svg {
+        display: block;
+        width: 26px;
+        height: 26px;
+        fill: #fff;
+    }
+
+    &:hover,
+    &:focus,
+    &:active {
+        opacity: 1;
+    }
+}
+
+.bp-toolbar-menu {
+    display: none;
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    width: 200px;
+    background: #FFFFFF;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    padding: 10px 0;
+
+    & a {
+        display: block;
+        padding: 10px 20px;
+        color: @Text-Color;
+        text-decoration: none;
+    }
+}
+
+.bp-toolbar-popup {
+    position: absolute;
+    right: 0;
+    bottom: 60px;
+    min-width: 250px;
+    padding: 30px 0;
+    background: #FFFFFF;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    & .text {
+        padding: 0 30px 20px;
+    }
+
+    & .buttons {
+        display: flex;
+        flex-flow: row nowrap;
+        margin: 0 25px;
+
+        & button {
+            background: @Accent-Color;
+            color: @Main-Color;
+            border: 0;
+            border-radius: @Border-Radius;
+            outline: none;
+            height: 42px;
+            box-sizing: border-box;
+            padding: 0 20px;
+            white-space: nowrap;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+    }
+}
+
+button.bp-button {
+    box-sizing: border-box;
+    background: none;
+    border: 0;
+    outline: none;
+    height: 42px;
+    cursor: pointer;
+    opacity: 0.8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: @Accent-Color;
+    padding: 0 20px;
+    color: @Main-Color;
+    border-radius: @Border-Radius;
+
+    &:hover,
+    &:focus,
+    &:active {
+        opacity: 1;
+    }
+}
+
+.bp-page-loader {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 2px;
+    z-index: 5000;
+    display: block;
+    opacity: 0;
+    visibility: collapse;
+    transition: visibility ease 300ms, opacity ease 300ms, width ease-in-out 100ms;
+
+    &.show {
+        opacity: 1;
+        transition: width ease-in-out 1700ms;
+        visibility: visible;
+    }
+
+    &.show2 {
+        transition: width ease-in-out 15000ms;
+    }
+
+    &.finish {
+        transition: width ease-in-out 180ms, opacity ease 300ms;
+        opacity: 0;
+    }
+}
+
+@keyframes bp-spinner {
+  to {transform: rotate(360deg);}
+}

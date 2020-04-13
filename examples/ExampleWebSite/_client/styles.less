@@ -1,0 +1,118 @@
+﻿@import "vars.less";
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    font-size: @Font-Size;
+    font-family: @Font-Family;
+    line-height: @LineHeight;
+    background: @Main-Color;
+    -webkit-tap-highlight-color: transparent;
+
+    @media all and (max-width: @Adaptive-1-Width) {
+        font-size: 14px;
+    }
+}
+
+a {
+    color: @Primary-Color;
+
+    &:hover {
+        color: @Primary-Color-Hovered;
+    }
+}
+
+input, textarea, button {
+    font-size: @Font-Size;
+    font-family: @Font-Family;
+
+    @media all and (max-width: @Adaptive-1-Width) {
+        font-size: 14px;
+    }
+}
+
+.lazyload,
+.lazyloading {
+    opacity: 0;
+}
+
+.lazyloaded {
+    opacity: 1;
+    transition: opacity 300ms;
+}
+
+.bp-page-loader {
+    background: @Primary-Color;
+    box-shadow: 0px 1px 49px -5px rgba(0,0,0,0.75);
+}
+
+.content-width {
+    max-width: @Content-MaxWidth;
+    margin: 0 auto;
+    padding: 0 @Content-Padding;
+    box-sizing: border-box;
+    width: 100%;
+
+    @media all and (max-width: @Adaptive-4-Width) {
+        padding: 0 @Content-Padding / 2;
+    }
+
+    @media all and (max-width: @Adaptive-5-Width) {
+        padding: 0 18px;
+    }
+
+    @media all and (max-width: @Adaptive-6-Width) {
+        padding: 0 12px;
+    }
+}
+
+.app {
+    width: 100%;
+    min-height: 100%;
+    height: auto !important;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-width: 300px;
+    z-index: 100;
+    overflow: hidden;
+    transition: transform ease 200ms;
+}
+
+header.app-header {
+    background: #fff;
+    position: relative;
+    z-index: 300;
+    font-size: 13px;
+
+    & nav {
+        height: 80px;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        position: relative;
+    }
+}
+
+main.app-content {
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    padding-bottom: 60px;
+
+    @media all and (max-width: @Adaptive-3-Width) {
+        padding-bottom: 30px;
+    }
+}
+
+footer.app-footer {
+    flex: 0 0 auto;
+    background: rgba(111, 207, 151, 0.1);
+    border-top: 1px solid rgba(31, 96, 14, 0.15);
+    padding: 47px 0 0;
+}

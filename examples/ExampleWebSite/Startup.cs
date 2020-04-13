@@ -90,6 +90,12 @@ namespace ExampleWebSite
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+#pragma warning disable CS0618 // Type or member is obsolete
+                app.UseWebpackDevMiddleware(new Microsoft.AspNetCore.SpaServices.Webpack.WebpackDevMiddlewareOptions
+                {
+                    HotModuleReplacement = true
+                });
+#pragma warning restore CS0618 // Type or member is obsolete
             }
             else
             {

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    "moduleResolution": "node",
+    "target": "es5",
+    "jsx": "react",
+    "sourceMap": true,
+    "strict": false,
+    "lib": [ "es5", "es6", "dom", "es2015.promise", "dom.iterable", "es2015.iterable", "es2015.collection", "es2015", "es2015.core" ],
+    "noImplicitAny": false,
+    "noEmitOnError": true
+  },
+  "exclude": [
+    "node_modules",
+    "wwwroot",
+    ".idea",
+    ".vscode"
+  ],
+  "compileOnSave": true
+}
