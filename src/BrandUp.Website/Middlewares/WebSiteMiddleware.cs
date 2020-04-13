@@ -72,15 +72,9 @@ namespace BrandUp.Website.Middlewares
                 return;
             }
 
-            // Redirect to https.
+            var needRedirectToHttps = false;
             if (request.Scheme == "http")
-            {
-                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: request.Host, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
-
-                context.Response.StatusCode = 301;
-                context.Response.Headers.Add("Location", redirectUrl);
-                return;
-            }
+                needRedirectToHttps = true;
 
             var websiteName = websiteProvider.GetWebsiteName(context, requestHost);
             if (websiteName == null)
@@ -93,6 +87,7 @@ namespace BrandUp.Website.Middlewares
                 return;
             }
 
+            var redirectedToAlias = false;
             var aliases = await websiteStore.GetAliasesAsync(website);
             if (aliases != null && aliases.Length > 0)
             {
@@ -105,8 +100,19 @@ namespace BrandUp.Website.Middlewares
 
                         context.Response.StatusCode = 301;
                         context.Response.Headers.Add("Location", redirectUrl);
+
+                        redirectedToAlias = true;
                     }
                 }
+            }
+
+            if (!redirectedToAlias && needRedirectToHttps)
+            {
+                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: request.Host, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+
+                context.Response.StatusCode = 301;
+                context.Response.Headers.Add("Location", redirectUrl);
+                return;
             }
 
             var websitemTimeZone = await websiteStore.GetTimeZoneAsync(website);

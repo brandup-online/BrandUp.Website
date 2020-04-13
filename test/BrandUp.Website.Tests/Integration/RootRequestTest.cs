@@ -40,6 +40,8 @@ namespace BrandUp.Website.Tests.Integration
         [InlineData("http://test.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://www.test.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://www.test.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        [InlineData("http://msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        [InlineData("https://msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         public async Task Redirect_root(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
         {
             factory.ClientOptions.BaseAddress = new Uri(baseAddress);
@@ -59,8 +61,6 @@ namespace BrandUp.Website.Tests.Integration
         {
             builder.ConfigureTestServices(services =>
             {
-                //services.AddWebsite();
-
                 services.Configure<WebsiteOptions>((options) =>
                 {
                     options.Aliases = new string[] { "test.ru" };

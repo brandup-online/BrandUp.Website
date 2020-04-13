@@ -25,7 +25,7 @@ namespace BrandUp.Website
         {
             string websiteName = null;
             if (!string.Equals(requestHost, webSiteHost, StringComparison.OrdinalIgnoreCase))
-                websiteName = requestHost.Substring(0, webSiteHost.Length + 1).ToLower();
+                websiteName = requestHost.Substring(0, requestHost.Length - webSiteHost.Length - 1).ToLower();
             return websiteName;
         }
     }
