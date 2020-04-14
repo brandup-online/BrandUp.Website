@@ -85,32 +85,73 @@ input, textarea, button {
     transition: transform ease 200ms;
 }
 
-header.app-header {
-    background: #fff;
-    position: relative;
-    z-index: 300;
-    font-size: 13px;
+.app-nav {
+    background: #000;
+    color: #fff;
 
-    & nav {
+    & .content-width {
         height: 80px;
         display: flex;
         flex-flow: row nowrap;
         align-items: center;
-        position: relative;
+    }
+
+    & a.logo {
+        display: block;
+        font-size: 24px;
+        line-height: 30px;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    & ul.menu {
+        flex: 1 1 auto;
+        list-style: none;
+        padding: 0;
+        margin: 0 0 0 @Content-Padding;
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-end;
+
+        & li {
+            padding: 0;
+            margin: 0 0 0 @Content-Padding / 1.5;
+        }
+
+        & a {
+            color: #fff;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
     }
 }
 
-main.app-content {
+.app-content {
     flex: 1 1 auto;
     box-sizing: border-box;
-    padding-bottom: 60px;
+    padding-bottom: @Content-Padding;
 
     @media all and (max-width: @Adaptive-3-Width) {
         padding-bottom: 30px;
     }
 }
 
-footer.app-footer {
+.page-header {
+    padding: @Content-Padding 0;
+
+    & h1 {
+        font-weight: 600;
+        font-size: 30px;
+        line-height: 36px;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+.app-footer {
     flex: 0 0 auto;
     background: rgba(111, 207, 151, 0.1);
     border-top: 1px solid rgba(31, 96, 14, 0.15);

@@ -5,10 +5,25 @@
     <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
 </head>
 <body>
+    @Html.AntiForgeryToken()
+
     <script type="text/javascript" src="~/dist/app.js" asp-append-version="true" async></script>
 
-    <main role="main">
-        @RenderBody()
-    </main>
+    <div class="app">
+        <nav class="app-nav" role="navigation">
+            <div class="content-width">
+                <a asp-page="/Index" class="logo applink">BrandUp.Website</a>
+                <ul class="menu">
+                    <li><a asp-page="/About" class="applink">О магазине</a></li>
+                    <li><a asp-page="/Payment" class="applink">Способы оплаты</a></li>
+                    <li><a asp-page="/Delivery" class="applink">Доставка</a></li>
+                    <li><a asp-page="/Contacts" class="applink">Контакты</a></li>
+                </ul>
+            </div>
+        </nav>
+        <main role="main" id="page-content" class="app-content content-width">
+            @RenderBody()
+        </main>
+    </div>
 </body>
 </html>
