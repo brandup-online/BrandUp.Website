@@ -80,7 +80,7 @@ namespace BrandUp.Website.Middlewares
             if (websiteName == null)
                 websiteName = string.Empty;
 
-            var website = await websiteStore.FindWebsiteByNameAsync(websiteName);
+            var website = await websiteStore.FindByNameAsync(websiteName);
             if (website == null)
             {
                 context.Response.StatusCode = 404;

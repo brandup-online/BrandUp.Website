@@ -10,7 +10,7 @@ namespace ExampleWebSite
 {
     public class WebsiteStore : IWebsiteStore
     {
-        readonly List<Website> items = new List<Website>();
+        readonly List<CityWebsite> items = new List<CityWebsite>();
         readonly Dictionary<string, int> names = new Dictionary<string, int>();
         readonly Dictionary<string, int> ids = new Dictionary<string, int>();
 
@@ -27,12 +27,12 @@ namespace ExampleWebSite
                 using var dataFileStream = dataFile.CreateReadStream();
                 using var streamReader = new StreamReader(dataFileStream);
                 using var jsonReader = new JsonTextReader(streamReader);
-                foreach (var item in serializer.Deserialize<Website[]>(jsonReader))
+                foreach (var item in serializer.Deserialize<CityWebsite[]>(jsonReader))
                     AddWebsite(item);
             }
         }
 
-        private void AddWebsite(Website website)
+        private void AddWebsite(CityWebsite website)
         {
             if (website == null)
                 throw new ArgumentNullException(nameof(website));
@@ -50,7 +50,18 @@ namespace ExampleWebSite
 
         #region IWebsiteStore members
 
-        public Task<IWebsite> FindWebsiteByNameAsync(string name)
+        public Task<IWebsite> FindByIdAsync(string id)
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            id = id.ToLower();
+            if (!ids.TryGetValue(id, out int index))
+                return Task.FromResult<IWebsite>(null);
+
+            return Task.FromResult<IWebsite>(items[index]);
+        }
+        public Task<IWebsite> FindByNameAsync(string name)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
@@ -65,13 +76,13 @@ namespace ExampleWebSite
         {
             if (website == null)
                 throw new ArgumentNullException(nameof(website));
-            var w = website as Website ?? throw new ArgumentException();
+            var w = website as CityWebsite ?? throw new ArgumentException();
 
             return Task.FromResult(w.NameAliases);
         }
         public Task<TimeZoneInfo> GetTimeZoneAsync(IWebsite website)
         {
-            var w = website as Website ?? throw new ArgumentException();
+            var w = website as CityWebsite ?? throw new ArgumentException();
             var timeZone = w.TimeZone ?? "Europe/Moscow";
 
             if (!TimeZoneConverter.TZConvert.TryIanaToWindows(timeZone, out string windowsTimeZoneId))
@@ -83,7 +94,7 @@ namespace ExampleWebSite
         #endregion
     }
 
-    public class Website : IWebsite
+    public class CityWebsite : IWebsite
     {
         [JsonProperty("sourceId")]
         public string Id { get; set; }
@@ -94,7 +105,7 @@ namespace ExampleWebSite
         public string TitleWherePre { get; set; }
         public string TimeZone { get; set; }
 
-        public Website(string id, string name, string title, string timeZone)
+        public CityWebsite(string id, string name, string title, string timeZone)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             Name = name ?? throw new ArgumentNullException(nameof(name));

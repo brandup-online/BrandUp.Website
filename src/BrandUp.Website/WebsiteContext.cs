@@ -8,6 +8,7 @@ namespace BrandUp.Website
         public HttpContext HttpContext { get; }
         public IWebsite Website { get; }
         public TimeZoneInfo TimeZone { get; }
+        public IVisitor Visitor { get; set; }
 
         public WebsiteContext(HttpContext httpContext, IWebsite website, TimeZoneInfo timeZone)
         {

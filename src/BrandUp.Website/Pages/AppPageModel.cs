@@ -1,5 +1,6 @@
 ﻿using BrandUp.Website.Identiry;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,8 @@ namespace BrandUp.Website.Pages
         public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Start;
         public Dictionary<string, object> NavigationState { get; } = new Dictionary<string, object>();
 
+        #region OpenGraph members
+
         public OpenGraphModel OpenGraph { get; set; }
         public void SetOpenGraph(string type, string image, string title, string url, string description = null)
         {
@@ -48,6 +51,8 @@ namespace BrandUp.Website.Pages
             SetOpenGraph(image, Title, url, Description);
         }
 
+        #endregion
+
         #region IPageModel members
 
         public abstract string Title { get; }
@@ -62,6 +67,8 @@ namespace BrandUp.Website.Pages
         public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
         {
             WebsiteContext = HttpContext.RequestServices.GetRequiredService<WebsiteContext>();
+
+            #region Navigation
 
             if (Request.Query.ContainsKey("_content"))
                 RequestMode = AppPageRequestMode.Content;
@@ -122,6 +129,208 @@ namespace BrandUp.Website.Pages
             }
             else
                 NavigationState.Add("_start", StartDate.Ticks);
+
+            #endregion
+
+            #region Visitor
+
+            IVisitor visitor = null;
+            var request = Request;
+            var isGetRequest = request.Method == "GET";
+            var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
+            var visitorStore = HttpContext.RequestServices.GetRequiredService<IVisitorStore>();
+            var webSiteHost = webSiteOptions.Value.Host;
+
+            var user = User;
+            if (user.Identity.IsAuthenticated)
+            {
+                var userVisitorId = user.GetVisitorId();
+                if (userVisitorId == null)
+                {
+                    context.Result = BadRequest();
+                    return;
+                }
+
+                visitor = await visitorStore.FindByIdAsync(userVisitorId);
+                if (visitor == null)
+                {
+                    await HttpContext.SignOutAsync();
+
+                    if (RequestMode == AppPageRequestMode.Navigation)
+                    {
+                        Response.Headers.Add("Page-Location", Url.Page(string.Empty));
+                        context.Result = new OkResult();
+                        return;
+                    }
+                    else
+                    {
+                        context.Result = Redirect(Url.Page(string.Empty));
+                    }
+
+                    return;
+                }
+
+                if (isGetRequest && request.Cookies.ContainsKey(Constants.VisitorKeyName))
+                {
+                    // Удаляем значение клиента в cookie, если оно есть, так как его не должно быть для авторизованного пользователя.
+
+                    var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Expires = DateTimeOffset.UtcNow.AddMonths(6),
+                        Domain = webSiteHost,
+                        Path = "/"
+                    };
+
+                    Response.Cookies.Delete(Constants.VisitorKeyName, cookieOptions);
+                }
+            }
+            else
+            {
+                var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
+                var protector = protectionProvider.CreateProtector("elka.store");
+
+                if (request.Cookies.TryGetValue(Constants.VisitorKeyName, out string visitorIdValue))
+                {
+                    try
+                    {
+                        var visitorId = protector.Unprotect(visitorIdValue);
+                        visitor = await visitorStore.FindByIdAsync(visitorId);
+                    }
+                    catch (System.Security.Cryptography.CryptographicException) { }
+                }
+
+                if (visitor == null)
+                {
+                    if (isGetRequest)
+                    {
+                        // Создаём нового посетителя, только при GET запросе.
+
+                        visitor = await visitorStore.CreateNewAsync(WebsiteContext.Website.Id);
+                        HttpContext.Items[Constants.VisitorKeyName] = visitor.Id;
+
+                        var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = true,
+                            Expires = DateTimeOffset.UtcNow.AddMonths(6),
+                            MaxAge = TimeSpan.FromDays(30 * 12),
+                            Domain = webSiteHost,
+                            Path = "/"
+                        };
+
+                        Response.Cookies.Append(Constants.VisitorKeyName, protector.Protect(visitor.Id), cookieOptions);
+                    }
+                    else
+                    {
+                        context.Result = BadRequest();
+                        return;
+                    }
+                }
+            }
+
+            if (isGetRequest)
+                await visitorStore.UpdateLastVisitDateAsync(visitor, DateTime.UtcNow);
+
+            #endregion
+
+            WebsiteContext.Visitor = visitor;
+
+            #region Обработка города
+
+            var website = WebsiteContext.Website;
+            var websiteStore = HttpContext.RequestServices.GetRequiredService<IWebsiteStore>();
+            if (string.IsNullOrEmpty(visitor.WebsiteId))
+            {
+                // Если для посетителя еще не задан город.
+                if (!isGetRequest)
+                {
+                    context.Result = BadRequest();
+                    return;
+                }
+
+                if (request.Cookies.TryGetValue("es_c", out string cookieWebsiteId) && cookieWebsiteId != website.Id)
+                {
+                    var cookieWebsite = await websiteStore.FindByIdAsync(cookieWebsiteId);
+                    if (cookieWebsite != null)
+                    {
+                        await visitorStore.SetWebsiteAsync(visitor, cookieWebsite.Id);
+                        var redirectUrl = string.Concat(request.Scheme, "://", !string.IsNullOrEmpty(cookieWebsite.Name) ? cookieWebsite.Name + "." : "", webSiteHost, request.PathBase.ToUriComponent(), request.Path.ToUriComponent());
+                        if (RequestMode == AppPageRequestMode.Navigation)
+                        {
+                            var query = QueryHelpers.ParseQuery(request.QueryString.ToUriComponent());
+                            query.Remove("_nav");
+                            var qb = new QueryBuilder();
+                            foreach (var kv in query)
+                                qb.Add(kv.Key, (IEnumerable<string>)kv.Value);
+
+                            redirectUrl += qb.ToQueryString();
+
+                            Response.Headers.Add("Page-Location", redirectUrl);
+                            context.Result = new OkResult();
+                            return;
+                        }
+                        else
+                        {
+                            if (request.QueryString.HasValue)
+                                redirectUrl += request.QueryString.ToUriComponent();
+
+                            context.Result = Redirect(redirectUrl);
+                        }
+
+                        return;
+                    }
+
+                    var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Domain = webSiteHost,
+                        Path = "/"
+                    };
+                    Response.Cookies.Delete("es_c", cookieOptions);
+                }
+
+                await visitorStore.SetWebsiteAsync(visitor, website.Id);
+            }
+            else
+            {
+                if (website.Id != visitor.WebsiteId)
+                {
+                    // Если город посетителя не совпадает с городом домена, то редирект.
+
+                    var visitorWebsite = await websiteStore.FindByIdAsync(visitor.WebsiteId);
+                    var redirectUrl = string.Concat(request.Scheme, "://", !string.IsNullOrEmpty(visitorWebsite.Name) ? visitorWebsite.Name + "." : "", webSiteHost, request.PathBase.ToUriComponent(), request.Path.ToUriComponent());
+
+                    if (RequestMode == AppPageRequestMode.Navigation)
+                    {
+                        var query = QueryHelpers.ParseQuery(request.QueryString.ToUriComponent());
+                        query.Remove("_nav");
+                        var qb = new QueryBuilder();
+                        foreach (var kv in query)
+                            qb.Add(kv.Key, (IEnumerable<string>)kv.Value);
+
+                        redirectUrl += qb.ToQueryString();
+
+                        Response.Headers.Add("Page-Location", redirectUrl);
+                        context.Result = new OkResult();
+                    }
+                    else if (isGetRequest)
+                    {
+                        if (request.QueryString.HasValue)
+                            redirectUrl += request.QueryString.ToUriComponent();
+
+                        context.Result = Redirect(redirectUrl);
+                    }
+                    else
+                        context.Result = BadRequest();
+
+                    return;
+                }
+            }
+
+            #endregion
 
             await OnInitializeAsync(context);
 

@@ -92,6 +92,7 @@ namespace ExampleWebSite
                 });
 
             services.AddSingleton<IWebsiteStore, WebsiteStore>();
+            services.AddSingleton<IVisitorStore, VisitorStore>();
             services.AddSingleton<IWebsiteProvider, SubdomainWebsiteProvider>();
         }
 
