@@ -3,9 +3,18 @@
     "sourceId": "f8fa45f0-da1b-48a7-88d9-6245a08cc0f0",
     "name": "",
     "nameAliases": [ "msk" ],
-    "title": "������",
-    "titleWhere": "������",
-    "titleWherePre": "�",
+    "title": "Москва",
+    "titleWhere": "Москве",
+    "titleWherePre": "в",
+    "timeZone": "Europe/Moscow"
+  },
+  {
+    "sourceId": "3e2ce175-1bd5-49ea-97ce-13bf622e4186",
+    "name": "nsk",
+    "nameAliases": [ "nsk" ],
+    "title": "Новосибирск",
+    "titleWhere": "Новосибирске",
+    "titleWherePre": "в",
     "timeZone": "Europe/Moscow"
   }
 ]
