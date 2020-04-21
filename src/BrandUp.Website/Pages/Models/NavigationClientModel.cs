@@ -5,7 +5,6 @@ namespace BrandUp.Website.Pages.Models
 {
     public class NavigationClientModel
     {
-        public bool EnableAdministration { get; set; }
         public bool IsAuthenticated { get; set; }
         public string Url { get; set; }
         public string Path { get; set; }

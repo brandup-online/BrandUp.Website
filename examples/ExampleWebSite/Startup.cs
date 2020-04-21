@@ -82,14 +82,9 @@ namespace ExampleWebSite
                 .AddWebsite(options =>
                 {
                     options.MapConfiguration(Configuration);
-
-                    options.Events.OnRenderPageTitle = (context) =>
-                    {
-                        context.Title = context.PageModel.Title + " – BrandUp.Website";
-
-                        return Task.CompletedTask;
-                    };
-                });
+                })
+                .AddWebsiteEvents<ExambleWebsiteEvents>()
+                .AddPageEvents<Pages.PageEvents>();
 
             services.AddSingleton<IWebsiteStore, WebsiteStore>();
             services.AddSingleton<IVisitorStore, VisitorStore>();
@@ -128,6 +123,26 @@ namespace ExampleWebSite
             {
                 endpoints.MapRazorPages();
             });
+        }
+    }
+
+    public class ExambleWebsiteEvents : IWebsiteEvents
+    {
+        public Task RenderBodyTag(OnRenderTagContext context)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task RenderHeadTag(OnRenderTagContext context)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task RenderPageTitle(RenderPageTitleContext context)
+        {
+            context.Title = context.PageModel.Title + " – BrandUp.Website";
+
+            return Task.CompletedTask;
         }
     }
 }

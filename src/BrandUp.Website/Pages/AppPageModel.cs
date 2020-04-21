@@ -1,5 +1,4 @@
-﻿using BrandUp.Website.Identiry;
-using Microsoft.AspNetCore.Antiforgery;
+﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -11,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,12 +18,15 @@ namespace BrandUp.Website.Pages
 {
     public abstract class AppPageModel : PageModel, IPageModel
     {
-        private IPageNavigationProvider pageNavigationProvider;
+        private IPageEvents pageEvents;
+        private IWebsiteEvents websiteEvents;
         readonly static DateTime StartDate = DateTime.UtcNow;
 
         public WebsiteContext WebsiteContext { get; private set; }
         public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Start;
         public Dictionary<string, object> NavigationState { get; } = new Dictionary<string, object>();
+        public CancellationToken CancellationToken => HttpContext.RequestAborted;
+        public IServiceProvider Services => HttpContext.RequestServices;
 
         #region OpenGraph members
 
@@ -67,6 +68,7 @@ namespace BrandUp.Website.Pages
         public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
         {
             WebsiteContext = HttpContext.RequestServices.GetRequiredService<WebsiteContext>();
+            websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
 
             #region Navigation
 
@@ -88,42 +90,50 @@ namespace BrandUp.Website.Pages
                 {
                     var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
                     var protector = protectionProvider.CreateProtector("BrandUp.Pages");
-                    var requestState = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(protector.Unprotect(navStateData));
-                    if (requestState != null)
+                    try
                     {
-                        foreach (var kv in requestState)
+                        var requestState = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(protector.Unprotect(navStateData));
+                        if (requestState != null)
                         {
-                            object val;
-                            switch (kv.Value.ValueKind)
+                            foreach (var kv in requestState)
                             {
-                                case JsonValueKind.String:
-                                    val = kv.Value.GetString();
-                                    break;
-                                case JsonValueKind.False:
-                                case JsonValueKind.True:
-                                    val = kv.Value.GetBoolean();
-                                    break;
-                                case JsonValueKind.Null:
-                                    val = null;
-                                    break;
-                                case JsonValueKind.Number:
-                                    val = kv.Value.GetInt64();
-                                    break;
-                                default:
-                                    throw new InvalidOperationException();
+                                object val;
+                                switch (kv.Value.ValueKind)
+                                {
+                                    case JsonValueKind.String:
+                                        val = kv.Value.GetString();
+                                        break;
+                                    case JsonValueKind.False:
+                                    case JsonValueKind.True:
+                                        val = kv.Value.GetBoolean();
+                                        break;
+                                    case JsonValueKind.Null:
+                                        val = null;
+                                        break;
+                                    case JsonValueKind.Number:
+                                        val = kv.Value.GetInt64();
+                                        break;
+                                    default:
+                                        throw new InvalidOperationException();
+                                }
+
+                                NavigationState.Add(kv.Key, val);
                             }
 
-                            NavigationState.Add(kv.Key, val);
-                        }
-
-                        if (NavigationState.TryGetValue("_start", out object startValue))
-                        {
-                            if ((long)startValue != StartDate.Ticks)
+                            if (NavigationState.TryGetValue("_start", out object startValue))
                             {
-                                Response.Headers.Add("Page-Action", "reset");
-                                context.Result = new OkResult();
+                                if ((long)startValue != StartDate.Ticks)
+                                {
+                                    Response.Headers.Add("Page-Action", "reset");
+                                    context.Result = new OkResult();
+                                }
                             }
                         }
+                    }
+                    catch
+                    {
+                        Response.Headers.Add("Page-Action", "reset");
+                        context.Result = new OkResult();
                     }
                 }
             }
@@ -332,11 +342,26 @@ namespace BrandUp.Website.Pages
 
             #endregion
 
-            await OnInitializeAsync(context);
+            if (RequestMode == AppPageRequestMode.Start)
+            {
+                var startContext = new StartWebsiteContext(this);
+                await websiteEvents.StartAsync(startContext);
+            }
 
-            pageNavigationProvider = HttpContext.RequestServices.GetService<IPageNavigationProvider>();
-            if (pageNavigationProvider != null)
-                await pageNavigationProvider.InitializeAsync(HttpContext.RequestAborted);
+            var initializeContext = new PageRequestContext(this);
+            await OnPageRequestAsync(initializeContext);
+
+            pageEvents = HttpContext.RequestServices.GetService<IPageEvents>();
+            if (pageEvents != null)
+            {
+                await pageEvents.PageRequestAsync(initializeContext);
+
+                if (initializeContext.Result != null)
+                {
+                    context.Result = initializeContext.Result;
+                    return;
+                }
+            }
 
             if (RequestMode == AppPageRequestMode.Navigation)
             {
@@ -347,6 +372,13 @@ namespace BrandUp.Website.Pages
             }
 
             await base.OnPageHandlerExecutionAsync(context, next);
+
+            var pageRenderContext = new PageRenderContext(this);
+            await OnPageRenderAsync(pageRenderContext);
+            if (pageEvents != null)
+            {
+                await pageEvents.PageRenderAsync(pageRenderContext);
+            }
         }
 
         public void RenderPage(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
@@ -357,39 +389,7 @@ namespace BrandUp.Website.Pages
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
         }
-        internal async Task<Models.AppClientModel> GetAppClientModelAsync(CancellationToken cancellationToken = default)
-        {
-            var httpContext = HttpContext;
-            var httpRequest = httpContext.Request;
-
-            var appClientModel = new Models.AppClientModel
-            {
-                BaseUrl = httpRequest.PathBase.HasValue ? httpRequest.PathBase.Value : "/",
-                Data = new Dictionary<string, object>()
-            };
-
-            var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
-            if (antiforgery != null)
-            {
-                var antiforgeryToken = antiforgery.GetAndStoreTokens(httpContext);
-
-                appClientModel.Antiforgery = new Models.AntiforgeryModel
-                {
-                    HeaderName = antiforgeryToken.HeaderName,
-                    FormFieldName = antiforgeryToken.FormFieldName
-                };
-            }
-
-            appClientModel.Nav = await GetNavigationClientModelAsync(cancellationToken);
-
-            await OnBuildApplicationClientDataAsync(appClientModel.Data, cancellationToken);
-
-            if (pageNavigationProvider != null)
-                await pageNavigationProvider.BuildApplicationClientDataAsync(appClientModel.Data, cancellationToken);
-
-            return appClientModel;
-        }
-        private async Task<Models.NavigationClientModel> GetNavigationClientModelAsync(CancellationToken cancellationToken = default)
+        internal async Task<Models.NavigationClientModel> GetNavigationClientModelAsync()
         {
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
@@ -432,9 +432,6 @@ namespace BrandUp.Website.Pages
 
             navModel.Query.Remove("_nav");
 
-            var accessProvider = httpContext.RequestServices.GetRequiredService<IAccessProvider>();
-            navModel.EnableAdministration = await accessProvider.CheckAccessAsync(cancellationToken);
-
             var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
             if (antiforgery != null)
             {
@@ -442,20 +439,24 @@ namespace BrandUp.Website.Pages
                 navModel.ValidationToken = antiforgeryTokenSet.RequestToken;
             }
 
-            await OnBuildNavigationClientDataAsync(navModel.Data, cancellationToken);
+            var pageNavigationContext = new PageNavidationContext(this, navModel.Data);
+            await OnPageNavigationAsync(pageNavigationContext);
 
-            if (pageNavigationProvider != null)
-                await pageNavigationProvider.BuildNavigationClientDataAsync(navModel.Data, cancellationToken);
+            if (pageEvents != null)
+                await pageEvents.PageNavigationAsync(pageNavigationContext);
 
-            navModel.Page = await GetPageClientModelAsync(cancellationToken);
+            navModel.Page = await GetPageClientModelAsync();
 
             return navModel;
         }
-        private async Task<Models.PageClientModel> GetPageClientModelAsync(CancellationToken cancellationToken = default)
+        private async Task<Models.PageClientModel> GetPageClientModelAsync()
         {
+            var renderTitleContext = new RenderPageTitleContext(this);
+            await websiteEvents.RenderPageTitle(renderTitleContext);
+
             var model = new Models.PageClientModel
             {
-                Title = Title,
+                Title = renderTitleContext.Title,
                 CssClass = CssClass,
                 ScriptName = ScriptName,
                 CanonicalLink = CanonicalLink,
@@ -464,47 +465,30 @@ namespace BrandUp.Website.Pages
                 Data = new Dictionary<string, object>()
             };
 
-            var properties = GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty);
-            foreach (var p in properties)
-            {
-                var attr = p.GetCustomAttribute<ClientModelAttribute>();
-                if (attr == null)
-                    continue;
+            Helpers.ClientModelHelper.CopyProperties(this, model.Data);
 
-                var name = p.Name;
-                if (!string.IsNullOrEmpty(attr.Name))
-                    name = attr.Name;
+            var pageBuildContext = new PageBuildContext(this, model.Data);
+            await OnPageBuildAsync(pageBuildContext);
 
-                name = name.Substring(0, 1).ToLower() + name.Substring(1);
-
-                var value = p.GetValue(this);
-                if (value is Enum)
-                    value = value.ToString();
-
-                model.Data.Add(name, value);
-            }
-
-            await OnBuildPageClientDataAsync(model.Data, cancellationToken);
-
-            if (pageNavigationProvider != null)
-                await pageNavigationProvider.BuildPageClientDataAsync(model.Data, cancellationToken);
+            if (pageEvents != null)
+                await pageEvents.PageBuildAsync(pageBuildContext);
 
             return model;
         }
 
-        protected virtual Task OnInitializeAsync(PageHandlerExecutingContext context)
+        protected virtual Task OnPageRequestAsync(PageRequestContext context)
         {
             return Task.CompletedTask;
         }
-        protected virtual Task OnBuildApplicationClientDataAsync(IDictionary<string, object> data, CancellationToken cancellationToken = default)
+        protected virtual Task OnPageNavigationAsync(PageNavidationContext context)
         {
             return Task.CompletedTask;
         }
-        protected virtual Task OnBuildNavigationClientDataAsync(IDictionary<string, object> data, CancellationToken cancellationToken = default)
+        protected virtual Task OnPageBuildAsync(PageBuildContext context)
         {
             return Task.CompletedTask;
         }
-        protected virtual Task OnBuildPageClientDataAsync(IDictionary<string, object> data, CancellationToken cancellationToken = default)
+        protected virtual Task OnPageRenderAsync(PageRenderContext context)
         {
             return Task.CompletedTask;
         }

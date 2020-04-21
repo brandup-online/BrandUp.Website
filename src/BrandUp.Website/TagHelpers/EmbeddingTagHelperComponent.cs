@@ -15,12 +15,12 @@ namespace BrandUp.Website.TagHelpers
         const string LoadingClass = "bp-state-loading";
 
         private readonly IJsonHelper jsonHelper;
-        private readonly WebsiteEvents websiteEvents;
+        private readonly IWebsiteEvents websiteEvents;
 
         [HtmlAttributeNotBound, ViewContext]
         public ViewContext ViewContext { get; set; }
 
-        public EmbeddingTagHelperComponent(IJsonHelper jsonHelper, WebsiteEvents websiteEvents)
+        public EmbeddingTagHelperComponent(IJsonHelper jsonHelper, IWebsiteEvents websiteEvents)
         {
             this.jsonHelper = jsonHelper ?? throw new ArgumentNullException(nameof(jsonHelper));
             this.websiteEvents = websiteEvents ?? throw new ArgumentNullException(nameof(websiteEvents));
@@ -50,8 +50,8 @@ namespace BrandUp.Website.TagHelpers
                         output.PostContent.AppendHtml($"    <meta name=\"viewport\" content=\"{string.Join(", ", viewportParams)}\" />{Environment.NewLine}");
                     }
 
-                    var renderTitleContext = new OnRenderPageTitleContext(appPageModel);
-                    await websiteEvents.OnRenderPageTitle(renderTitleContext);
+                    var renderTitleContext = new RenderPageTitleContext(appPageModel);
+                    await websiteEvents.RenderPageTitle(renderTitleContext);
                     output.PostContent.AppendHtml($"    <title>{renderTitleContext.Title ?? ""}</title>{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Description))
@@ -74,11 +74,11 @@ namespace BrandUp.Website.TagHelpers
                             output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
                     }
 
-                    var appClientModel = await appPageModel.GetAppClientModelAsync(ViewContext.HttpContext.RequestAborted);
+                    var appClientModel = await GetAppClientModelAsync(appPageModel);
 
                     output.PostContent.AppendHtml($"    <script>var appInitOptions = {jsonHelper.Serialize(appClientModel)}</script>{Environment.NewLine}");
 
-                    await websiteEvents.OnRenderHeadTag(new OnRenderTagContext(ViewContext, context, output));
+                    await websiteEvents.RenderHeadTag(new OnRenderTagContext(ViewContext, context, output));
                 }
                 else if (string.Equals(context.TagName, "body", StringComparison.OrdinalIgnoreCase))
                 {
@@ -96,9 +96,37 @@ namespace BrandUp.Website.TagHelpers
 
                     output.Attributes.SetAttribute("class", cssClass);
 
-                    await websiteEvents.OnRenderBodyTag(new OnRenderTagContext(ViewContext, context, output));
+                    await websiteEvents.RenderBodyTag(new OnRenderTagContext(ViewContext, context, output));
                 }
             }
+        }
+
+        private async Task<Pages.Models.AppClientModel> GetAppClientModelAsync(AppPageModel appPageModel)
+        {
+            var httpContext = ViewContext.HttpContext;
+            var httpRequest = httpContext.Request;
+
+            var appClientModel = new Pages.Models.AppClientModel
+            {
+                BaseUrl = httpRequest.PathBase.HasValue ? httpRequest.PathBase.Value : "/",
+                Data = new Dictionary<string, object>()
+            };
+
+            var antiforgery = httpContext.RequestServices.GetService<Microsoft.AspNetCore.Antiforgery.IAntiforgery>();
+            if (antiforgery != null)
+            {
+                var antiforgeryToken = antiforgery.GetAndStoreTokens(httpContext);
+
+                appClientModel.Antiforgery = new Pages.Models.AntiforgeryModel
+                {
+                    HeaderName = antiforgeryToken.HeaderName,
+                    FormFieldName = antiforgeryToken.FormFieldName
+                };
+            }
+
+            appClientModel.Nav = await appPageModel.GetNavigationClientModelAsync();
+
+            return appClientModel;
         }
     }
 }

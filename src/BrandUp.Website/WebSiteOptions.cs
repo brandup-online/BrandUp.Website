@@ -5,7 +5,6 @@
         public string Host { get; set; } = "localhost";
         public string[] Aliases { get; set; }
         public WebsiteAdaptiveOptions Adaptive { get; set; } = new WebsiteAdaptiveOptions();
-        public WebsiteEvents Events { get; } = new WebsiteEvents();
 
         public void Validate()
         {

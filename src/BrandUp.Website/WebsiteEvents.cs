@@ -1,20 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using BrandUp.Website.Pages;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BrandUp.Website
 {
-    public class WebsiteEvents
+    public class DefaultWebsiteEvents : IWebsiteEvents
     {
-        public Func<OnRenderTagContext, Task> OnRenderHeadTag { get; set; } = (context) => Task.CompletedTask;
-        public Func<OnRenderTagContext, Task> OnRenderBodyTag { get; set; } = (context) => Task.CompletedTask;
-        public Func<OnRenderPageTitleContext, Task> OnRenderPageTitle { get; set; } = (context) =>
+        public Task StartAsync(StartWebsiteContext context)
+        {
+            return Task.CompletedTask;
+        }
+        public Task RenderBodyTag(OnRenderTagContext context)
+        {
+            return Task.CompletedTask;
+        }
+        public Task RenderHeadTag(OnRenderTagContext context)
+        {
+            return Task.CompletedTask;
+        }
+        public Task RenderPageTitle(RenderPageTitleContext context)
         {
             context.Title = context.PageModel.Title;
 
             return Task.CompletedTask;
-        };
+        }
+    }
+
+    public interface IWebsiteEvents
+    {
+        Task StartAsync(StartWebsiteContext context);
+        Task RenderHeadTag(OnRenderTagContext context);
+        Task RenderBodyTag(OnRenderTagContext context);
+        Task RenderPageTitle(RenderPageTitleContext context);
+    }
+
+    public class StartWebsiteContext : WebsiteEventContext
+    {
+        public IDictionary<string, object> ClientData { get; }
+
+        public StartWebsiteContext(AppPageModel pageModel, IDictionary<string, object> clientData) : base(pageModel)
+        {
+            ClientData = clientData ?? throw new ArgumentNullException(nameof(clientData));
+        }
     }
 
     public class OnRenderTagContext
@@ -31,12 +63,23 @@ namespace BrandUp.Website
         }
     }
 
-    public class OnRenderPageTitleContext
+    public class RenderPageTitleContext : WebsiteEventContext
     {
-        public Pages.AppPageModel PageModel { get; }
         public string Title { get; set; }
 
-        public OnRenderPageTitleContext(Pages.AppPageModel pageModel)
+        public RenderPageTitleContext(AppPageModel pageModel) : base(pageModel) { }
+    }
+
+    public class WebsiteEventContext
+    {
+        public AppPageModel PageModel { get; }
+        public HttpContext Http => PageModel.HttpContext;
+        public CancellationToken CancellationToken => PageModel.CancellationToken;
+        public IServiceProvider Services => PageModel.Services;
+        public AppPageRequestMode RequestMode => PageModel.RequestMode;
+        public WebsiteContext Website => PageModel.WebsiteContext;
+
+        public WebsiteEventContext(AppPageModel pageModel)
         {
             PageModel = pageModel ?? throw new ArgumentNullException(nameof(pageModel));
         }

@@ -20,7 +20,6 @@ export interface AntiforgeryModel {
 }
 
 export interface NavigationModel {
-    enableAdministration: boolean;
     isAuthenticated: boolean,
     url: string;
     path: string;
