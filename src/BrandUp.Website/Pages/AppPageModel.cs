@@ -342,12 +342,6 @@ namespace BrandUp.Website.Pages
 
             #endregion
 
-            if (RequestMode == AppPageRequestMode.Start)
-            {
-                var startContext = new StartWebsiteContext(this);
-                await websiteEvents.StartAsync(startContext);
-            }
-
             var initializeContext = new PageRequestContext(this);
             await OnPageRequestAsync(initializeContext);
 

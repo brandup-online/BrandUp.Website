@@ -122,12 +122,18 @@ namespace ExampleWebSite
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+                endpoints.MapControllers();
             });
         }
     }
 
     public class ExambleWebsiteEvents : IWebsiteEvents
     {
+        public Task StartAsync(StartWebsiteContext context)
+        {
+            return Task.CompletedTask;
+        }
+
         public Task RenderBodyTag(OnRenderTagContext context)
         {
             return Task.CompletedTask;

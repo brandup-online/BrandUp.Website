@@ -124,6 +124,9 @@ namespace BrandUp.Website.TagHelpers
                 };
             }
 
+            var startContext = new StartWebsiteContext(appPageModel, appClientModel.Data);
+            await websiteEvents.StartAsync(startContext);
+
             appClientModel.Nav = await appPageModel.GetNavigationClientModelAsync();
 
             return appClientModel;

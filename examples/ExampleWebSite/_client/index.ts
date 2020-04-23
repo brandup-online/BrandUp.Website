@@ -9,10 +9,10 @@ const initApp = (app: Application<WebsiteClientModel>) => {
         if (!isRenderCities) {
             isRenderCities = true;
             elem.insertAdjacentElement("afterend", DOM.tag("div", { class: "cities" }, DOM.tag("ul", null, [
-                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city", "data-city-id": "" }, "Москва")),
-                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city" }, "Новосибирск")),
-                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city" }, "Омск")),
-                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city" }, "Томск"))
+                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city", "data-city-id": "1" }, "Москва")),
+                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city", "data-city-id": "2" }, "Новосибирск")),
+                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city", "data-city-id": "3" }, "Омск")),
+                DOM.tag("li", null, DOM.tag("a", { href: "", "data-command": "select-city", "data-city-id": "4" }, "Томск"))
             ])));
         }
 
