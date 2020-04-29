@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Http;
 
 namespace ExampleWebSite.Api.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : ApiController
     {
         readonly static Guid userId = new Guid("1df7d641-2fd4-415a-8530-7b0a2afa88ae");
         readonly static string userName = "test";
@@ -32,7 +32,7 @@ namespace ExampleWebSite.Api.Controllers
                 ExpiresUtc = DateTime.Now.AddMonths(1)
             };
 
-            await HttpContext.SignInAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+            await Context.SignInAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
             return Ok();
         }
@@ -40,7 +40,7 @@ namespace ExampleWebSite.Api.Controllers
         [HttpPost("signout")]
         public async Task<IActionResult> SingOutAsync()
         {
-            await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+            await Context.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
 
             return Ok();
         }
