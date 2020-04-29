@@ -53,6 +53,50 @@ namespace BrandUp.Website.Tests.Integration
             Assert.Equal(statusCode, response.StatusCode);
             Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
         }
+
+        [Theory]
+        [InlineData("http://localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("http://www.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("https://www.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("https://test.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("http://test.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("https://www.test.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("http://www.test.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("http://msk.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("https://msk.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        public async Task Redirect_path(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
+        {
+            factory.ClientOptions.BaseAddress = new Uri(baseAddress);
+            factory.ClientOptions.AllowAutoRedirect = false;
+
+            using var client = factory.CreateClient();
+            var response = await client.GetAsync(path);
+
+            Assert.Equal(statusCode, response.StatusCode);
+            Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
+        }
+
+        [Theory]
+        [InlineData("http://localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("http://www.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("https://www.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("https://test.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("http://test.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("https://www.test.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("http://www.test.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("http://msk.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("https://msk.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        public async Task Redirect_path_and_query(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
+        {
+            factory.ClientOptions.BaseAddress = new Uri(baseAddress);
+            factory.ClientOptions.AllowAutoRedirect = false;
+
+            using var client = factory.CreateClient();
+            var response = await client.GetAsync(path);
+
+            Assert.Equal(statusCode, response.StatusCode);
+            Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
+        }
     }
 
     public class CustomWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Startup>

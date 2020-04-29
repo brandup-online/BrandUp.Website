@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Company>BrandUp.online</Company>
+    <Authors>Dmitry Kovyazin</Authors>
   </PropertyGroup>
 
   <ItemGroup>

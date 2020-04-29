@@ -13,7 +13,7 @@ namespace BrandUp.Website
 
         public static IWebsiteBuilder AddWebsite(this IServiceCollection services, Action<WebsiteOptions> setupAction)
         {
-            services.Configure(setupAction);
+            services.Configure(setupAction).PostConfigure<WebsiteOptions>(options => options.Validate());
             return new WebsiteBuilder(services);
         }
     }

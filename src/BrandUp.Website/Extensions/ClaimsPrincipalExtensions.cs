@@ -6,7 +6,7 @@ namespace BrandUp.Website
     {
         public static string GetVisitorId(this ClaimsPrincipal principal)
         {
-            return principal.FindFirstValue(Constants.VisitorKeyName);
+            return principal.FindFirstValue(Constants.VisitorClaimName);
         }
     }
 }

@@ -33,6 +33,32 @@ const initApp = (app: Application<WebsiteClientModel>) => {
         }
         document.body.classList.remove("show-cities");
     });
+
+    app.registerCommand("signin", () => {
+        ajaxRequest({
+            url: app.uri("/api/auth/signin"),
+            method: "POST",
+            success: (data, status) => {
+                if (status === 200)
+                    app.reload();
+                else
+                    alert("error signin");
+            }
+        });
+    });
+
+    app.registerCommand("signout", () => {
+        ajaxRequest({
+            url: app.uri("/api/auth/signout"),
+            method: "POST",
+            success: (data, status) => {
+                if (status === 200)
+                    app.reload();
+                else
+                    alert("error signout");
+            }
+        });
+    });
 }
 
 export const appManager = Application.setup<WebsiteClientModel>({

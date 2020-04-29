@@ -22,6 +22,8 @@ namespace ExampleWebSite
         {
             services.AddRazorPages();
 
+            #region Web
+
             services
                 .AddResponseCompression(options =>
                 {
@@ -51,11 +53,12 @@ namespace ExampleWebSite
             {
                 options.LowercaseUrls = true;
                 options.AppendTrailingSlash = false;
+                options.LowercaseQueryStrings = true;
             });
 
             services.AddAntiforgery(options =>
             {
-                options.Cookie.Name = "bu_af";
+                options.Cookie.Name = "ExampleWebSite_af";
                 options.Cookie.HttpOnly = true;
                 //options.Cookie.Domain = websiteOptions.Host;
                 options.Cookie.Path = "/";
@@ -76,7 +79,22 @@ namespace ExampleWebSite
                 options.AllowSynchronousIO = true;
             });
 
+            #endregion
+
             services.AddHttpContextAccessor();
+
+            #region Authentication
+
+            services
+                .AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, options =>
+                {
+                    options.Cookie.Name = "ExampleWebSite_id";
+                    options.SlidingExpiration = true;
+                    options.ReturnUrlParameter = "returnUrl";
+                });
+
+            #endregion
 
             services
                 .AddWebsite(options =>
@@ -84,11 +102,10 @@ namespace ExampleWebSite
                     options.MapConfiguration(Configuration);
                 })
                 .AddWebsiteEvents<ExambleWebsiteEvents>()
-                .AddPageEvents<Pages.PageEvents>();
-
-            services.AddSingleton<IWebsiteStore, WebsiteStore>();
-            services.AddSingleton<IVisitorStore, VisitorStore>();
-            services.AddSingleton<IWebsiteProvider, SubdomainWebsiteProvider>();
+                .AddPageEvents<Pages.PageEvents>()
+                .AddWebsiteProvider<SubdomainWebsiteProvider>()
+                .AddWebsiteStore<WebsiteStore>(ServiceLifetime.Singleton)
+                .AddVisitorStore<VisitorStore>(ServiceLifetime.Singleton);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -117,6 +134,7 @@ namespace ExampleWebSite
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

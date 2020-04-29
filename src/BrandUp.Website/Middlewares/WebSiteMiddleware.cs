@@ -87,7 +87,6 @@ namespace BrandUp.Website.Middlewares
                 return;
             }
 
-            var redirectedToAlias = false;
             var aliases = await websiteStore.GetAliasesAsync(website);
             if (aliases != null && aliases.Length > 0)
             {
@@ -100,13 +99,12 @@ namespace BrandUp.Website.Middlewares
 
                         context.Response.StatusCode = 301;
                         context.Response.Headers.Add("Location", redirectUrl);
-
-                        redirectedToAlias = true;
+                        return;
                     }
                 }
             }
 
-            if (!redirectedToAlias && needRedirectToHttps)
+            if (needRedirectToHttps)
             {
                 var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: request.Host, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 

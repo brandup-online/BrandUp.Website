@@ -19,6 +19,15 @@
                     <li><a asp-page="/Payment" class="applink">Способы оплаты</a></li>
                     <li><a asp-page="/Delivery" class="applink">Доставка</a></li>
                     <li><a asp-page="/Contacts" class="applink">Контакты</a></li>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li><a href="#" rel="nofollow" data-command="signout">Выход</a></li>
+                    }
+                    else
+                    {
+
+                        <li><a href="#" rel="nofollow" data-command="signin">Вход</a></li>
+                    }
                 </ul>
             </div>
         </nav>

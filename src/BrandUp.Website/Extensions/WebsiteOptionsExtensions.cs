@@ -20,6 +20,8 @@ namespace BrandUp.Website
                 throw new InvalidOperationException();
 
             section.Bind(options);
+
+            options.Validate();
         }
 
         public static void MapConfiguration(this WebsiteOptions options, IConfiguration configuration)

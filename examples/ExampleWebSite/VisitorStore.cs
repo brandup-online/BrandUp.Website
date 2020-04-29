@@ -8,6 +8,7 @@ namespace ExampleWebSite
     public class VisitorStore : IVisitorStore
     {
         readonly Dictionary<string, Customer> items = new Dictionary<string, Customer>();
+        readonly Dictionary<string, string> userIds = new Dictionary<string, string>();
 
         public Task<IVisitor> CreateNewAsync(string websiteId)
         {
@@ -37,6 +38,19 @@ namespace ExampleWebSite
 
             return Task.CompletedTask;
         }
+        public Task SetUserAsync(IVisitor visitor, string userId)
+        {
+            var v = visitor as Customer ?? throw new ArgumentException();
+
+            v.UserId = userId;
+
+            if (!string.IsNullOrEmpty(userId))
+                userIds[userId] = v.Id;
+            else if (!string.IsNullOrEmpty(v.UserId))
+                userIds.Remove(v.UserId);
+
+            return Task.CompletedTask;
+        }
         public Task UpdateLastVisitDateAsync(IVisitor visitor, DateTime dateTime)
         {
             var v = visitor as Customer ?? throw new ArgumentException();
@@ -54,6 +68,16 @@ namespace ExampleWebSite
 
             return Task.CompletedTask;
         }
+        public Task<IVisitor> FindByUserIdAsync(string id)
+        {
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (!userIds.TryGetValue(id, out string visitorId))
+                return Task.FromResult<IVisitor>(null);
+
+            return Task.FromResult<IVisitor>(items[visitorId]);
+        }
     }
 
     public class Customer : IVisitor
@@ -61,5 +85,6 @@ namespace ExampleWebSite
         public string Id { get; } = Guid.NewGuid().ToString().ToLower();
         public string WebsiteId { get; set; }
         public DateTime LastVisitDate { get; set; }
+        public string UserId { get; set; }
     }
 }

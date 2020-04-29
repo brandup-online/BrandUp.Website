@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -69,6 +68,12 @@ namespace BrandUp.Website.Pages
         {
             WebsiteContext = HttpContext.RequestServices.GetRequiredService<WebsiteContext>();
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
+
+            var request = Request;
+            var isGetRequest = request.Method == "GET";
+            var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
+            var webSiteHost = webSiteOptions.Value.Host;
+            var cookiesPrefix = webSiteOptions.Value.CookiesPrefix;
 
             #region Navigation
 
@@ -145,42 +150,29 @@ namespace BrandUp.Website.Pages
             #region Visitor
 
             IVisitor visitor = null;
-            var request = Request;
-            var isGetRequest = request.Method == "GET";
-            var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
             var visitorStore = HttpContext.RequestServices.GetRequiredService<IVisitorStore>();
-            var webSiteHost = webSiteOptions.Value.Host;
-
+            var accessProvider = HttpContext.RequestServices.GetRequiredService<Identity.IAccessProvider>();
+            var visitorCookieName = $"{cookiesPrefix}_v";
             var user = User;
-            if (user.Identity.IsAuthenticated)
+            if (await accessProvider.IsAuthenticatedAsync())
             {
-                var userVisitorId = user.GetVisitorId();
-                if (userVisitorId == null)
-                {
-                    context.Result = BadRequest();
-                    return;
-                }
+                var userId = await accessProvider.GetUserIdAsync();
+                if (string.IsNullOrEmpty(userId))
+                    throw new InvalidOperationException();
 
-                visitor = await visitorStore.FindByIdAsync(userVisitorId);
+                visitor = await visitorStore.FindByUserIdAsync(userId);
                 if (visitor == null)
                 {
-                    await HttpContext.SignOutAsync();
-
-                    if (RequestMode == AppPageRequestMode.Navigation)
-                    {
-                        Response.Headers.Add("Page-Location", Url.Page(string.Empty));
-                        context.Result = new OkResult();
-                        return;
-                    }
-                    else
-                    {
-                        context.Result = Redirect(Url.Page(string.Empty));
-                    }
-
-                    return;
+                    visitor = await visitorStore.CreateNewAsync(WebsiteContext.Website.Id);
+                    await visitorStore.SetUserAsync(visitor, userId);
+                }
+                else
+                {
+                    if (string.Equals(visitor.WebsiteId, WebsiteContext.Website.Id, StringComparison.InvariantCultureIgnoreCase))
+                        await visitorStore.SetWebsiteAsync(visitor, WebsiteContext.Website.Id);
                 }
 
-                if (isGetRequest && request.Cookies.ContainsKey(Constants.VisitorKeyName))
+                if (request.Cookies.ContainsKey(visitorCookieName))
                 {
                     // Удаляем значение клиента в cookie, если оно есть, так как его не должно быть для авторизованного пользователя.
 
@@ -188,20 +180,20 @@ namespace BrandUp.Website.Pages
                     {
                         HttpOnly = true,
                         Secure = true,
-                        Expires = DateTimeOffset.UtcNow.AddMonths(6),
+                        Expires = DateTimeOffset.UtcNow.AddMonths(-6),
                         Domain = webSiteHost,
                         Path = "/"
                     };
 
-                    Response.Cookies.Delete(Constants.VisitorKeyName, cookieOptions);
+                    Response.Cookies.Delete(visitorCookieName, cookieOptions);
                 }
             }
             else
             {
                 var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-                var protector = protectionProvider.CreateProtector("elka.store");
+                var protector = protectionProvider.CreateProtector(webSiteOptions.Value.ProtectionPurpose);
 
-                if (request.Cookies.TryGetValue(Constants.VisitorKeyName, out string visitorIdValue))
+                if (request.Cookies.TryGetValue(visitorCookieName, out string visitorIdValue))
                 {
                     try
                     {
@@ -213,12 +205,12 @@ namespace BrandUp.Website.Pages
 
                 if (visitor == null)
                 {
-                    if (isGetRequest)
+                    if (isGetRequest || RequestMode == AppPageRequestMode.Navigation)
                     {
                         // Создаём нового посетителя, только при GET запросе.
 
                         visitor = await visitorStore.CreateNewAsync(WebsiteContext.Website.Id);
-                        HttpContext.Items[Constants.VisitorKeyName] = visitor.Id;
+                        HttpContext.Items[Constants.VisitorHttpContextKeyName] = visitor.Id;
 
                         var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
                         {
@@ -230,7 +222,7 @@ namespace BrandUp.Website.Pages
                             Path = "/"
                         };
 
-                        Response.Cookies.Append(Constants.VisitorKeyName, protector.Protect(visitor.Id), cookieOptions);
+                        Response.Cookies.Append(visitorCookieName, protector.Protect(visitor.Id), cookieOptions);
                     }
                     else
                     {
@@ -247,10 +239,11 @@ namespace BrandUp.Website.Pages
 
             WebsiteContext.Visitor = visitor;
 
-            #region Обработка города
+            #region City
 
             var website = WebsiteContext.Website;
             var websiteStore = HttpContext.RequestServices.GetRequiredService<IWebsiteStore>();
+            var cityCookieName = $"{cookiesPrefix}_w";
             if (string.IsNullOrEmpty(visitor.WebsiteId))
             {
                 // Если для посетителя еще не задан город.
@@ -260,7 +253,7 @@ namespace BrandUp.Website.Pages
                     return;
                 }
 
-                if (request.Cookies.TryGetValue("es_c", out string cookieWebsiteId) && cookieWebsiteId != website.Id)
+                if (request.Cookies.TryGetValue(cityCookieName, out string cookieWebsiteId) && cookieWebsiteId != website.Id)
                 {
                     var cookieWebsite = await websiteStore.FindByIdAsync(cookieWebsiteId);
                     if (cookieWebsite != null)
@@ -299,7 +292,7 @@ namespace BrandUp.Website.Pages
                         Domain = webSiteHost,
                         Path = "/"
                     };
-                    Response.Cookies.Delete("es_c", cookieOptions);
+                    Response.Cookies.Delete(cityCookieName, cookieOptions);
                 }
 
                 await visitorStore.SetWebsiteAsync(visitor, website.Id);
@@ -308,7 +301,7 @@ namespace BrandUp.Website.Pages
             {
                 if (website.Id != visitor.WebsiteId)
                 {
-                    // Если город посетителя не совпадает с городом домена, то редирект.
+                    // Если сайт посетителя не совпадает с сайтом домена в запросе, то редирект.
 
                     var visitorWebsite = await websiteStore.FindByIdAsync(visitor.WebsiteId);
                     var redirectUrl = string.Concat(request.Scheme, "://", !string.IsNullOrEmpty(visitorWebsite.Name) ? visitorWebsite.Name + "." : "", webSiteHost, request.PathBase.ToUriComponent(), request.Path.ToUriComponent());
