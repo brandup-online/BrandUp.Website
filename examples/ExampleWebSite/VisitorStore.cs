@@ -78,6 +78,8 @@ namespace ExampleWebSite
 
             return Task.FromResult<IVisitor>(items[visitorId]);
         }
+
+        public int Count => items.Count;
     }
 
     public class Customer : IVisitor
