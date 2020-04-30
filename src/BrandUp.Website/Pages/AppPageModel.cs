@@ -159,8 +159,8 @@ namespace BrandUp.Website.Pages
             #region Visitor
 
             IVisitor visitor = null;
-            var visitorStore = HttpContext.RequestServices.GetRequiredService<IVisitorStore>();
-            if (!isBot)
+            var visitorStore = HttpContext.RequestServices.GetService<IVisitorStore>();
+            if (!isBot && visitorStore != null)
             {
                 var accessProvider = HttpContext.RequestServices.GetRequiredService<Identity.IAccessProvider>();
                 var visitorCookieName = $"{cookiesPrefix}_v";

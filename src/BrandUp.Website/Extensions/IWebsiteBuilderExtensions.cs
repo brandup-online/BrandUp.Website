@@ -6,6 +6,12 @@ namespace BrandUp.Website
 {
     public static class IWebsiteBuilderExtensions
     {
+        public static IWebsiteBuilder AddSingleWebsite(this IWebsiteBuilder builder, string title)
+        {
+            builder.Services.Add(new ServiceDescriptor(typeof(IWebsiteStore), new SingleWebsiteStore(title)));
+            return builder;
+        }
+
         public static IWebsiteBuilder AddWebsiteEvents<T>(this IWebsiteBuilder builder)
             where T : class, IWebsiteEvents
         {
