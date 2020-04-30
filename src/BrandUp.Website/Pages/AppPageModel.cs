@@ -239,7 +239,7 @@ namespace BrandUp.Website.Pages
 
             WebsiteContext.Visitor = visitor;
 
-            #region City
+            #region Website
 
             var website = WebsiteContext.Website;
             var websiteStore = HttpContext.RequestServices.GetRequiredService<IWebsiteStore>();
