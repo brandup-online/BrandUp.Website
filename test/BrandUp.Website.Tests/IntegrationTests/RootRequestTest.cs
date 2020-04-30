@@ -7,7 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace BrandUp.Website.Tests.Integration
+namespace BrandUp.Website.IntegrationTests
 {
     public class RootRequestTest : IClassFixture<CustomWebApplicationFactory>
     {

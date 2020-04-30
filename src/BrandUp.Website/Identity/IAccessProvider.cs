@@ -1,59 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Security.Claims;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace BrandUp.Website.Identity
 {
     public interface IAccessProvider
     {
+        /// <summary>
+        /// Get current user ID.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         Task<string> GetUserIdAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Check is authenticated.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         Task<bool> IsAuthenticatedAsync(CancellationToken cancellationToken = default);
-    }
-
-    public class EmptyAccessProvider : IAccessProvider
-    {
-        public Task<bool> IsAuthenticatedAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(false);
-        }
-
-        public Task<string> GetUserIdAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<string>(null);
-        }
-    }
-
-    public class HttpAccessProvider : IAccessProvider
-    {
-        readonly IHttpContextAccessor httpContextAccessor;
-
-        public HttpAccessProvider(IHttpContextAccessor httpContextAccessor)
-        {
-            this.httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-        }
-
-        public Task<bool> IsAuthenticatedAsync(CancellationToken cancellationToken = default)
-        {
-            var httpContext = httpContextAccessor.HttpContext;
-            return Task.FromResult(IsAuthenticated(httpContext));
-        }
-
-        public Task<string> GetUserIdAsync(CancellationToken cancellationToken = default)
-        {
-            var httpContext = httpContextAccessor.HttpContext;
-            if (!IsAuthenticated(httpContext))
-                return Task.FromResult<string>(null);
-            return Task.FromResult(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        }
-
-        private static bool IsAuthenticated(HttpContext httpContext)
-        {
-            if (httpContext == null)
-                throw new ArgumentNullException(nameof(httpContext));
-
-            return httpContext.User != null && httpContext.User.Identity.IsAuthenticated;
-        }
     }
 }

@@ -31,26 +31,29 @@ namespace BrandUp.Website.Helpers
             var clientProperties = new List<ClientProperty>();
 
             var modelProperties = model.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty);
-            foreach (var p in modelProperties)
+            foreach (var propertyInfo in modelProperties)
             {
-                var attr = p.GetCustomAttribute<Pages.ClientModelAttribute>();
+                var attr = propertyInfo.GetCustomAttribute<ClientPropertyAttribute>();
                 if (attr == null)
                     continue;
 
-                var name = p.Name;
+                var name = propertyInfo.Name;
                 if (!string.IsNullOrEmpty(attr.Name))
                     name = attr.Name;
 
-                name = name.Substring(0, 1).ToLower() + name.Substring(1);
-
                 clientProperties.Add(new ClientProperty
                 {
-                    ModelProperty = p,
-                    ClientName = name
+                    ModelProperty = propertyInfo,
+                    ClientName = NormalizeName(name)
                 });
             }
 
             return clientProperties;
+        }
+
+        private static string NormalizeName(string value)
+        {
+            return value.Substring(0, 1).ToLower() + value.Substring(1);
         }
 
         class ClientProperty
