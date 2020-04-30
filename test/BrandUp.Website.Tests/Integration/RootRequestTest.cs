@@ -103,13 +103,15 @@ namespace BrandUp.Website.Tests.Integration
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.ConfigureTestServices(services =>
-            {
-                services.Configure<WebsiteOptions>((options) =>
+            builder
+                .UseEnvironment("Test")
+                .ConfigureTestServices(services =>
                 {
-                    options.Aliases = new string[] { "alias.ru" };
+                    services.Configure<WebsiteOptions>((options) =>
+                    {
+                        options.Aliases = new string[] { "alias.ru" };
+                    });
                 });
-            });
         }
     }
 }
