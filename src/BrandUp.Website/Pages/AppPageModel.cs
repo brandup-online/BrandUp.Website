@@ -147,9 +147,7 @@ namespace BrandUp.Website.Pages
                             if (NavigationState.TryGetValue("_area", out object areaNameValue))
                                 navAreaName = (string)areaNameValue;
 
-                            string curAreaName = string.Empty;
-                            if (RouteData.Values.TryGetValue("area", out areaNameValue))
-                                curAreaName = (string)areaNameValue;
+                            RouteData.TryGetAreaName(out string curAreaName);
 
                             if (navAreaName == null || !string.Equals(navAreaName, curAreaName, StringComparison.InvariantCultureIgnoreCase))
                                 throw new InvalidOperationException("Не задана или смена области страниц.");
@@ -166,9 +164,7 @@ namespace BrandUp.Website.Pages
             {
                 NavigationState.Add("_start", StartDate.Ticks);
 
-                string areaName = string.Empty;
-                if (RouteData.Values.TryGetValue("area", out object areaNameValue))
-                    areaName = (string)areaNameValue;
+                RouteData.TryGetAreaName(out string areaName);
 
                 NavigationState.Add("_area", areaName.ToLower());
             }
