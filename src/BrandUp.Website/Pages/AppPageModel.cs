@@ -142,6 +142,17 @@ namespace BrandUp.Website.Pages
                                     context.Result = new OkResult();
                                 }
                             }
+
+                            string navAreaName = null;
+                            if (NavigationState.TryGetValue("_area", out object areaNameValue))
+                                navAreaName = (string)areaNameValue;
+
+                            string curAreaName = string.Empty;
+                            if (RouteData.Values.TryGetValue("area", out areaNameValue))
+                                curAreaName = (string)areaNameValue;
+
+                            if (navAreaName == null || !string.Equals(navAreaName, curAreaName, StringComparison.InvariantCultureIgnoreCase))
+                                throw new InvalidOperationException("Не задана или смена области страниц.");
                         }
                     }
                     catch
@@ -152,7 +163,15 @@ namespace BrandUp.Website.Pages
                 }
             }
             else
+            {
                 NavigationState.Add("_start", StartDate.Ticks);
+
+                string areaName = string.Empty;
+                if (RouteData.Values.TryGetValue("area", out object areaNameValue))
+                    areaName = (string)areaNameValue;
+
+                NavigationState.Add("_area", areaName.ToLower());
+            }
 
             #endregion
 
