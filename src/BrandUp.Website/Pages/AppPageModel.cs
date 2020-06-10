@@ -370,19 +370,17 @@ namespace BrandUp.Website.Pages
 
             #endregion
 
-            var initializeContext = new PageRequestContext(this);
-            await OnPageRequestAsync(initializeContext);
+            var pageRequestContext = new PageRequestContext(this);
+            await OnPageRequestAsync(pageRequestContext);
 
             pageEvents = HttpContext.RequestServices.GetService<IPageEvents>();
             if (pageEvents != null)
-            {
-                await pageEvents.PageRequestAsync(initializeContext);
+                await pageEvents.PageRequestAsync(pageRequestContext);
 
-                if (initializeContext.Result != null)
-                {
-                    context.Result = initializeContext.Result;
-                    return;
-                }
+            if (pageRequestContext.Result != null)
+            {
+                context.Result = pageRequestContext.Result;
+                return;
             }
 
             if (RequestMode == AppPageRequestMode.Navigation)
@@ -398,9 +396,7 @@ namespace BrandUp.Website.Pages
             var pageRenderContext = new PageRenderContext(this);
             await OnPageRenderAsync(pageRenderContext);
             if (pageEvents != null)
-            {
                 await pageEvents.PageRenderAsync(pageRenderContext);
-            }
         }
 
         #endregion
