@@ -10,7 +10,7 @@ namespace BrandUp.Website
             if (httpContext == null)
                 throw new ArgumentNullException(nameof(httpContext));
 
-            return (WebsiteContext)httpContext.Items[Middlewares.WebSiteMiddleware.HttpContextWebsiteKey];
+            return (WebsiteContext)httpContext.Items[Middlewares.WebsiteMiddleware.HttpContextWebsiteKey];
         }
     }
 }

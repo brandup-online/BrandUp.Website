@@ -6,7 +6,7 @@ namespace BrandUp.Website
     {
         public static IApplicationBuilder UseWebsite(this IApplicationBuilder applicationBuilder)
         {
-            applicationBuilder.UseMiddleware<Middlewares.WebSiteMiddleware>();
+            applicationBuilder.UseMiddleware<Middlewares.WebsiteMiddleware>();
 
             return applicationBuilder;
         }

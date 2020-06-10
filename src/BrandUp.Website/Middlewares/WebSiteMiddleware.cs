@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BrandUp.Website.Middlewares
 {
-    public class WebSiteMiddleware
+    public class WebsiteMiddleware
     {
         public const string HttpContextWebsiteKey = "BRANDUP-WEBSITE-CONTEXT";
         public const string HttpContextDomainIsAliasKey = "BRANDUP-WEBSITE-ISALIAS";
@@ -17,7 +17,7 @@ namespace BrandUp.Website.Middlewares
         private readonly IWebsiteProvider websiteProvider;
         private readonly string webSiteHost;
 
-        public WebSiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions, IWebsiteStore websiteStore, IWebsiteProvider websiteProvider)
+        public WebsiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions, IWebsiteStore websiteStore, IWebsiteProvider websiteProvider)
         {
             this.next = next ?? throw new ArgumentNullException(nameof(next));
             this.webSiteOptions = webSiteOptions ?? throw new ArgumentNullException(nameof(webSiteOptions));

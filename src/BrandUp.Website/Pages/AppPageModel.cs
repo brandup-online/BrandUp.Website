@@ -21,11 +21,15 @@ namespace BrandUp.Website.Pages
         private IWebsiteEvents websiteEvents;
         readonly static DateTime StartDate = DateTime.UtcNow;
 
+        #region Properties
+
         public WebsiteContext WebsiteContext { get; private set; }
         public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Start;
         public Dictionary<string, object> NavigationState { get; } = new Dictionary<string, object>();
         public CancellationToken CancellationToken => HttpContext.RequestAborted;
         public IServiceProvider Services => HttpContext.RequestServices;
+
+        #endregion
 
         #region OpenGraph members
 
@@ -63,6 +67,8 @@ namespace BrandUp.Website.Pages
         public virtual string CanonicalLink => null;
 
         #endregion
+
+        #region PageModel members
 
         public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
         {
@@ -397,6 +403,8 @@ namespace BrandUp.Website.Pages
             }
         }
 
+        #endregion
+
         public void RenderPage(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
         {
             if (page == null)
@@ -492,6 +500,8 @@ namespace BrandUp.Website.Pages
             return model;
         }
 
+        #region Page lifetime methods
+
         protected virtual Task OnPageRequestAsync(PageRequestContext context)
         {
             return Task.CompletedTask;
@@ -508,13 +518,20 @@ namespace BrandUp.Website.Pages
         {
             return Task.CompletedTask;
         }
-    }
 
-    public enum AppPageRequestMode
-    {
-        Start,
-        Navigation,
-        Content
+        #endregion
+
+        #region Result methods
+
+        public Results.PageRedirectResult PageRedirect(string pageUrl, bool permament = false)
+        {
+            if (pageUrl == null)
+                throw new ArgumentNullException(nameof(pageUrl));
+
+            return new Results.PageRedirectResult(this, pageUrl, permament);
+        }
+
+        #endregion
     }
 
     public class OpenGraphModel

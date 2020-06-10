@@ -342,12 +342,21 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
             url: navState.url,
             urlParams: { _content: "" },
             disableCache: true,
-            success: (data: string, status: number) => {
+            success: (data: string, status: number, xhr: XMLHttpRequest) => {
                 if (navSequence !== this.__navCounter)
                     return;
 
                 switch (status) {
                     case 200: {
+                        const redirectLocation = xhr.getResponseHeader("Page-Location");
+                        if (redirectLocation) {
+                            if (redirectLocation.startsWith("/"))
+                                this.navigate(redirectLocation);
+                            else
+                                location.href = redirectLocation;
+                            return;
+                        }
+
                         this.__loadPageScript(navState, pageModel, data ? data : "", scrollToTop, pushState);
 
                         this.raiseEvent("pageContentLoaded");
@@ -562,7 +571,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
         if (window["appInitOptions"]) {
             const appModel = window["appInitOptions"] as TModel;
             const app = new Application<TModel>(appModel, options);
-            
+
             setTimeout(() => {
                 let isInitiated = false;
                 const appInitFunc = () => {
