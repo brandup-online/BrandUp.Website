@@ -117,7 +117,7 @@ namespace BrandUp.Website.Middlewares
 
             var websiteContext = new WebsiteContext(context, website, websitemTimeZone);
 
-            context.Items.Add(HttpContextWebsiteKey, websiteContext);
+            context.Items[HttpContextWebsiteKey] = websiteContext;
 
             await next(context);
         }
