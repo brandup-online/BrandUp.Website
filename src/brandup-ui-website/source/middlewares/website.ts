@@ -2,7 +2,6 @@ import { DOM, ajaxRequest, Utility, AjaxRequestOptions } from "brandup-ui";
 import { Middleware, ApplicationModel, NavigateContext } from "brandup-ui-app";
 import { NavigationModel, PageModel, PageNavState, AntiforgeryOptions } from "../common";
 import { Page } from "../page";
-import { log } from "util";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 
@@ -255,7 +254,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
         if (pageTypeName) {
             const pageTypeFactory = this.options.pageTypes[pageTypeName];
             if (!pageTypeFactory)
-                throw `Not found page type ${pageTypeFactory}.`;
+                throw `Not found page type "${pageTypeName}".`;
 
             pageTypeFactory().then((pageType) => {
                     this.__createPage(pageType, nav, contentHtml, next);
