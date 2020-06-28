@@ -84,7 +84,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
         const initNav = this.model.nav;
         const pageState: PageNavState = {
             url: initNav.url,
-            title: initNav.page.title,
+            title: initNav.title,
             path: initNav.path,
             params: initNav.query,
             hash: location.hash ? location.hash.substr(1) : null
@@ -102,7 +102,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
         window.addEventListener("keyup", this.keyDownUpFunc, false);
         document.body.appendChild(this.__progressElem = DOM.tag("div", { class: "bp-page-loader" }));
 
-        this.__renderPage(pageState, initNav.page, false, false, false);
+        this.__renderPage(pageState, initNav.page, false, false);
     }
     load() { console.log("app loaded"); }
     destroy() {
@@ -268,7 +268,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
                         const pageModel = data.page;
                         const navState: PageNavState = {
                             url: data.url,
-                            title: pageModel.title,
+                            title: data.title,
                             path: data.path,
                             params: data.query,
                             hash: hash
@@ -277,15 +277,18 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
                         if (navUrl === location.href)
                             pushState = false;
 
+                        if (pushState !== null)
+                            this.setNav(navState, pushState);
+
                         this.raiseEvent("pageNavigated", navState);
 
                         if (options.success)
                             options.success();
 
                         if (!notRenderPage)
-                            this.__renderPage(navState, pageModel, true, scrollToTop, pushState);
+                            this.__renderPage(navState, pageModel, true, scrollToTop);
                         else {
-                            this.setNav(navState, pageModel, pushState);
+                            this.setNav(navState, pushState);
 
                             this.page.update(navState, pageModel);
 
@@ -300,7 +303,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
             }
         });
     }
-    private setNav(navState: PageNavState, pageModel: PageClientModel, pushState: boolean) {
+    private setNav(navState: PageNavState, pushState: boolean) {
         const navUrl = navState.hash ? navState.url + "#" + navState.hash : navState.url;
 
         if (pushState)
@@ -308,7 +311,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
         else
             window.history.replaceState(navState, navState.title, navUrl);
 
-        document.title = pageModel.title ? pageModel.title : "";
+        document.title = navState.title ? navState.title : "";
     }
 
     script(name: string): Promise<{ default: object }> {
@@ -324,18 +327,18 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
         this.page.destroy();
         this.page = null;
 
-        this.__loadPageScript(navState, pageModel, html ? html : "", false, null);
+        this.__loadPageScript(navState, pageModel, html ? html : "", false);
     }
 
-    private __renderPage(navState: PageNavState, pageModel: PageClientModel, needLoadContent: boolean, scrollToTop: boolean, pushState: boolean) {
+    private __renderPage(navState: PageNavState, pageModel: PageClientModel, needLoadContent: boolean, scrollToTop: boolean) {
         this.raiseEvent("pageLoading", navState);
 
         if (needLoadContent)
-            this.__loadContent(navState, pageModel, scrollToTop, pushState);
+            this.__loadContent(navState, pageModel, scrollToTop);
         else
-            this.__loadPageScript(navState, pageModel, null, scrollToTop, pushState);
+            this.__loadPageScript(navState, pageModel, null, scrollToTop);
     }
-    private __loadContent(navState: PageNavState, pageModel: PageClientModel, scrollToTop: boolean, pushState: boolean) {
+    private __loadContent(navState: PageNavState, pageModel: PageClientModel, scrollToTop: boolean) {
         const navSequence = this.__navCounter;
 
         this.request({
@@ -357,7 +360,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
                             return;
                         }
 
-                        this.__loadPageScript(navState, pageModel, data ? data : "", scrollToTop, pushState);
+                        this.__loadPageScript(navState, pageModel, data ? data : "", scrollToTop);
 
                         this.raiseEvent("pageContentLoaded");
 
@@ -375,7 +378,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
             }
         });
     }
-    private __loadPageScript(navState: PageNavState, pageModel: PageClientModel, contentHtml: string, scrollToTop: boolean, pushState: boolean) {
+    private __loadPageScript(navState: PageNavState, pageModel: PageClientModel, contentHtml: string, scrollToTop: boolean) {
         let pageScript = pageModel.scriptName;
         if (!pageScript)
             pageScript = this.options.defaultPageScript;
@@ -386,9 +389,6 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
                     this.page.destroy();
                     this.page = null;
                 }
-
-                if (pushState !== null)
-                    this.setNav(navState, pageModel, pushState);
 
                 if (scrollToTop)
                     window.scrollTo({ left: 0, top: 0, behavior: "auto" });
@@ -471,7 +471,7 @@ export class Application<TModel extends AppClientModel> extends UIElement implem
 
                 const pageState: PageNavState = {
                     url: url.substr(0, t),
-                    title: this.__navigation.page.title,
+                    title: this.__navigation.title,
                     path: this.__navigation.path,
                     params: this.__navigation.query,
                     hash: urlHash

@@ -26,16 +26,16 @@ export interface NavigationModel {
     query: { [key: string]: string; };
     validationToken: string;
     state: string;
+    title: string;
+    canonicalLink: string;
+    description: string;
+    keywords: string;
     page: PageClientModel;
 }
 
 export interface PageClientModel {
-    title: string;
     cssClass: string;
     scriptName: string;
-    canonicalLink: string;
-    description: string;
-    keywords: string;
 }
 
 export interface IApplication {

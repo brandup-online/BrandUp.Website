@@ -431,6 +431,9 @@ namespace BrandUp.Website.Pages
             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
             var protector = protectionProvider.CreateProtector("BrandUp.Pages");
 
+            var renderTitleContext = new RenderPageTitleContext(this);
+            await websiteEvents.RenderPageTitle(renderTitleContext);
+
             var navModel = new Models.NavigationClientModel
             {
                 IsAuthenticated = httpContext.User.Identity.IsAuthenticated,
@@ -438,7 +441,11 @@ namespace BrandUp.Website.Pages
                 Path = requestUri.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
                 Query = new Dictionary<string, object>(),
                 Data = new Dictionary<string, object>(),
-                State = protector.Protect(JsonSerializer.Serialize(NavigationState))
+                State = protector.Protect(JsonSerializer.Serialize(NavigationState)),
+                Title = renderTitleContext.Title,
+                CanonicalLink = CanonicalLink,
+                Description = Description,
+                Keywords = Keywords
             };
 
             foreach (var kv in httpRequest.Query)
@@ -471,17 +478,10 @@ namespace BrandUp.Website.Pages
         }
         private async Task<Models.PageClientModel> GetPageClientModelAsync()
         {
-            var renderTitleContext = new RenderPageTitleContext(this);
-            await websiteEvents.RenderPageTitle(renderTitleContext);
-
             var model = new Models.PageClientModel
             {
-                Title = renderTitleContext.Title,
                 CssClass = CssClass,
                 ScriptName = ScriptName,
-                CanonicalLink = CanonicalLink,
-                Description = Description,
-                Keywords = Keywords,
                 Data = new Dictionary<string, object>()
             };
 
