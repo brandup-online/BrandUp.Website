@@ -366,9 +366,5 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
 
 export interface WebsiteOptions {
     defaultType?: string;
-    pageTypes?: { [key: string]: () => Promise<typeof Page> };
-}
-
-export class WebsiteContext {
-
+    pageTypes?: { [key: string]: () => Promise<any> };
 }

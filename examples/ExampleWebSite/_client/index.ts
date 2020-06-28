@@ -2,7 +2,7 @@
 
 host.start({
     pageTypes: {
-        //"form": () => import("./pages/form")
+        "form": () => import("./pages/form")
     }
 }, (builder) => {
 });
