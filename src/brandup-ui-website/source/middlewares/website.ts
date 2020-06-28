@@ -40,7 +40,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             window.addEventListener("hashchange", Utility.createDelegate(this, this.__onHashChange));
         }
 
-        this.__renderPage(this.__navigation);
+        this.__renderPage(this.__navigation, null, next);
 
         next();
     }
@@ -105,7 +105,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
 
                         this.setNavigation(data, context.hash, context.replace);
 
-                        this.__loadContent();
+                        this.__loadContent(next);
 
                         break;
                     }
@@ -209,7 +209,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
     }
 
-    private __loadContent() {
+    private __loadContent(next: () => void) {
         const navSequence = this.__navCounter;
 
         this.request({
@@ -231,7 +231,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
                             return;
                         }
 
-                        this.__renderPage(this.__navigation, contentHtml ? contentHtml : "");
+                        this.__renderPage(this.__navigation, contentHtml ? contentHtml : "", next);
 
                         break;
                     }
@@ -247,7 +247,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             }
         });
     }
-    private __renderPage(nav: NavigationModel, contentHtml: string = null) {
+    private __renderPage(nav: NavigationModel, contentHtml: string, next: () => void) {
         let pageTypeName = nav.page.type;
         if (!pageTypeName)
             pageTypeName = this.options.defaultType;
@@ -258,7 +258,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
                 throw `Not found page type ${pageTypeFactory}.`;
 
             pageTypeFactory().then((pageType) => {
-                this.__createPage(pageType, nav, contentHtml);
+                    this.__createPage(pageType, nav, contentHtml, next);
                 })
                 .catch(() => {
                     throw "Ошибка загрузки скрипта страницы.";
@@ -267,9 +267,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             return;
         }
 
-        this.__createPage(Page, nav, contentHtml);
+        this.__createPage(Page, nav, contentHtml, next);
     }
-    private __createPage(pageType: new (...p) => Page<PageModel>, nav: NavigationModel, contentHtml: string) {
+    private __createPage(pageType: new (...p) => Page<PageModel>, nav: NavigationModel, contentHtml: string, next: () => void) {
         if (this.__page) {
             this.__page.destroy();
             this.__page = null;
@@ -282,6 +282,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
         }
 
         this.__page = new pageType(this, nav, this.__contentBodyElem);
+
+        next();
 
         let d = 400 - (Date.now() - this.__progressStart);
         if (d < 0)
