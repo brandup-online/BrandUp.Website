@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace BrandUp.Website.Pages.Models
+namespace BrandUp.Website.ClientModels
 {
-    public class NavigationClientModel
+    public class NavigationModel
     {
         public bool IsAuthenticated { get; set; }
         public string Url { get; set; }
@@ -15,7 +15,8 @@ namespace BrandUp.Website.Pages.Models
         public string CanonicalLink { get; set; }
         public string Description { get; set; }
         public string Keywords { get; set; }
-        public PageClientModel Page { get; set; }
+        public string BodyClass { get; set; }
+        public PageModel Page { get; set; }
         [JsonExtensionData]
         public Dictionary<string, object> Data { get; set; }
     }

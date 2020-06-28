@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace BrandUp.Website.Pages.Models
+namespace BrandUp.Website.ClientModels
 {
-    public class PageClientModel
+    public class ApplicationModel
     {
-        public string CssClass { get; set; }
-        public string ScriptName { get; set; }
         [JsonExtensionData]
         public Dictionary<string, object> Data { get; set; }
     }

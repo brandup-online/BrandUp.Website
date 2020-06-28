@@ -1,9 +1,8 @@
-﻿import { PageClientModel } from "../brandup.pages/typings/website";
-import { DOM } from "brandup-ui";
-import MirSnaPage from "./base";
+﻿import { DOM } from "brandup-ui";
 import minWait from "../utilities/wait";
+import { PageModel, Page } from "brandup-ui-website";
 
-export class FormPage<TModel extends PageClientModel> extends MirSnaPage<TModel> {
+export class FormPage<TModel extends PageModel> extends Page<TModel> {
     private _isSubmitting: boolean;
 
     get typeName(): string { return "FormPage" }
@@ -54,12 +53,12 @@ export class FormPage<TModel extends PageClientModel> extends MirSnaPage<TModel>
 
                 const pageLocation = xhr.getResponseHeader("Page-Location");
                 if (pageLocation) {
-                    this.app.navigate(pageLocation);
+                    this.app.nav({ url: pageLocation, replace: false });
                     return;
                 }
 
-                if (!this._onFormSubmited(form, data, status, xhr))
-                    this.app.renderPage(data);
+                //if (!this._onFormSubmited(form, data, status, xhr))
+                //    this.app.renderPage(data);
             }
             else if (status === 400) {
                 this._isSubmitting = false;

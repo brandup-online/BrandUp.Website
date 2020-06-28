@@ -1,0 +1,45 @@
+{
+  "name": "brandup-ui-website",
+  "description": "",
+  "keywords": [
+    "brandup",
+    "javascript",
+    "typescript",
+    "dom",
+    "ui",
+    "website"
+  ],
+  "author": {
+    "name": "Dmitry Kovyazin",
+    "email": "it@brandup.online"
+  },
+  "homepage": "https://github.com/dkovyazin/BrandUp.Website",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dkovyazin/BrandUp.Website"
+  },
+  "bugs": {
+    "url": "https://github.com/dkovyazin/BrandUp.Website/issues",
+    "email": "it@brandup.online"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "version": "1.0.0",
+  "dependencies": {
+    "brandup-ui-app": "^1.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.14",
+    "npm-run-all": "^4.1.5",
+    "ts-loader": "^3.1.0",
+    "ts-npm-lint": "^0.1.0",
+    "typescript": "^3.9.5",
+    "dts-bundle": "^0.7.3"
+  },
+  "scripts": {
+    "_tsc": "tsc && ts-npm-lint --fix-typings",
+    "_bundle": "node build/make-bundle",
+    "build": "run-s _tsc _bundle"
+  }
+}

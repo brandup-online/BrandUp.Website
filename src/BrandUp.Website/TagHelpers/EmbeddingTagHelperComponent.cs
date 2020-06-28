@@ -55,13 +55,13 @@ namespace BrandUp.Website.TagHelpers
                     output.PostContent.AppendHtml($"    <title>{renderTitleContext.Title ?? ""}</title>{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Description))
-                        output.PostContent.AppendHtml($"    <meta name=\"description\" content=\"{appPageModel.Description}\">{Environment.NewLine}");
+                        output.PostContent.AppendHtml($"    <meta id=\"page-meta-description\" name=\"description\" content=\"{appPageModel.Description}\">{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Keywords))
-                        output.PostContent.AppendHtml($"    <meta name=\"keywords\" content=\"{appPageModel.Keywords}\">{Environment.NewLine}");
+                        output.PostContent.AppendHtml($"    <meta id=\"page-meta-keywords\" name=\"keywords\" content=\"{appPageModel.Keywords}\">{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.CanonicalLink))
-                        output.PostContent.AppendHtml($"    <link rel=\"canonical\" href=\"{appPageModel.CanonicalLink}\">{Environment.NewLine}");
+                        output.PostContent.AppendHtml($"    <link id=\"page-link-canonical\" rel=\"canonical\" href=\"{appPageModel.CanonicalLink}\">{Environment.NewLine}");
 
                     var og = appPageModel.OpenGraph;
                     if (og != null)
@@ -74,9 +74,9 @@ namespace BrandUp.Website.TagHelpers
                             output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
                     }
 
-                    var appClientModel = await GetAppClientModelAsync(appPageModel);
+                    var startupModel = await appPageModel.GetStartupClientModelAsync(appPageModel);
 
-                    output.PostContent.AppendHtml($"    <script>var appInitOptions = {jsonHelper.Serialize(appClientModel)}</script>{Environment.NewLine}");
+                    output.PostContent.AppendHtml($"    <script>var appStartup = {jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
 
                     await websiteEvents.RenderHeadTag(new OnRenderTagContext(ViewContext, context, output));
                 }
@@ -99,37 +99,6 @@ namespace BrandUp.Website.TagHelpers
                     await websiteEvents.RenderBodyTag(new OnRenderTagContext(ViewContext, context, output));
                 }
             }
-        }
-
-        private async Task<Pages.Models.AppClientModel> GetAppClientModelAsync(AppPageModel appPageModel)
-        {
-            var httpContext = ViewContext.HttpContext;
-            var httpRequest = httpContext.Request;
-
-            var appClientModel = new Pages.Models.AppClientModel
-            {
-                BaseUrl = httpRequest.PathBase.HasValue ? httpRequest.PathBase.Value : "/",
-                Data = new Dictionary<string, object>()
-            };
-
-            var antiforgery = httpContext.RequestServices.GetService<Microsoft.AspNetCore.Antiforgery.IAntiforgery>();
-            if (antiforgery != null)
-            {
-                var antiforgeryToken = antiforgery.GetAndStoreTokens(httpContext);
-
-                appClientModel.Antiforgery = new Pages.Models.AntiforgeryModel
-                {
-                    HeaderName = antiforgeryToken.HeaderName,
-                    FormFieldName = antiforgeryToken.FormFieldName
-                };
-            }
-
-            var startContext = new StartWebsiteContext(appPageModel, appClientModel.Data);
-            await websiteEvents.StartAsync(startContext);
-
-            appClientModel.Nav = await appPageModel.GetNavigationClientModelAsync();
-
-            return appClientModel;
         }
     }
 }

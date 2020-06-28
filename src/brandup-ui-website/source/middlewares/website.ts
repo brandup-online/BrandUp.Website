@@ -1,0 +1,372 @@
+import { DOM, ajaxRequest, Utility, AjaxRequestOptions } from "brandup-ui";
+import { Middleware, ApplicationModel, NavigateContext } from "brandup-ui-app";
+import { NavigationModel, PageModel, PageNavState, AntiforgeryOptions } from "../common";
+import { Page } from "../page";
+import { log } from "util";
+
+const allowHistory = !!window.history && !!window.history.pushState;
+
+export class WebsiteMiddleware extends Middleware<ApplicationModel> {
+    readonly options: WebsiteOptions;
+    readonly antiforgery: AntiforgeryOptions;
+    private __contentBodyElem: HTMLElement;
+    private __page: Page<PageModel> = null;
+    private __navCounter = 0;
+    private __navigation: NavigationModel;
+
+    private __loaderElem: HTMLElement;
+    private __progressInterval: number;
+    private __progressTimeout: number;
+    private __progressStart: number;
+
+    constructor(nav: NavigationModel, options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
+        super();
+
+        this.options = options;
+        this.antiforgery = antiforgery;
+
+        this.setNavigation(nav, location.hash ? location.hash.substr(1) : null, false);
+    }
+
+    start(_context, next: () => void) {
+        document.body.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
+
+        this.__contentBodyElem = document.getElementById("page-content");
+        if (!this.__contentBodyElem)
+            throw "Не найден элемент контента страницы.";
+
+        if (allowHistory) {
+            window.addEventListener("popstate", Utility.createDelegate(this, this.__onPopState));
+            window.addEventListener("hashchange", Utility.createDelegate(this, this.__onHashChange));
+        }
+
+        this.__renderPage(this.__navigation);
+
+        next();
+    }
+    navigate(context: NavigateContext, next: () => void) {
+        if (!allowHistory) {
+            location.href = context.url ? context.url : location.href;
+            return;
+        }
+
+        window.clearTimeout(this.__progressTimeout);
+        window.clearTimeout(this.__progressInterval);
+
+        this.__loaderElem.classList.remove("show", "show2", "finish");
+        this.__loaderElem.style.width = "0%";
+        this.__loaderElem.classList.add("show");
+
+        this.__loaderElem.style.width = "50%";
+        this.__progressTimeout = window.setTimeout(() => {
+            this.__loaderElem.classList.add("show2");
+            this.__loaderElem.style.width = "70%";
+        }, 1700);
+
+        this.__progressStart = Date.now();
+
+        this.__navCounter++;
+        const navSequence = this.__navCounter;
+
+        this.request({
+            url: context.url,
+            method: "POST",
+            urlParams: { _nav: "" },
+            type: "TEXT",
+            data: this.__navigation.state ? this.__navigation.state : "",
+            success: (data: NavigationModel, status: number, xhr: XMLHttpRequest) => {
+                if (navSequence !== this.__navCounter) {
+                    console.log("Older navigation response.");
+                    return;
+                }
+
+                switch (status) {
+                    case 200: {
+                        const pageAction = xhr.getResponseHeader("Page-Action");
+                        if (pageAction) {
+                            switch (pageAction) {
+                                case "reset": {
+                                    location.href = context.url;
+                                    return;
+                                }
+                                default:
+                                    throw "Неизвестный тип действия для страницы.";
+                            }
+                        }
+
+                        const redirectLocation = xhr.getResponseHeader("Page-Location");
+                        if (redirectLocation) {
+                            if (redirectLocation.startsWith("/"))
+                                this.app.nav({ url: redirectLocation, replace: false });
+                            else
+                                location.href = redirectLocation;
+                            return;
+                        }
+
+                        this.setNavigation(data, context.hash, context.replace);
+
+                        this.__loadContent();
+
+                        break;
+                    }
+                    default:
+                        location.href = context.url;
+                }
+            }
+        });
+
+        next();
+    }
+
+    request(options: AjaxRequestOptions) {
+        if (!options.headers)
+            options.headers = {};
+
+        if (this.antiforgery && options.method !== "GET")
+            options.headers[this.antiforgery.headerName] = this.__navigation.validationToken;
+
+        ajaxRequest(options);
+    }
+
+    private setNavigation(data: NavigationModel, hash: string, push: boolean) {
+        let navUrl = data.url;
+        if (hash)
+            navUrl += "#" + hash;
+
+        const prevNav = this.__navigation;
+
+        if (prevNav) {
+            if (prevNav.isAuthenticated !== data.isAuthenticated) {
+                location.href = navUrl;
+                return;
+            }
+
+            document.title = data.title ? data.title : "";
+
+            let metaDescription = document.getElementById("page-meta-description");
+            if (data.description) {
+                if (!metaDescription) {
+                    document.head.appendChild(metaDescription = DOM.tag("meta", { id: "page-meta-description", name: "description", content: "" }));
+                }
+
+                metaDescription.setAttribute("content", data.description);
+            }
+            else if (metaDescription)
+                metaDescription.remove();
+
+            let metaKeywords = document.getElementById("page-meta-keywords");
+            if (data.keywords) {
+                if (!metaKeywords) {
+                    document.head.appendChild(metaKeywords = DOM.tag("meta", { id: "page-meta-keywords", name: "keywords", content: "" }));
+                }
+
+                metaKeywords.setAttribute("content", data.keywords);
+            }
+            else if (metaKeywords)
+                metaKeywords.remove();
+
+            let linkCanonical = document.getElementById("page-link-canonical");
+            if (data.canonicalLink) {
+                if (!linkCanonical) {
+                    document.head.appendChild(linkCanonical = DOM.tag("link", { id: "page-link-canonical", rel: "canonical", href: "" }));
+                }
+
+                linkCanonical.setAttribute("href", data.canonicalLink);
+            }
+            else if (linkCanonical)
+                linkCanonical.remove();
+        }
+
+        this.__navigation = data;
+
+        if (prevNav && prevNav.bodyClass) {
+            document.body.classList.remove(prevNav.bodyClass);
+        }
+
+        if (this.__navigation.bodyClass) {
+            document.body.classList.add(this.__navigation.bodyClass);
+        }
+
+        if (navUrl === location.href)
+            push = false;
+
+        const navState = {
+            url: data.url,
+            title: data.title,
+            path: data.path,
+            params: data.query,
+            hash: hash
+        };
+
+        if (allowHistory) {
+            if (push)
+                window.history.pushState(navState, data.title, navUrl);
+            else
+                window.history.replaceState(navState, data.title, navUrl);
+        }
+
+        if (push)
+            window.scrollTo({ left: 0, top: 0, behavior: "auto" });
+    }
+
+    private __loadContent() {
+        const navSequence = this.__navCounter;
+
+        this.request({
+            url: this.__navigation.url,
+            urlParams: { _content: "" },
+            disableCache: true,
+            success: (contentHtml: string, status: number, xhr: XMLHttpRequest) => {
+                if (navSequence !== this.__navCounter)
+                    return;
+
+                switch (status) {
+                    case 200: {
+                        const redirectLocation = xhr.getResponseHeader("Page-Location");
+                        if (redirectLocation) {
+                            if (redirectLocation.startsWith("/"))
+                                this.app.nav({ url: redirectLocation, replace: false });
+                            else
+                                location.href = redirectLocation;
+                            return;
+                        }
+
+                        this.__renderPage(this.__navigation, contentHtml ? contentHtml : "");
+
+                        break;
+                    }
+                    case 404:
+                    case 500:
+                    case 401: {
+                        location.reload();
+                        break;
+                    }
+                    default:
+                        throw new Error();
+                }
+            }
+        });
+    }
+    private __renderPage(nav: NavigationModel, contentHtml: string = null) {
+        let pageTypeName = nav.page.type;
+        if (!pageTypeName)
+            pageTypeName = this.options.defaultType;
+
+        if (pageTypeName) {
+            const pageTypeFactory = this.options.pageTypes[pageTypeName];
+            if (!pageTypeFactory)
+                throw `Not found page type ${pageTypeFactory}.`;
+
+            pageTypeFactory().then((pageType) => {
+                this.__createPage(pageType, nav, contentHtml);
+                })
+                .catch(() => {
+                    throw "Ошибка загрузки скрипта страницы.";
+                });
+
+            return;
+        }
+
+        this.__createPage(Page, nav, contentHtml);
+    }
+    private __createPage(pageType: new (...p) => Page<PageModel>, nav: NavigationModel, contentHtml: string) {
+        if (this.__page) {
+            this.__page.destroy();
+            this.__page = null;
+        }
+
+        if (contentHtml !== null) {
+            DOM.empty(this.__contentBodyElem);
+            this.__contentBodyElem.insertAdjacentHTML("afterbegin", contentHtml);
+            WebsiteMiddleware.nodeScriptReplace(this.__contentBodyElem);
+        }
+
+        this.__page = new pageType(this, nav, this.__contentBodyElem);
+
+        let d = 400 - (Date.now() - this.__progressStart);
+        if (d < 0)
+            d = 0;
+
+        this.__progressTimeout = window.setTimeout(() => {
+            window.clearTimeout(this.__progressInterval);
+
+            this.__loaderElem.classList.add("finish");
+            this.__loaderElem.style.width = "100%";
+
+            this.__progressInterval = window.setTimeout(() => {
+                this.__loaderElem.classList.remove("show", "show2", "finish");
+                this.__loaderElem.style.width = "0%";
+            }, 180);
+        }, d);
+    }
+
+    private __onPopState(event: PopStateEvent) {
+        event.preventDefault();
+
+        const url = location.href;
+        console.log("PopState: " + url);
+
+        if (url.lastIndexOf("#") > 0) {
+            const t = url.lastIndexOf("#");
+            const urlHash = url.substr(t + 1);
+            const urlWithoutHash = url.substr(0, t);
+
+            if (!event.state) {
+                console.log("PopState hash: " + urlHash);
+
+                const pageState: PageNavState = {
+                    url: url.substr(0, t),
+                    title: this.__navigation.title,
+                    path: this.__navigation.path,
+                    params: this.__navigation.query,
+                    hash: urlHash
+                };
+
+                window.history.replaceState(pageState, pageState.title, location.href);
+
+                return;
+            }
+            else {
+                if (urlWithoutHash.toLowerCase() === this.__navigation.url.toLowerCase())
+                    return;
+            }
+        }
+
+        if (event.state) {
+            const state = event.state as PageNavState;
+            this.app.nav({ url: state.url, replace: true });
+
+            return;
+        }
+    }
+    private __onHashChange(e: HashChangeEvent) {
+        console.log("HashChange to " + e.newURL);
+    }
+
+    static nodeScriptReplace(node: Node) {
+        if ((node as Element).tagName === "SCRIPT") {
+            const script = document.createElement("script");
+            script.text = (node as Element).innerHTML;
+            for (let i = (node as Element).attributes.length - 1; i >= 0; i--)
+                script.setAttribute((node as Element).attributes[i].name, (node as Element).attributes[i].value);
+            node.parentNode.replaceChild(script, node);
+        }
+        else {
+            let i = 0;
+            const children = node.childNodes;
+            while (i < children.length)
+                WebsiteMiddleware.nodeScriptReplace(children[i++]);
+        }
+
+        return node;
+    }
+}
+
+export interface WebsiteOptions {
+    defaultType?: string;
+    pageTypes?: { [key: string]: () => Promise<typeof Page> };
+}
+
+export class WebsiteContext {
+
+}

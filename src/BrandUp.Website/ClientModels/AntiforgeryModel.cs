@@ -1,4 +1,4 @@
-﻿namespace BrandUp.Website.Pages.Models
+﻿namespace BrandUp.Website.ClientModels
 {
     public class AntiforgeryModel
     {

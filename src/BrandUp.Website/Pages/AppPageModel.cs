@@ -62,8 +62,8 @@ namespace BrandUp.Website.Pages
         public abstract string Title { get; }
         public virtual string Description => null;
         public virtual string Keywords => null;
-        public virtual string CssClass => null;
-        public virtual string ScriptName => null;
+        public virtual string CssClass { get; set; }
+        public virtual string ScriptName { get; set; }
         public virtual string CanonicalLink => null;
 
         #endregion
@@ -409,7 +409,43 @@ namespace BrandUp.Website.Pages
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
         }
-        internal async Task<Models.NavigationClientModel> GetNavigationClientModelAsync()
+        internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync(AppPageModel appPageModel)
+        {
+            var httpContext = HttpContext;
+            var httpRequest = httpContext.Request;
+
+            var startupModel = new ClientModels.StartupModel
+            {
+                Env = new ClientModels.EnvironmentModel
+                {
+                    BasePath = httpRequest.PathBase.HasValue ? httpRequest.PathBase.Value : "/"
+                },
+                Model = new ClientModels.ApplicationModel
+                {
+                    Data = new Dictionary<string, object>()
+                }
+            };
+
+            var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
+            if (antiforgery != null)
+            {
+                var antiforgeryToken = antiforgery.GetAndStoreTokens(httpContext);
+
+                startupModel.Antiforgery = new ClientModels.AntiforgeryModel
+                {
+                    HeaderName = antiforgeryToken.HeaderName,
+                    FormFieldName = antiforgeryToken.FormFieldName
+                };
+            }
+
+            var startContext = new StartWebsiteContext(appPageModel, startupModel.Model.Data);
+            await websiteEvents.StartAsync(startContext);
+
+            startupModel.Nav = await appPageModel.GetNavigationClientModelAsync();
+
+            return startupModel;
+        }
+        internal async Task<ClientModels.NavigationModel> GetNavigationClientModelAsync()
         {
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
@@ -434,7 +470,7 @@ namespace BrandUp.Website.Pages
             var renderTitleContext = new RenderPageTitleContext(this);
             await websiteEvents.RenderPageTitle(renderTitleContext);
 
-            var navModel = new Models.NavigationClientModel
+            var navModel = new ClientModels.NavigationModel
             {
                 IsAuthenticated = httpContext.User.Identity.IsAuthenticated,
                 Url = requestUrl,
@@ -445,7 +481,8 @@ namespace BrandUp.Website.Pages
                 Title = renderTitleContext.Title,
                 CanonicalLink = CanonicalLink,
                 Description = Description,
-                Keywords = Keywords
+                Keywords = Keywords,
+                BodyClass = CssClass
             };
 
             foreach (var kv in httpRequest.Query)
@@ -476,12 +513,11 @@ namespace BrandUp.Website.Pages
 
             return navModel;
         }
-        private async Task<Models.PageClientModel> GetPageClientModelAsync()
+        private async Task<ClientModels.PageModel> GetPageClientModelAsync()
         {
-            var model = new Models.PageClientModel
+            var model = new ClientModels.PageModel
             {
-                CssClass = CssClass,
-                ScriptName = ScriptName,
+                Type = ScriptName,
                 Data = new Dictionary<string, object>()
             };
 
