@@ -45,11 +45,6 @@ input, textarea, button {
     transition: opacity 300ms;
 }
 
-.bp-page-loader {
-    background: @Primary-Color;
-    box-shadow: 0px 1px 49px -5px rgba(0,0,0,0.75);
-}
-
 .content-width {
     max-width: @Content-MaxWidth;
     margin: 0 auto;
@@ -199,15 +194,35 @@ input, textarea, button {
     padding: 47px 0 0;
 }
 
+.bp-page-loader {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 2px;
+    z-index: 5000;
+    display: block;
+    opacity: 0;
+    visibility: collapse;
+    transition: visibility ease 300ms, opacity ease 300ms, width ease-in-out 100ms;
 
-body {
-    &.show-cities {
-        & .app-nav {
-            & .city {
-                & .cities {
-                    display: block;
-                }
-            }
-        }
+    &.show {
+        opacity: 1;
+        transition: width ease-in-out 1700ms;
+        visibility: visible;
     }
+
+    &.show2 {
+        transition: width ease-in-out 15000ms;
+    }
+
+    &.finish {
+        transition: width ease-in-out 180ms, opacity ease 300ms;
+        opacity: 0;
+    }
+}
+
+.bp-page-loader {
+    background: #fff;
+    box-shadow: 0px 1px 49px -5px rgba(0,0,0,0.75);
 }

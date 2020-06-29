@@ -1,11 +1,12 @@
-import { DOM, ajaxRequest, Utility, AjaxRequestOptions } from "brandup-ui";
+import { DOM, ajaxRequest, Utility, AjaxRequestOptions, AJAXMethod, AjaxQueue } from "brandup-ui";
 import { Middleware, ApplicationModel, NavigateContext } from "brandup-ui-app";
 import { NavigationModel, PageModel, PageNavState, AntiforgeryOptions } from "../common";
-import { Page } from "../page";
+import { Page, Website } from "../pages/base";
+import minWait from "../utilities/wait";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 
-export class WebsiteMiddleware extends Middleware<ApplicationModel> {
+export class WebsiteMiddleware extends Middleware<ApplicationModel> implements Website {
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
     private __contentBodyElem: HTMLElement;
@@ -39,9 +40,32 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             window.addEventListener("hashchange", Utility.createDelegate(this, this.__onHashChange));
         }
 
-        this.__renderPage(this.__navigation, null, next);
+        this.__contentBodyElem.addEventListener("submit", (e: Event) => {
+            e.preventDefault();
+            this.__submit(e.target as HTMLFormElement);
+        });
 
-        next();
+        this.__contentBodyElem.addEventListener("invalid", (event: Event) => {
+            event.preventDefault();
+
+            const elem = event.target as HTMLInputElement;
+            elem.classList.add("invalid");
+
+            if (elem.hasAttribute("data-val-required")) {
+                elem.classList.add("invalid-required");
+            }
+        }, true);
+
+        this.__contentBodyElem.addEventListener("change", (event: Event) => {
+            const elem = event.target as HTMLInputElement;
+            elem.classList.remove("invalid");
+
+            if (elem.hasAttribute("data-val-required")) {
+                elem.classList.remove("invalid-required");
+            }
+        });
+
+        this.__renderPage(this.__navCounter, null, next);
     }
     navigate(context: NavigateContext, next: () => void) {
         if (!allowHistory) {
@@ -49,23 +73,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             return;
         }
 
-        window.clearTimeout(this.__progressTimeout);
-        window.clearTimeout(this.__progressInterval);
+        this.__showNavigationProgress();
 
-        this.__loaderElem.classList.remove("show", "show2", "finish");
-        this.__loaderElem.style.width = "0%";
-        this.__loaderElem.classList.add("show");
-
-        this.__loaderElem.style.width = "50%";
-        this.__progressTimeout = window.setTimeout(() => {
-            this.__loaderElem.classList.add("show2");
-            this.__loaderElem.style.width = "70%";
-        }, 1700);
-
-        this.__progressStart = Date.now();
-
-        this.__navCounter++;
-        const navSequence = this.__navCounter;
+        const navSequence = this.__incNavSequence();
 
         this.request({
             url: context.url,
@@ -74,10 +84,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             type: "TEXT",
             data: this.__navigation.state ? this.__navigation.state : "",
             success: (data: NavigationModel, status: number, xhr: XMLHttpRequest) => {
-                if (navSequence !== this.__navCounter) {
-                    console.log("Older navigation response.");
+                if (this.__checkNavActual(navSequence))
                     return;
-                }
 
                 switch (status) {
                     case 200: {
@@ -96,7 +104,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
                         const redirectLocation = xhr.getResponseHeader("Page-Location");
                         if (redirectLocation) {
                             if (redirectLocation.startsWith("/"))
-                                this.app.nav({ url: redirectLocation, replace: false });
+                                this.app.nav({ url: redirectLocation });
                             else
                                 location.href = redirectLocation;
                             return;
@@ -104,7 +112,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
 
                         this.setNavigation(data, context.hash, context.replace);
 
-                        this.__loadContent(next);
+                        this.__loadContent(navSequence, next);
 
                         break;
                     }
@@ -126,8 +134,27 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
 
         ajaxRequest(options);
     }
+    updateHtml(html: string) {
+        const navSequence = this.__incNavSequence();
 
-    private setNavigation(data: NavigationModel, hash: string, push: boolean) {
+        this.__renderPage(navSequence, html, () => { return; });
+    }
+    buildUrl(queryParams: { [key: string]: string }): string {
+        const params: { [key: string]: string } = {};
+        for (const k in this.__navigation.query) {
+            params[k] = this.__navigation.query[k];
+        }
+
+        if (queryParams) {
+            for (const k in queryParams) {
+                params[k] = queryParams[k];
+            }
+        }
+
+        return this.app.uri(this.__navigation.path, params);
+    }
+
+    private setNavigation(data: NavigationModel, hash: string, replace: boolean) {
         let navUrl = data.url;
         if (hash)
             navUrl += "#" + hash;
@@ -187,7 +214,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
         }
 
         if (navUrl === location.href)
-            push = false;
+            replace = true;
 
         const navState = {
             url: data.url,
@@ -198,25 +225,26 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
         };
 
         if (allowHistory) {
-            if (push)
+            if (!replace)
                 window.history.pushState(navState, data.title, navUrl);
             else
                 window.history.replaceState(navState, data.title, navUrl);
         }
 
-        if (push)
+        if (!replace)
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
     }
 
-    private __loadContent(next: () => void) {
-        const navSequence = this.__navCounter;
+    private __loadContent(navSequence: number, next: () => void) {
+        if (this.__checkNavActual(navSequence))
+            return;
 
         this.request({
             url: this.__navigation.url,
             urlParams: { _content: "" },
             disableCache: true,
             success: (contentHtml: string, status: number, xhr: XMLHttpRequest) => {
-                if (navSequence !== this.__navCounter)
+                if (this.__checkNavActual(navSequence))
                     return;
 
                 switch (status) {
@@ -224,13 +252,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
                         const redirectLocation = xhr.getResponseHeader("Page-Location");
                         if (redirectLocation) {
                             if (redirectLocation.startsWith("/"))
-                                this.app.nav({ url: redirectLocation, replace: false });
+                                this.app.nav({ url: redirectLocation });
                             else
                                 location.href = redirectLocation;
                             return;
                         }
 
-                        this.__renderPage(this.__navigation, contentHtml ? contentHtml : "", next);
+                        this.__renderPage(navSequence, contentHtml ? contentHtml : "", next);
 
                         break;
                     }
@@ -246,8 +274,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             }
         });
     }
-    private __renderPage(nav: NavigationModel, contentHtml: string, next: () => void) {
-        let pageTypeName = nav.page.type;
+    private __renderPage(navSequence: number, contentHtml: string, next: () => void) {
+        if (this.__checkNavActual(navSequence))
+            return;
+
+        let pageTypeName = this.__navigation.page.type;
         if (!pageTypeName)
             pageTypeName = this.options.defaultType;
 
@@ -257,7 +288,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
                 throw `Not found page type "${pageTypeName}".`;
 
             pageTypeFactory().then((pageType) => {
-                    this.__createPage(pageType, nav, contentHtml, next);
+                    this.__createPage(navSequence, pageType, contentHtml, next);
                 })
                 .catch(() => {
                     throw "Ошибка загрузки скрипта страницы.";
@@ -266,9 +297,12 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             return;
         }
 
-        this.__createPage(Page, nav, contentHtml, next);
+        this.__createPage(navSequence, Page, contentHtml, next);
     }
-    private __createPage(pageType: new (...p) => Page<PageModel>, nav: NavigationModel, contentHtml: string, next: () => void) {
+    private __createPage(navSequence: number, pageType: new (...p) => Page<PageModel>, contentHtml: string, next: () => void) {
+        if (this.__checkNavActual(navSequence))
+            return;
+
         if (this.__page) {
             this.__page.destroy();
             this.__page = null;
@@ -280,25 +314,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
             WebsiteMiddleware.nodeScriptReplace(this.__contentBodyElem);
         }
 
-        this.__page = new pageType(this, nav, this.__contentBodyElem);
+        this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
 
         next();
 
-        let d = 400 - (Date.now() - this.__progressStart);
-        if (d < 0)
-            d = 0;
-
-        this.__progressTimeout = window.setTimeout(() => {
-            window.clearTimeout(this.__progressInterval);
-
-            this.__loaderElem.classList.add("finish");
-            this.__loaderElem.style.width = "100%";
-
-            this.__progressInterval = window.setTimeout(() => {
-                this.__loaderElem.classList.remove("show", "show2", "finish");
-                this.__loaderElem.style.width = "0%";
-            }, 180);
-        }, d);
+        this.__hideNavigationProgress();
     }
 
     private __onPopState(event: PopStateEvent) {
@@ -342,6 +362,117 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> {
     }
     private __onHashChange(e: HashChangeEvent) {
         console.log("HashChange to " + e.newURL);
+    }
+
+    private _isSubmitting = false;
+    private __submit(form: HTMLFormElement, url: string = null, handler: string = null) {
+        if (!form.checkValidity() && !form.noValidate)
+            return;
+
+        if (this._isSubmitting)
+            return;
+        this._isSubmitting = true;
+
+        const submitButton = DOM.queryElement(form, "[type=submit]");
+        if (submitButton)
+            submitButton.classList.add("loading");
+        form.classList.add("loading");
+
+        if (!url)
+            url = form.action;
+
+        if (!handler)
+            handler = form.getAttribute("data-form-handler");
+
+        const navSequence = this.__incNavSequence();
+
+        const f = (data: string, status: number, xhr: XMLHttpRequest) => {
+            if (this.__checkNavActual(navSequence))
+                return;
+
+            switch (status) {
+                case 200:
+                case 201: {
+                    const pageLocation = xhr.getResponseHeader("Page-Location");
+                    if (pageLocation) {
+                        this.app.nav({ url: pageLocation });
+                        return;
+                    }
+
+                    this.updateHtml(data);
+
+                    break;
+                }
+                case 400:
+                case 500: {
+                    this._isSubmitting = false;
+
+                    if (submitButton)
+                        submitButton.classList.remove("loading");
+                    form.classList.remove("loading");
+
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            this.__hideNavigationProgress();
+        };
+
+        this.__showNavigationProgress();
+
+        this.request({
+            url: url,
+            urlParams: { _content: "", handler: handler },
+            method: form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST",
+            data: new FormData(form),
+            success: submitButton ? minWait(f) : f
+        });
+    }
+
+    private __incNavSequence() {
+        this.__navCounter++;
+        return this.__navCounter;
+    }
+    private __checkNavActual(navSequence: number) {
+        return navSequence !== this.__navCounter;
+    }
+
+    private __showNavigationProgress() {
+        window.clearTimeout(this.__progressTimeout);
+        window.clearTimeout(this.__progressInterval);
+
+        this.__loaderElem.classList.remove("show", "show2", "finish");
+        this.__loaderElem.style.width = "0%";
+        this.__loaderElem.classList.add("show");
+
+        this.__loaderElem.style.width = "50%";
+        this.__progressTimeout = window.setTimeout(() => {
+            this.__loaderElem.classList.add("show2");
+            this.__loaderElem.style.width = "70%";
+        }, 1700);
+
+        this.__progressStart = Date.now();
+    }
+    private __hideNavigationProgress() {
+        let d = 500 - (Date.now() - this.__progressStart);
+        if (d < 0)
+            d = 0;
+
+        window.clearTimeout(this.__progressTimeout);
+        this.__progressTimeout = window.setTimeout(() => {
+            window.clearTimeout(this.__progressInterval);
+
+            this.__loaderElem.classList.add("finish");
+            this.__loaderElem.style.width = "100%";
+
+            this.__progressInterval = window.setTimeout(() => {
+                this.__loaderElem.classList.remove("show", "show2", "finish");
+                this.__loaderElem.style.width = "0%";
+            }, 180);
+        }, d);
     }
 
     static nodeScriptReplace(node: Node) {

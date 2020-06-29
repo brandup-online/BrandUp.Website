@@ -1,8 +1,10 @@
 ﻿import { host } from "brandup-ui-website";
+import { AuthMiddleware } from "./middlewares/auth";
+import "./styles.less";
 
 host.start({
     pageTypes: {
-        "form": () => import("./pages/form")
     }
 }, (builder) => {
-});
+        builder.useMiddleware(new AuthMiddleware());
+    });

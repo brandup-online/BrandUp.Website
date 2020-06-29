@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "module": "amd",
+    "module": "ES2020",
     "moduleResolution": "node",
     "target": "es5",
-    "jsx": "react",
     "sourceMap": true,
     "strict": false,
-    "lib": [ "es5", "es6", "dom", "es2015.promise", "dom.iterable", "es2015.iterable", "es2015.collection", "es2015", "es2015.core" ],
+    "lib": [ "ES2020", "DOM" ],
+    "baseUrl": "./_client",
     "noImplicitAny": false,
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "declarationMap": false
   },
   "exclude": [
     "node_modules",

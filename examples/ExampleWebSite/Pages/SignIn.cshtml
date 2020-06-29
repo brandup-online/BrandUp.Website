@@ -1,0 +1,19 @@
+﻿@page
+@model SignInModel
+@{ Model.RenderPage(this); }
+
+<header class="page-header">
+    <h1>@Model.Title</h1>
+</header>
+
+<section class="page-block page-block-form">
+    <form asp-antiforgery="true" novalidate enctype="multipart/form-data">
+        <div>
+            <input asp-for="Email" required />
+        </div>
+        <div asp-validation-summary="All"></div>
+        <button>
+            Отправить
+        </button>
+    </form>
+</section>

@@ -19,17 +19,18 @@ class AppHost {
             configure(appBuilder);
 
             const app = appBuilder.build<TModel>(appStartup.env, appStartup.model as TModel);
+            let isInitiated = false;
+            const appInitFunc = () => {
+                if (isInitiated)
+                    return;
+                isInitiated = true;
+
+                app.init();
+                if (callback)
+                    callback(app);
+            };
 
             window.setTimeout(() => {
-                let isInitiated = false;
-                const appInitFunc = () => {
-                    if (isInitiated)
-                        return;
-                    isInitiated = true;
-                    app.init();
-                    if (callback)
-                        callback(app);
-                };
                 this.app = app;
 
                 if (document.readyState === "loading") {

@@ -39,6 +39,8 @@
     <Folder Include="build\" />
     <Folder Include="source\" />
     <Folder Include="source\middlewares\" />
+    <Folder Include="source\utilities\" />
+    <Folder Include="source\pages\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="source\common.ts" />
@@ -47,7 +49,8 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="source\middlewares\website.ts" />
-    <TypeScriptCompile Include="source\page.ts" />
+    <TypeScriptCompile Include="source\pages\base.ts" />
+    <TypeScriptCompile Include="source\utilities\wait.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
