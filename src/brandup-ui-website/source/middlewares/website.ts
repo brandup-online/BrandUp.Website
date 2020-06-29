@@ -1,5 +1,5 @@
-import { DOM, ajaxRequest, Utility, AjaxRequestOptions, AJAXMethod, AjaxQueue } from "brandup-ui";
-import { Middleware, ApplicationModel, NavigateContext } from "brandup-ui-app";
+import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions } from "brandup-ui-app";
 import { NavigationModel, PageModel, PageNavState, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
@@ -13,17 +13,24 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     private __page: Page<PageModel> = null;
     private __navCounter = 0;
     private __navigation: NavigationModel;
-
-    private __loaderElem: HTMLElement;
-    private __progressInterval: number;
-    private __progressTimeout: number;
-    private __progressStart: number;
+    private __loadingPage = false;
+    readonly queue: AjaxQueue;
 
     constructor(nav: NavigationModel, options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
 
         this.options = options;
         this.antiforgery = antiforgery;
+
+        this.queue = new AjaxQueue({
+            preRequest: (options) => {
+                if (!options.headers)
+                    options.headers = {};
+
+                if (this.antiforgery && options.method !== "GET" && options.method)
+                    options.headers[this.antiforgery.headerName] = this.__navigation.validationToken;
+            }
+        });
 
         this.setNavigation(nav, location.hash ? location.hash.substr(1) : null, false);
     }
@@ -42,7 +49,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__contentBodyElem.addEventListener("submit", (e: Event) => {
             e.preventDefault();
-            this.__submit(e.target as HTMLFormElement);
+            this.submit(e.target as HTMLFormElement);
         });
 
         this.__contentBodyElem.addEventListener("invalid", (event: Event) => {
@@ -75,21 +82,24 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__showNavigationProgress();
 
+        this.__loadingPage = true;
         const navSequence = this.__incNavSequence();
 
-        this.request({
+        this.queue.reset(true);
+        this.queue.push({
             url: context.url,
             method: "POST",
             urlParams: { _nav: "" },
             type: "TEXT",
             data: this.__navigation.state ? this.__navigation.state : "",
-            success: (data: NavigationModel, status: number, xhr: XMLHttpRequest) => {
+            state: null,
+            success: (response: AjaxResponse) => {
                 if (this.__checkNavActual(navSequence))
                     return;
 
-                switch (status) {
+                switch (response.status) {
                     case 200: {
-                        const pageAction = xhr.getResponseHeader("Page-Action");
+                        const pageAction = response.xhr.getResponseHeader("Page-Action");
                         if (pageAction) {
                             switch (pageAction) {
                                 case "reset": {
@@ -101,16 +111,16 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                             }
                         }
 
-                        const redirectLocation = xhr.getResponseHeader("Page-Location");
+                        const redirectLocation = response.xhr.getResponseHeader("Page-Location");
                         if (redirectLocation) {
                             if (redirectLocation.startsWith("/"))
-                                this.app.nav({ url: redirectLocation });
+                                this.nav({ url: redirectLocation });
                             else
                                 location.href = redirectLocation;
                             return;
                         }
 
-                        this.setNavigation(data, context.hash, context.replace);
+                        this.setNavigation(response.data, context.hash, context.replace);
 
                         this.__loadContent(navSequence, next);
 
@@ -125,11 +135,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         next();
     }
 
-    request(options: AjaxRequestOptions) {
+    request(options: AjaxRequest, includeAntiforgery = true) {
         if (!options.headers)
             options.headers = {};
 
-        if (this.antiforgery && options.method !== "GET")
+        if (includeAntiforgery && this.antiforgery && options.method !== "GET")
             options.headers[this.antiforgery.headerName] = this.__navigation.validationToken;
 
         ajaxRequest(options);
@@ -139,19 +149,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__renderPage(navSequence, html, () => { return; });
     }
-    buildUrl(queryParams: { [key: string]: string }): string {
-        const params: { [key: string]: string } = {};
-        for (const k in this.__navigation.query) {
-            params[k] = this.__navigation.query[k];
-        }
-
-        if (queryParams) {
-            for (const k in queryParams) {
-                params[k] = queryParams[k];
-            }
-        }
-
-        return this.app.uri(this.__navigation.path, params);
+    buildUrl(path?: string, queryParams?: { [key: string]: string; }): string {
+        return this.app.uri(path, queryParams);
+    }
+    nav(options: NavigationOptions) {
+        this.app.nav(options);
     }
 
     private setNavigation(data: NavigationModel, hash: string, replace: boolean) {
@@ -239,17 +241,18 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (this.__checkNavActual(navSequence))
             return;
 
-        this.request({
+        this.queue.push({
             url: this.__navigation.url,
             urlParams: { _content: "" },
             disableCache: true,
-            success: (contentHtml: string, status: number, xhr: XMLHttpRequest) => {
+            state: null,
+            success: (response: AjaxResponse) => {
                 if (this.__checkNavActual(navSequence))
                     return;
 
-                switch (status) {
+                switch (response.status) {
                     case 200: {
-                        const redirectLocation = xhr.getResponseHeader("Page-Location");
+                        const redirectLocation = response.xhr.getResponseHeader("Page-Location");
                         if (redirectLocation) {
                             if (redirectLocation.startsWith("/"))
                                 this.app.nav({ url: redirectLocation });
@@ -258,7 +261,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                             return;
                         }
 
-                        this.__renderPage(navSequence, contentHtml ? contentHtml : "", next);
+                        this.__renderPage(navSequence, response.data ? response.data : "", next);
 
                         break;
                     }
@@ -318,6 +321,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         next();
 
+        this.__loadingPage = false;
+
         this.__hideNavigationProgress();
     }
 
@@ -365,7 +370,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     }
 
     private _isSubmitting = false;
-    private __submit(form: HTMLFormElement, url: string = null, handler: string = null) {
+    submit(form: HTMLFormElement, url: string = null, handler: string = null) {
         if (!form.checkValidity() && !form.noValidate)
             return;
 
@@ -384,29 +389,25 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (!handler)
             handler = form.getAttribute("data-form-handler");
 
-        const navSequence = this.__incNavSequence();
-
-        const f = (data: string, status: number, xhr: XMLHttpRequest) => {
+        const f = (response: AjaxResponse) => {
             if (this.__checkNavActual(navSequence))
                 return;
 
-            switch (status) {
+            switch (response.status) {
                 case 200:
                 case 201: {
-                    const pageLocation = xhr.getResponseHeader("Page-Location");
+                    const pageLocation = response.xhr.getResponseHeader("Page-Location");
                     if (pageLocation) {
                         this.app.nav({ url: pageLocation });
                         return;
                     }
 
-                    this.updateHtml(data);
+                    this.updateHtml(response.data);
 
                     break;
                 }
                 case 400:
                 case 500: {
-                    this._isSubmitting = false;
-
                     if (submitButton)
                         submitButton.classList.remove("loading");
                     form.classList.remove("loading");
@@ -418,16 +419,22 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 }
             }
 
+            this._isSubmitting = false;
+
             this.__hideNavigationProgress();
         };
 
         this.__showNavigationProgress();
 
-        this.request({
+        const navSequence = this.__incNavSequence();
+
+        this.queue.reset(true);
+        this.queue.push({
             url: url,
-            urlParams: { _content: "", handler: handler },
+            urlParams: { _content: "", handler },
             method: form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST",
             data: new FormData(form),
+            state: null,
             success: submitButton ? minWait(f) : f
         });
     }
@@ -440,6 +447,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         return navSequence !== this.__navCounter;
     }
 
+    private __loaderElem: HTMLElement;
+    private __progressInterval: number;
+    private __progressTimeout: number;
+    private __progressStart: number;
     private __showNavigationProgress() {
         window.clearTimeout(this.__progressTimeout);
         window.clearTimeout(this.__progressInterval);

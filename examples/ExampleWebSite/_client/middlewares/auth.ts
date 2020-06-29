@@ -7,6 +7,7 @@ export class AuthMiddleware extends Middleware<ApplicationModel> {
             ajaxRequest({
                 url: this.app.uri("api/auth/signout"),
                 method: "POST",
+                state: null,
                 success: () => {
                     this.app.reload();
                 }

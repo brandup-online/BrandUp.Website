@@ -59,14 +59,40 @@ namespace BrandUp.Website.Pages
 
         #region IPageModel members
 
-        public abstract string Title { get; }
-        public virtual string Description => null;
-        public virtual string Keywords => null;
-        public virtual string CssClass { get; set; }
-        public virtual string ScriptName { get; set; }
-        public virtual string CanonicalLink => null;
+        public Uri Link { get; private set; }
+        public virtual string Title { get; }
+        public virtual string Description { get; }
+        public virtual string Keywords { get; }
+        public virtual string CssClass { get; }
+        public virtual string ScriptName { get; }
+        public virtual Uri CanonicalLink => Link;
 
         #endregion
+
+        private Uri GetPageLink()
+        {
+            var httpContext = HttpContext;
+            var httpRequest = httpContext.Request;
+            var requestQuery = httpRequest.Query;
+            var requestUrl = httpRequest.GetDisplayUrl();
+            var requestUri = new Uri(requestUrl);
+            var baseUri = requestUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
+
+            if (requestQuery.ContainsKey("_nav") || requestQuery.ContainsKey("_content") || requestQuery.ContainsKey("_"))
+            {
+                var query = QueryHelpers.ParseQuery(requestUri.Query);
+                query.Remove("_nav");
+                query.Remove("_content");
+                query.Remove("_");
+                var qb = new QueryBuilder();
+                foreach (var kv in query)
+                    qb.Add(kv.Key, (IEnumerable<string>)kv.Value);
+
+                requestUrl = baseUri + qb.ToQueryString();
+            }
+
+            return new Uri(requestUrl);
+        }
 
         #region PageModel members
 
@@ -74,6 +100,8 @@ namespace BrandUp.Website.Pages
         {
             WebsiteContext = HttpContext.RequestServices.GetRequiredService<WebsiteContext>();
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
+
+            Link = GetPageLink();
 
             var request = Request;
             var isGetRequest = request.Method == "GET";
@@ -449,21 +477,6 @@ namespace BrandUp.Website.Pages
         {
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
-            var requestUrl = httpRequest.GetDisplayUrl();
-            var requestUri = new Uri(requestUrl);
-            var baseUri = requestUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
-
-            if (httpRequest.Query.ContainsKey("_nav"))
-            {
-                var query = QueryHelpers.ParseQuery(requestUri.Query);
-                query.Remove("_nav");
-                var qb = new QueryBuilder();
-                foreach (var kv in query)
-                    qb.Add(kv.Key, (IEnumerable<string>)kv.Value);
-
-                requestUrl = baseUri + qb.ToQueryString();
-            }
-
             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
             var protector = protectionProvider.CreateProtector("BrandUp.Pages");
 
@@ -473,8 +486,8 @@ namespace BrandUp.Website.Pages
             var navModel = new ClientModels.NavigationModel
             {
                 IsAuthenticated = httpContext.User.Identity.IsAuthenticated,
-                Url = requestUrl,
-                Path = requestUri.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
+                Url = Link,
+                Path = Link.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
                 Query = new Dictionary<string, object>(),
                 Data = new Dictionary<string, object>(),
                 State = protector.Protect(JsonSerializer.Serialize(NavigationState)),
@@ -495,6 +508,8 @@ namespace BrandUp.Website.Pages
             }
 
             navModel.Query.Remove("_nav");
+            navModel.Query.Remove("_content");
+            navModel.Query.Remove("_");
 
             var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
             if (antiforgery != null)

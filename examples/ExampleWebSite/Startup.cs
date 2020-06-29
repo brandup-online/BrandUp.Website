@@ -137,6 +137,8 @@ namespace ExampleWebSite
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseMinifyHtml();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();

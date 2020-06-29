@@ -1,6 +1,6 @@
-import { UIElement, AjaxQueue, AjaxRequestOptions } from "brandup-ui";
+import { UIElement, AjaxRequest, AjaxQueue, DOM } from "brandup-ui";
 import { PageModel, NavigationModel, AntiforgeryOptions } from "../common";
-import { IApplication } from "brandup-ui-app";
+import { IApplication, NavigationOptions } from "brandup-ui-app";
 
 export class Page<TModel extends PageModel> extends UIElement {
     readonly website: Website;
@@ -14,7 +14,7 @@ export class Page<TModel extends PageModel> extends UIElement {
         this.website = website;
         this.nav = nav;
         this.queue = new AjaxQueue({
-            onPreRequest: (options) => {
+            preRequest: (options) => {
                 if (!options.headers)
                     options.headers = {};
 
@@ -30,8 +30,31 @@ export class Page<TModel extends PageModel> extends UIElement {
     get typeName(): string { return "BrandUp.Page"; }
     get model(): TModel { return this.nav.page as TModel; }
 
-    protected onRenderContent() {
-        return;
+    protected onRenderContent() { return; }
+
+    submit(form?: HTMLFormElement, handler?: string) {
+        if (!form)
+            form = DOM.getElementByName("form") as HTMLFormElement;
+
+        if (!form)
+            throw `Not found form by submit.`;
+
+        this.website.submit(form, null, handler);
+    }
+
+    buildUrl(queryParams: { [key: string]: string }): string {
+        const params: { [key: string]: string } = {};
+        for (const k in this.nav.query) {
+            params[k] = this.nav.query[k];
+        }
+
+        if (queryParams) {
+            for (const k in queryParams) {
+                params[k] = queryParams[k];
+            }
+        }
+
+        return this.website.app.uri(this.nav.path, params);
     }
 
     attachDestroyFunc(f: () => void) {
@@ -56,7 +79,10 @@ export class Page<TModel extends PageModel> extends UIElement {
 export interface Website {
     readonly app: IApplication;
     readonly antiforgery: AntiforgeryOptions;
+    readonly queue: AjaxQueue;
     updateHtml(html: string);
-    request(options: AjaxRequestOptions);
-    buildUrl(queryParams: { [key: string]: string }): string;
+    request(options: AjaxRequest, includeAntiforgery?: boolean);
+    buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
+    nav(options: NavigationOptions);
+    submit(form: HTMLFormElement, url?: string, handler?: string);
 }

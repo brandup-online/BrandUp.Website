@@ -1,14 +1,14 @@
-import { IApplication, ApplicationBuilder, Application, ApplicationModel, EnvironmentModel } from "brandup-ui-app";
+import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel } from "brandup-ui-app";
 import { WebsiteMiddleware, WebsiteOptions } from "./middlewares/website";
 import { NavigationModel, AntiforgeryOptions } from "./common";
 
 class AppHost {
-    private app: IApplication;
+    private static app: Application;
 
     start<TModel extends ApplicationModel>(options: WebsiteOptions, configure: (builder: ApplicationBuilder) => void, callback?: (app: Application<TModel>) => void) {
-        if (this.app) {
-            this.app.destroy();
-            delete this.app;
+        if (AppHost.app) {
+            AppHost.app.destroy();
+            delete AppHost.app;
         }
 
         if (window["appStartup"]) {
@@ -18,21 +18,19 @@ class AppHost {
             appBuilder.useMiddleware(new WebsiteMiddleware(appStartup.nav, options, appStartup.antiforgery));
             configure(appBuilder);
 
-            const app = appBuilder.build<TModel>(appStartup.env, appStartup.model as TModel);
+            AppHost.app = appBuilder.build(appStartup.env, appStartup.model);
             let isInitiated = false;
             const appInitFunc = () => {
                 if (isInitiated)
                     return;
                 isInitiated = true;
 
-                app.init();
+                AppHost.app.init();
                 if (callback)
-                    callback(app);
+                    callback(AppHost.app as Application<TModel>);
             };
 
             window.setTimeout(() => {
-                this.app = app;
-
                 if (document.readyState === "loading") {
                     document.addEventListener("readystatechange", () => {
                         if (document.readyState !== "loading")
@@ -44,11 +42,11 @@ class AppHost {
 
                 window.addEventListener("load", () => {
                     appInitFunc();
-                    app.load();
+                    AppHost.app.load();
                 });
             }, 0);
 
-            return app;
+            return AppHost.app;
         }
 
         console.log("Is not find application config.");

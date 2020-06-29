@@ -33,8 +33,9 @@ namespace BrandUp.Website.TagHelpers
                 if (string.Equals(context.TagName, "head", StringComparison.OrdinalIgnoreCase))
                 {
                     var websiteOptions = ViewContext.HttpContext.RequestServices.GetRequiredService<IOptions<WebsiteOptions>>().Value;
+                    var outputContent = output.PreContent;
 
-                    output.PostContent.AppendHtml($"    <meta charset=\"utf-8\" />{Environment.NewLine}");
+                    outputContent.AppendHtml($"{Environment.NewLine}    <meta charset=\"utf-8\" />{Environment.NewLine}");
                     if (websiteOptions.Adaptive != null && websiteOptions.Adaptive.Enable)
                     {
                         var viewportParams = new List<string>
@@ -47,36 +48,38 @@ namespace BrandUp.Website.TagHelpers
                         if (!string.IsNullOrEmpty(websiteOptions.Adaptive.MaximumScale))
                             viewportParams.Add($"initial-scale={websiteOptions.Adaptive.MaximumScale}");
 
-                        output.PostContent.AppendHtml($"    <meta name=\"viewport\" content=\"{string.Join(", ", viewportParams)}\" />{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta name=\"viewport\" content=\"{string.Join(", ", viewportParams)}\" />{Environment.NewLine}");
                     }
 
                     var renderTitleContext = new RenderPageTitleContext(appPageModel);
                     await websiteEvents.RenderPageTitle(renderTitleContext);
-                    output.PostContent.AppendHtml($"    <title>{renderTitleContext.Title ?? ""}</title>{Environment.NewLine}");
+                    outputContent.AppendHtml($"    <title>{renderTitleContext.Title ?? ""}</title>{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Description))
-                        output.PostContent.AppendHtml($"    <meta id=\"page-meta-description\" name=\"description\" content=\"{appPageModel.Description}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta id=\"page-meta-description\" name=\"description\" content=\"{appPageModel.Description}\">{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Keywords))
-                        output.PostContent.AppendHtml($"    <meta id=\"page-meta-keywords\" name=\"keywords\" content=\"{appPageModel.Keywords}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta id=\"page-meta-keywords\" name=\"keywords\" content=\"{appPageModel.Keywords}\">{Environment.NewLine}");
 
-                    if (!string.IsNullOrEmpty(appPageModel.CanonicalLink))
-                        output.PostContent.AppendHtml($"    <link id=\"page-link-canonical\" rel=\"canonical\" href=\"{appPageModel.CanonicalLink}\">{Environment.NewLine}");
+                    var canonicalLink = appPageModel.CanonicalLink;
+                    if (canonicalLink == null)
+                        canonicalLink = appPageModel.Link;
+                    outputContent.AppendHtml($"    <link id=\"page-link-canonical\" rel=\"canonical\" href=\"{canonicalLink}\">{Environment.NewLine}");
 
                     var og = appPageModel.OpenGraph;
                     if (og != null)
                     {
-                        output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Type}\" content=\"{og.Type}\">{Environment.NewLine}");
-                        output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Image}\" content=\"{og.Image}\">{Environment.NewLine}");
-                        output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Title}\" content=\"{og.Title}\">{Environment.NewLine}");
-                        output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Url}\" content=\"{og.Url}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Type}\" content=\"{og.Type}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Image}\" content=\"{og.Image}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Title}\" content=\"{og.Title}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Url}\" content=\"{og.Url}\">{Environment.NewLine}");
                         if (og.Description != null)
-                            output.PostContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
+                            outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
                     }
 
                     var startupModel = await appPageModel.GetStartupClientModelAsync(appPageModel);
 
-                    output.PostContent.AppendHtml($"    <script>var appStartup = {jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
+                    outputContent.AppendHtml($"    <script>var appStartup = {jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
 
                     await websiteEvents.RenderHeadTag(new OnRenderTagContext(ViewContext, context, output));
                 }
