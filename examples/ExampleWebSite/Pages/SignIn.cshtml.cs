@@ -14,6 +14,7 @@ namespace ExampleWebSite.Pages
         readonly static Guid userId = new Guid("1df7d641-2fd4-415a-8530-7b0a2afa88ae");
 
         public override string Title => "Вход";
+        public override string ScriptName => "signin";
 
         [BindProperty, Required, Display(Name = "E-mail"), EmailAddress]
         public string Email { get; set; }

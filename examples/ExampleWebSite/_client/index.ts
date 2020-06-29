@@ -4,6 +4,7 @@ import "./styles.less";
 
 host.start({
     pageTypes: {
+        "signin": ()=> import("./pages/signin")
     }
 }, (builder) => {
         builder.useMiddleware(new AuthMiddleware());

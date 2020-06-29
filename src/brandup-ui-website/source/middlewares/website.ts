@@ -33,7 +33,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__contentBodyElem = document.getElementById("page-content");
         if (!this.__contentBodyElem)
-            throw "Не найден элемент контента страницы.";
+            throw "РќРµ РЅР°Р№РґРµРЅ СЌР»РµРјРµРЅС‚ РєРѕРЅС‚РµРЅС‚Р° СЃС‚СЂР°РЅРёС†С‹.";
 
         if (allowHistory) {
             window.addEventListener("popstate", Utility.createDelegate(this, this.__onPopState));
@@ -97,7 +97,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                                     return;
                                 }
                                 default:
-                                    throw "Неизвестный тип действия для страницы.";
+                                    throw "РќРµРёР·РІРµСЃС‚РЅС‹Р№ С‚РёРї РґРµР№СЃС‚РІРёСЏ РґР»СЏ СЃС‚СЂР°РЅРёС†С‹.";
                             }
                         }
 
@@ -288,10 +288,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 throw `Not found page type "${pageTypeName}".`;
 
             pageTypeFactory().then((pageType) => {
-                    this.__createPage(navSequence, pageType, contentHtml, next);
+                    this.__createPage(navSequence, pageType.default, contentHtml, next);
                 })
                 .catch(() => {
-                    throw "Ошибка загрузки скрипта страницы.";
+                    throw "РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё СЃРєСЂРёРїС‚Р° СЃС‚СЂР°РЅРёС†С‹.";
                 });
 
             return;
