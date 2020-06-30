@@ -1,6 +1,6 @@
 import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
 import { Middleware, ApplicationModel, NavigateContext, NavigationOptions } from "brandup-ui-app";
-import { NavigationModel, PageModel, PageNavState, AntiforgeryOptions } from "../common";
+import { NavigationModel, PageNavState, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
 
@@ -10,7 +10,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
     private __contentBodyElem: HTMLElement;
-    private __page: Page<PageModel> = null;
+    private __page: Page = null;
     private __navCounter = 0;
     private __navigation: NavigationModel;
     private __loadingPage = false;
@@ -311,7 +311,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__createPage(navSequence, Page, contentHtml, next);
     }
-    private __createPage(navSequence: number, pageType: new (...p) => Page<PageModel>, contentHtml: string, next: () => void) {
+    private __createPage(navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
