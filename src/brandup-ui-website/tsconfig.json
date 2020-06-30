@@ -12,7 +12,8 @@
     "outDir": "./dist",
     "declaration": true,
     "declarationDir": "./source",
-    "declarationMap": false
+    "declarationMap": false,
+    "removeComments": false
   },
   "exclude": [
     "node_modules",

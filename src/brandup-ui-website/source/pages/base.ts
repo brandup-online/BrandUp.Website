@@ -2,7 +2,7 @@ import { UIElement, AjaxRequest, AjaxQueue, DOM } from "brandup-ui";
 import { PageModel, NavigationModel, AntiforgeryOptions } from "../common";
 import { IApplication, NavigationOptions } from "brandup-ui-app";
 
-export class Page<TModel extends PageModel> extends UIElement {
+export class Page<TModel extends PageModel = { type: string }> extends UIElement {
     readonly website: Website;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
