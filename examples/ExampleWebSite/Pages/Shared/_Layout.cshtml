@@ -17,12 +17,12 @@
                     <li><a asp-page="/Contacts" class="applink">Contacts</a></li>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <li><a href="#" rel="nofollow" data-command="signout">Sign in</a></li>
+                        <li><a href="#" rel="nofollow" data-command="signout">Sign out</a></li>
                     }
                     else
                     {
 
-                        <li><a asp-page="/SignIn" class="applink">Sign out</a></li>
+                        <li><a asp-page="/SignIn" class="applink">Sign in</a></li>
                     }
                 </ul>
             </div>
