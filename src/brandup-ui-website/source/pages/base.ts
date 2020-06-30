@@ -7,6 +7,7 @@ export class Page<TModel extends PageModel> extends UIElement {
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
     private __destroyCallbacks: Array<() => void> = [];
+    private __scripts: Array<UIElement> = [];
 
     constructor(website: Website, nav: NavigationModel, element: HTMLElement) {
         super();
@@ -23,6 +24,8 @@ export class Page<TModel extends PageModel> extends UIElement {
             }
         });
         this.setElement(element);
+
+        this.refreshScripts();
 
         this.onRenderContent();
     }
@@ -41,7 +44,6 @@ export class Page<TModel extends PageModel> extends UIElement {
 
         this.website.submit(form, null, handler);
     }
-
     buildUrl(queryParams: { [key: string]: string }): string {
         const params: { [key: string]: string } = {};
         for (const k in this.nav.query) {
@@ -56,6 +58,26 @@ export class Page<TModel extends PageModel> extends UIElement {
 
         return this.website.app.uri(this.nav.path, params);
     }
+    refreshScripts() {
+        const scriptElements = DOM.queryElements(this.element, "[data-content-script]");
+        for (let i = 0; i < scriptElements.length; i++) {
+            const elem = scriptElements.item(i);
+            if (elem.hasAttribute("brandup-ui-element"))
+                continue;
+
+            const scriptName = elem.getAttribute("data-content-script");
+            const script = this.website.getScript(scriptName);
+            if (script) {
+                script.then((t) => {
+                    if (!this.__scripts)
+                        return;
+
+                    const uiElem: UIElement = new t.default(elem);
+                    this.__scripts.push(uiElem);
+                });
+            }
+        }
+    }
 
     attachDestroyFunc(f: () => void) {
         this.__destroyCallbacks.push(f);
@@ -65,6 +87,11 @@ export class Page<TModel extends PageModel> extends UIElement {
     }
 
     destroy() {
+        if (this.__scripts) {
+            this.__scripts.map((elem) => { elem.destroy(); });
+            this.__scripts = null;
+        }
+
         if (this.__destroyCallbacks) {
             this.__destroyCallbacks.map((f) => { f(); });
             this.__destroyCallbacks = null;
@@ -85,4 +112,5 @@ export interface Website {
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
     nav(options: NavigationOptions);
     submit(form: HTMLFormElement, url?: string, handler?: string);
+    getScript(name: string): Promise<{ default: any }>;
 }

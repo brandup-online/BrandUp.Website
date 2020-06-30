@@ -22,6 +22,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.options = options;
         this.antiforgery = antiforgery;
 
+        if (!this.options.pageTypes)
+            this.options.pageTypes = {};
+        if (!this.options.scripts)
+            this.options.scripts = {};
+
         this.queue = new AjaxQueue({
             preRequest: (options) => {
                 if (!options.headers)
@@ -92,7 +97,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             urlParams: { _nav: "" },
             type: "TEXT",
             data: this.__navigation.state ? this.__navigation.state : "",
-            state: null,
             success: (response: AjaxResponse) => {
                 if (this.__checkNavActual(navSequence))
                     return;
@@ -149,11 +153,17 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__renderPage(navSequence, html, () => { return; });
     }
-    buildUrl(path?: string, queryParams?: { [key: string]: string; }): string {
+    buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
         return this.app.uri(path, queryParams);
     }
     nav(options: NavigationOptions) {
         this.app.nav(options);
+    }
+    getScript(name: string): Promise<{ default: any }> {
+        const scriptFunc = this.options.scripts[name];
+        if (!scriptFunc)
+            return;
+        return scriptFunc();
     }
 
     private setNavigation(data: NavigationModel, hash: string, replace: boolean) {
@@ -245,7 +255,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             url: this.__navigation.url,
             urlParams: { _content: "" },
             disableCache: true,
-            state: null,
             success: (response: AjaxResponse) => {
                 if (this.__checkNavActual(navSequence))
                     return;
@@ -434,7 +443,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             urlParams: { _content: "", handler },
             method: form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST",
             data: new FormData(form),
-            state: null,
             success: submitButton ? minWait(f) : f
         });
     }
@@ -508,4 +516,5 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 export interface WebsiteOptions {
     defaultType?: string;
     pageTypes?: { [key: string]: () => Promise<any> };
+    scripts?: { [key: string]: () => Promise<any> };
 }
