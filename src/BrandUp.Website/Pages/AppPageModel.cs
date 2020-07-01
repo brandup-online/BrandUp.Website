@@ -462,6 +462,7 @@ namespace BrandUp.Website.Pages
                 },
                 Model = new ClientModels.ApplicationModel
                 {
+                    WebsiteId = WebsiteContext.Website.Id,
                     Data = new Dictionary<string, object>()
                 }
             };
@@ -507,7 +508,8 @@ namespace BrandUp.Website.Pages
                 CanonicalLink = CanonicalLink,
                 Description = Description,
                 Keywords = Keywords,
-                BodyClass = CssClass
+                BodyClass = CssClass,
+                VisitorId = WebsiteContext.Visitor?.Id
             };
 
             foreach (var kv in httpRequest.Query)

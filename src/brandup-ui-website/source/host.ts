@@ -57,8 +57,8 @@ class AppHost {
 
 interface StartupModel {
     env: EnvironmentModel;
-    nav: NavigationModel;
     model: ApplicationModel;
+    nav: NavigationModel;
     antiforgery: AntiforgeryOptions;
 }
 
