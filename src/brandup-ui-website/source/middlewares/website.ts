@@ -1,5 +1,5 @@
 import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext } from "brandup-ui-app";
 import { NavigationModel, PageNavState, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
@@ -85,6 +85,12 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.__renderPage(context.items, this.__navCounter, null, next);
     }
     loaded(context: LoadContext, next: () => void) {
+        context.items["nav"] = this.__navigation;
+        context.items["page"] = this.__page;
+
+        next();
+    }
+    navigating(context: NavigatingContext, next) {
         context.items["nav"] = this.__navigation;
         context.items["page"] = this.__page;
 
