@@ -15,22 +15,22 @@ export class AuthMiddleware extends Middleware<ApplicationModel> {
         });
 
         console.log(`Website ID: ${this.app.model.websiteId}`);
-        console.log(`Visitor ID: ${context.items["nav"].visitorId}`);
+        console.log(`Visitor ID: ${this.app.model.visitorId}`);
 
         next();
 
-        console.log(context.items["nav"]);
+        //console.log(context.items["nav"]);
     }
 
     loaded(context: LoadContext, next) {
         next();
 
-        console.log(context.items["nav"]);
+        console.log(context.items);
     }
 
     navigate(context: NavigateContext, next) {
         next();
 
-        console.log(context.items["nav"]);
+        console.log(context.items);
     }
 }

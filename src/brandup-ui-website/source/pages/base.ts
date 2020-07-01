@@ -107,6 +107,7 @@ export interface Website {
     readonly app: Application;
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;
+    readonly id: string;
     updateHtml(html: string);
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;

@@ -1,5 +1,5 @@
 import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext } from "brandup-ui-app";
 import { NavigationModel, PageNavState, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
@@ -15,6 +15,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     private __navigation: NavigationModel;
     private __loadingPage = false;
     readonly queue: AjaxQueue;
+
+    get id(): string { return this.app.model.websiteId; }
 
     constructor(nav: NavigationModel, options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
@@ -79,7 +81,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
 
-        this.__renderPage(this.__navCounter, null, next);
+        this.__renderPage(null, this.__navCounter, null, next);
     }
     loaded(context: LoadContext, next: () => void) {
         context.items["nav"] = this.__navigation;
@@ -93,6 +95,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         }
 
         this.__showNavigationProgress();
+
+        context.items["prevNav"] = this.__navigation;
 
         this.__loadingPage = true;
         const navSequence = this.__incNavSequence();
@@ -135,7 +139,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                         this.setNavigation(response.data, context.hash, context.replace);
 
-                        this.__loadContent(navSequence, next);
+                        this.__loadContent(context, navSequence, next);
 
                         break;
                     }
@@ -144,6 +148,12 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 }
             }
         });
+    }
+    stop(context: StopContext, next) {
+        context.items["nav"] = this.__navigation;
+        context.items["page"] = this.__page;
+
+        next();
     }
 
     request(options: AjaxRequest, includeAntiforgery = true) {
@@ -158,7 +168,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     updateHtml(html: string) {
         const navSequence = this.__incNavSequence();
 
-        this.__renderPage(navSequence, html, () => { return; });
+        this.__renderPage(null, navSequence, html, () => { return; });
     }
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
         return this.app.uri(path, queryParams);
@@ -254,7 +264,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
     }
 
-    private __loadContent(navSequence: number, next: () => void) {
+    private __loadContent(context: NavigateContext, navSequence: number, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
@@ -277,7 +287,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                             return;
                         }
 
-                        this.__renderPage(navSequence, response.data ? response.data : "", next);
+                        this.__renderPage(context, navSequence, response.data ? response.data : "", next);
 
                         break;
                     }
@@ -293,7 +303,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
     }
-    private __renderPage(navSequence: number, contentHtml: string, next: () => void) {
+    private __renderPage(context: NavigateContext, navSequence: number, contentHtml: string, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
@@ -307,18 +317,16 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 throw `Not found page type "${pageTypeName}".`;
 
             pageTypeFactory().then((pageType) => {
-                    this.__createPage(navSequence, pageType.default, contentHtml, next);
+                    this.__createPage(context, navSequence, pageType.default, contentHtml, next);
                 })
-                .catch(() => {
-                    throw "Ошибка загрузки скрипта страницы.";
-                });
+                .catch(() => { throw "Error loading page script."; });
 
             return;
         }
 
-        this.__createPage(navSequence, Page, contentHtml, next);
+        this.__createPage(context, navSequence, Page, contentHtml, next);
     }
-    private __createPage(navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
+    private __createPage(context: NavigateContext, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
@@ -334,6 +342,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         }
 
         this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
+
+        if (context)
+            context.items["page"] = this.__page;
 
         next();
 

@@ -18,7 +18,6 @@ namespace BrandUp.Website.ClientModels
         public string Keywords { get; set; }
         public string BodyClass { get; set; }
         public PageModel Page { get; set; }
-        public string VisitorId { get; set; }
         [JsonExtensionData]
         public Dictionary<string, object> Data { get; set; }
     }
