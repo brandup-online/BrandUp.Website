@@ -1,5 +1,5 @@
 import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext } from "brandup-ui-app";
 import { NavigationModel, PageNavState, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
@@ -40,7 +40,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.setNavigation(nav, location.hash ? location.hash.substr(1) : null, false);
     }
 
-    start(_context, next: () => void) {
+    start(context: StartContext, next: () => void) {
+        context.items["nav"] = this.__navigation;
+
         document.body.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
 
         this.__contentBodyElem = document.getElementById("page-content");
@@ -78,6 +80,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         });
 
         this.__renderPage(this.__navCounter, null, next);
+    }
+    loaded(context: LoadContext, next: () => void) {
+        context.items["nav"] = this.__navigation;
+
+        next();
     }
     navigate(context: NavigateContext, next: () => void) {
         if (!allowHistory) {
@@ -124,6 +131,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                             return;
                         }
 
+                        context.items["nav"] = response.data;
+
                         this.setNavigation(response.data, context.hash, context.replace);
 
                         this.__loadContent(navSequence, next);
@@ -135,8 +144,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 }
             }
         });
-
-        next();
     }
 
     request(options: AjaxRequest, includeAntiforgery = true) {

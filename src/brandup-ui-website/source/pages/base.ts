@@ -1,6 +1,6 @@
 import { UIElement, AjaxRequest, AjaxQueue, DOM } from "brandup-ui";
 import { PageModel, NavigationModel, AntiforgeryOptions } from "../common";
-import { IApplication, NavigationOptions } from "brandup-ui-app";
+import { NavigationOptions, Application } from "brandup-ui-app";
 
 export class Page<TModel extends PageModel = { type: string }> extends UIElement {
     readonly website: Website;
@@ -104,7 +104,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 }
 
 export interface Website {
-    readonly app: IApplication;
+    readonly app: Application;
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;
     updateHtml(html: string);
