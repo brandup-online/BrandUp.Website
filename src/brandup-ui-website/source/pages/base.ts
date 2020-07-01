@@ -108,6 +108,7 @@ export interface Website {
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;
     readonly id: string;
+    readonly visitorId: string;
     updateHtml(html: string);
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;

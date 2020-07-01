@@ -17,6 +17,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     readonly queue: AjaxQueue;
 
     get id(): string { return this.app.model.websiteId; }
+    get visitorId(): string { return this.app.model.visitorId; }
 
     constructor(nav: NavigationModel, options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
@@ -81,10 +82,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
 
-        this.__renderPage(null, this.__navCounter, null, next);
+        this.__renderPage(context.items, this.__navCounter, null, next);
     }
     loaded(context: LoadContext, next: () => void) {
         context.items["nav"] = this.__navigation;
+        context.items["page"] = this.__page;
 
         next();
     }
@@ -139,7 +141,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                         this.setNavigation(response.data, context.hash, context.replace);
 
-                        this.__loadContent(context, navSequence, next);
+                        this.__loadContent(context.items, navSequence, next);
 
                         break;
                     }
@@ -264,7 +266,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
     }
 
-    private __loadContent(context: NavigateContext, navSequence: number, next: () => void) {
+    private __loadContent(items: { [key: string]: any }, navSequence: number, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
@@ -287,7 +289,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                             return;
                         }
 
-                        this.__renderPage(context, navSequence, response.data ? response.data : "", next);
+                        this.__renderPage(items, navSequence, response.data ? response.data : "", next);
 
                         break;
                     }
@@ -303,7 +305,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
     }
-    private __renderPage(context: NavigateContext, navSequence: number, contentHtml: string, next: () => void) {
+    private __renderPage(items: { [key: string]: any }, navSequence: number, contentHtml: string, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
@@ -316,17 +318,15 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             if (!pageTypeFactory)
                 throw `Not found page type "${pageTypeName}".`;
 
-            pageTypeFactory().then((pageType) => {
-                    this.__createPage(context, navSequence, pageType.default, contentHtml, next);
-                })
-                .catch(() => { throw "Error loading page script."; });
-
-            return;
+            pageTypeFactory()
+                .then((pageType) => { this.__createPage(items, navSequence, pageType.default, contentHtml, next); })
+                .catch(() => { throw `Error loading page type "${pageTypeName}".`; });
         }
-
-        this.__createPage(context, navSequence, Page, contentHtml, next);
+        else {
+            this.__createPage(items, navSequence, Page, contentHtml, next);
+        }
     }
-    private __createPage(context: NavigateContext, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
+    private __createPage(items: { [key: string]: any }, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
         if (this.__checkNavActual(navSequence))
             return;
 
@@ -343,8 +343,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
 
-        if (context)
-            context.items["page"] = this.__page;
+        items["page"] = this.__page;
 
         next();
 

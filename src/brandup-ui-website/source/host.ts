@@ -19,6 +19,7 @@ class AppHost {
             configure(appBuilder);
 
             AppHost.app = appBuilder.build(appStartup.env, appStartup.model);
+
             let isInitiated = false;
             const appInitFunc = () => {
                 if (isInitiated)
@@ -26,25 +27,50 @@ class AppHost {
                 isInitiated = true;
 
                 AppHost.app.init();
+
                 if (callback)
                     callback(AppHost.app as Application<TModel>);
             };
 
-            window.setTimeout(() => {
-                if (document.readyState === "loading") {
-                    document.addEventListener("readystatechange", () => {
-                        if (document.readyState !== "loading")
-                            appInitFunc();
-                    });
-                }
-                else
-                    appInitFunc();
+            let isLoaded = false;
+            const appLoadFunc = () => {
+                if (isLoaded)
+                    return;
+                isLoaded = true;
 
-                window.addEventListener("load", () => {
-                    appInitFunc();
-                    AppHost.app.load();
-                });
-            }, 0);
+                AppHost.app.load();
+            };
+
+            document.addEventListener("readystatechange", () => {
+                console.log(`state: ${document.readyState}`);
+
+                switch (document.readyState) {
+                    case "loading": {
+                        break;
+                    }
+                    case "interactive": {
+                        appInitFunc();
+                        break;
+                    }
+                    case "complete": {
+                        appInitFunc();
+                        appLoadFunc();
+                        break;
+                    }
+                }
+            });
+
+            window.addEventListener("load", () => {
+                console.log("window loaded");
+
+                appInitFunc();
+                appLoadFunc();
+            });
+
+            if (document.readyState === "complete") {
+                appInitFunc();
+                appLoadFunc();
+            }
 
             return AppHost.app;
         }
