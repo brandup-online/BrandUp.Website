@@ -12,6 +12,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     constructor(website: Website, nav: NavigationModel, element: HTMLElement) {
         super();
 
+        this.setElement(element);
+
         this.website = website;
         this.nav = nav;
         this.queue = new AjaxQueue({
@@ -23,11 +25,6 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                     options.headers[website.antiforgery.headerName] = nav.validationToken;
             }
         });
-        this.setElement(element);
-
-        this.refreshScripts();
-
-        this.onRenderContent();
     }
 
     get typeName(): string { return "BrandUp.Page"; }
@@ -35,6 +32,35 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
     protected onRenderContent() { return; }
 
+    render() {
+        this.refreshScripts();
+        this.onRenderContent();
+
+        this.element.addEventListener("submit", (e: Event) => {
+            e.preventDefault();
+            this.submit(e.target as HTMLFormElement);
+        });
+
+        this.element.addEventListener("invalid", (event: Event) => {
+            event.preventDefault();
+
+            const elem = event.target as HTMLInputElement;
+            elem.classList.add("invalid");
+
+            if (elem.hasAttribute("data-val-required")) {
+                elem.classList.add("invalid-required");
+            }
+        }, true);
+
+        this.element.addEventListener("change", (event: Event) => {
+            const elem = event.target as HTMLInputElement;
+            elem.classList.remove("invalid");
+
+            if (elem.hasAttribute("data-val-required")) {
+                elem.classList.remove("invalid-required");
+            }
+        });
+    }
     submit(form?: HTMLFormElement, handler?: string) {
         if (!form)
             form = DOM.getElementByName("form") as HTMLFormElement;

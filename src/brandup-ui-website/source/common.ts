@@ -4,6 +4,7 @@ export interface AntiforgeryOptions {
 }
 
 export interface PageNavState {
+    isBrandUp: boolean;
     url: string;
     title: string;
     path: string;

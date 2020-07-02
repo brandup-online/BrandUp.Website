@@ -57,31 +57,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             window.addEventListener("hashchange", Utility.createDelegate(this, this.__onHashChange));
         }
 
-        this.__contentBodyElem.addEventListener("submit", (e: Event) => {
-            e.preventDefault();
-            this.submit(e.target as HTMLFormElement);
-        });
-
-        this.__contentBodyElem.addEventListener("invalid", (event: Event) => {
-            event.preventDefault();
-
-            const elem = event.target as HTMLInputElement;
-            elem.classList.add("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.add("invalid-required");
-            }
-        }, true);
-
-        this.__contentBodyElem.addEventListener("change", (event: Event) => {
-            const elem = event.target as HTMLInputElement;
-            elem.classList.remove("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.remove("invalid-required");
-            }
-        });
-
         this.__renderPage(context.items, this.__navCounter, null, next);
     }
     loaded(context: LoadContext, next: () => void) {
@@ -176,7 +151,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     updateHtml(html: string) {
         const navSequence = this.__incNavSequence();
 
-        this.__renderPage(null, navSequence, html, () => { return; });
+        this.__renderPage({}, navSequence, html, () => { return; });
     }
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
         return this.app.uri(path, queryParams);
@@ -253,7 +228,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (navUrl === location.href)
             replace = true;
 
-        const navState = {
+        const navState: PageNavState = {
+            isBrandUp: true,
             url: data.url,
             title: data.title,
             path: data.path,
@@ -349,6 +325,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
 
+        this.__page.render();
+
         items["page"] = this.__page;
 
         next();
@@ -365,15 +343,16 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         console.log("PopState: " + url);
 
         if (url.lastIndexOf("#") > 0) {
-            const t = url.lastIndexOf("#");
-            const urlHash = url.substr(t + 1);
-            const urlWithoutHash = url.substr(0, t);
+            const hashStartIndex = url.lastIndexOf("#");
+            const urlHash = url.substr(hashStartIndex + 1);
+            const urlWithoutHash = url.substr(0, hashStartIndex);
 
             if (!event.state) {
                 console.log("PopState hash: " + urlHash);
 
                 const pageState: PageNavState = {
-                    url: url.substr(0, t),
+                    isBrandUp: true,
+                    url: url.substr(0, hashStartIndex),
                     title: this.__navigation.title,
                     path: this.__navigation.path,
                     params: this.__navigation.query,
@@ -392,9 +371,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         if (event.state) {
             const state = event.state as PageNavState;
-            this.app.nav({ url: state.url, replace: true });
 
-            return;
+            if (state.isBrandUp) {
+                this.app.nav({ url: state.url, replace: true });
+            }
         }
     }
     private __onHashChange(e: HashChangeEvent) {
@@ -421,9 +401,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (!handler)
             handler = form.getAttribute("data-form-handler");
 
+        const navSequence = this.__incNavSequence();
+
         const f = (response: AjaxResponse) => {
             if (this.__checkNavActual(navSequence))
                 return;
+
+            console.log(`form submitted: ${response.status}`);
 
             switch (response.status) {
                 case 200:
@@ -458,7 +442,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__showNavigationProgress();
 
-        const navSequence = this.__incNavSequence();
+        console.log("form submitting");
 
         this.queue.reset(true);
         this.queue.push({

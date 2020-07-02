@@ -26,10 +26,7 @@ class AppHost {
                     return;
                 isInitiated = true;
 
-                AppHost.app.init();
-
-                if (callback)
-                    callback(AppHost.app as Application<TModel>);
+                AppHost.app.start(callback);
             };
 
             let isLoaded = false;
