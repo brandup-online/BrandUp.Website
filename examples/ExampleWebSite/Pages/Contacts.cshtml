@@ -5,3 +5,8 @@
 <header class="page-header">
     <h1>@Model.Title</h1>
 </header>
+
+<section>
+    <p><a href="@Url.Page("", new { test = "test" })" class="applink" data-nav-replace>replace</a></p>
+    <p><a href="/notfound" class="applink">test</a></p>
+</section>

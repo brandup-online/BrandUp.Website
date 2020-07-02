@@ -92,7 +92,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             type: "TEXT",
             data: this.__navigation.state ? this.__navigation.state : "",
             success: (response: AjaxResponse) => {
-                if (this.__checkNavActual(navSequence))
+                if (this.__isNavOutdated(navSequence))
                     return;
 
                 switch (response.status) {
@@ -249,7 +249,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     }
 
     private __loadContent(items: { [key: string]: any }, navSequence: number, next: () => void) {
-        if (this.__checkNavActual(navSequence))
+        if (this.__isNavOutdated(navSequence))
             return;
 
         this.queue.push({
@@ -257,7 +257,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             urlParams: { _content: "" },
             disableCache: true,
             success: (response: AjaxResponse) => {
-                if (this.__checkNavActual(navSequence))
+                if (this.__isNavOutdated(navSequence))
                     return;
 
                 switch (response.status) {
@@ -288,7 +288,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         });
     }
     private __renderPage(items: { [key: string]: any }, navSequence: number, contentHtml: string, next: () => void) {
-        if (this.__checkNavActual(navSequence))
+        if (this.__isNavOutdated(navSequence))
             return;
 
         let pageTypeName = this.__navigation.page.type;
@@ -309,7 +309,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         }
     }
     private __createPage(items: { [key: string]: any }, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
-        if (this.__checkNavActual(navSequence))
+        if (this.__isNavOutdated(navSequence))
             return;
 
         if (this.__page) {
@@ -403,40 +403,38 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         const navSequence = this.__incNavSequence();
 
-        const f = (response: AjaxResponse) => {
-            if (this.__checkNavActual(navSequence))
-                return;
+        const submitCallback = (response: AjaxResponse) => {
+            if (!this.__isNavOutdated(navSequence)) {
+                console.log(`form submitted: ${response.status}`);
 
-            console.log(`form submitted: ${response.status}`);
+                switch (response.status) {
+                    case 200:
+                    case 201: {
+                        const pageLocation = response.xhr.getResponseHeader("Page-Location");
+                        if (pageLocation) {
+                            this.app.nav({ url: pageLocation });
+                            return;
+                        }
 
-            switch (response.status) {
-                case 200:
-                case 201: {
-                    const pageLocation = response.xhr.getResponseHeader("Page-Location");
-                    if (pageLocation) {
-                        this.app.nav({ url: pageLocation });
-                        return;
+                        this.updateHtml(response.data);
+
+                        break;
                     }
+                    case 400:
+                    case 500: {
+                        if (submitButton)
+                            submitButton.classList.remove("loading");
+                        form.classList.remove("loading");
 
-                    this.updateHtml(response.data);
-
-                    break;
-                }
-                case 400:
-                case 500: {
-                    if (submitButton)
-                        submitButton.classList.remove("loading");
-                    form.classList.remove("loading");
-
-                    break;
-                }
-                default: {
-                    break;
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
                 }
             }
 
             this._isSubmitting = false;
-
             this.__hideNavigationProgress();
         };
 
@@ -450,7 +448,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             urlParams: { _content: "", handler },
             method: form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST",
             data: new FormData(form),
-            success: submitButton ? minWait(f) : f
+            success: submitButton ? minWait(submitCallback) : submitCallback
         });
     }
 
@@ -458,7 +456,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.__navCounter++;
         return this.__navCounter;
     }
-    private __checkNavActual(navSequence: number) {
+    private __isNavOutdated(navSequence: number) {
         return navSequence !== this.__navCounter;
     }
 

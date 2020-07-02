@@ -14,8 +14,6 @@ namespace ExampleWebSite.Pages
         {
             context.PageRedirect(Url.Page("/Contacts"), true);
 
-            var p = Page();
-
             return Task.CompletedTask;
         }
     }
