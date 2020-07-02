@@ -1,4 +1,4 @@
-﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext } from "brandup-ui-app";
+﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
 import { ajaxRequest } from "brandup-ui";
 
 export class AuthMiddleware extends Middleware<ApplicationModel> {
@@ -26,6 +26,20 @@ export class AuthMiddleware extends Middleware<ApplicationModel> {
         next();
 
         console.log(context.items);
+    }
+
+    navigating(context: NavigatingContext, next) {
+        console.log(context);
+
+        const state = context.context.state;
+
+        if (state && state.IsTourvisor) {
+            if (state.Back) {
+                context.isCancel = true;
+            }
+        }
+
+        next();
     }
 
     navigate(context: NavigateContext, next) {

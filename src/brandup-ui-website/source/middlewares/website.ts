@@ -372,9 +372,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (event.state) {
             const state = event.state as PageNavState;
 
-            if (state.isBrandUp) {
-                this.app.nav({ url: state.url, replace: true });
-            }
+            this.app.nav({
+                url: state.url ? state.url : null,
+                replace: true,
+                context: {
+                    state
+                }
+            });
         }
     }
     private __onHashChange(e: HashChangeEvent) {
