@@ -591,6 +591,10 @@ namespace BrandUp.Website.Pages
 
             return new Results.PageRedirectResult(this, pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
         }
+        public Results.PageActionResult PageAction(PageActionType actionType)
+        {
+            return new Results.PageActionResult(this, actionType);
+        }
 
         #endregion
     }

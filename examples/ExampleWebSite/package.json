@@ -22,8 +22,8 @@
     "webpack-hot-middleware": "^2.25.0"
   },
   "dependencies": {
-    "brandup-ui": "^1.1.6",
-    "brandup-ui-app": "^1.2.19",
+    "brandup-ui": "^1.1.7",
+    "brandup-ui-app": "^1.2.20",
     "brandup-ui-website": "../../src/brandup-ui-website"
   },
   "scripts": {

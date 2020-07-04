@@ -13,5 +13,13 @@ namespace BrandUp.Website.Pages
 
             context.Result = context.PageModel.PageRedirect(pageUrl, isPermament, replaceUrl);
         }
+
+        public static void PageAction(this PageRequestContext context, PageActionType actionType)
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            context.Result = context.PageModel.PageAction(actionType);
+        }
     }
 }
