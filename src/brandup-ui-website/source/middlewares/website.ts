@@ -109,8 +109,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                         break;
                     }
-                    default:
-                        location.href = context.url;
+                    default: {
+                        if (context.replace)
+                            location.replace(context.url);
+                        else
+                            location.assign(context.url);
+                        break;
+                    }
                 }
             }
         });
