@@ -12,7 +12,7 @@
                 <div class="city"><a href="" data-command="toggle-city">@Model.WebsiteContext.Website.Title</a></div>
                 <ul class="menu">
                     <li><a asp-page="/About">About</a></li>
-                    <li><a asp-page="/Payment">Payment</a></li>
+                    <li><a asp-page="/Payment" nav-replace>Payment</a></li>
                     <li><a asp-page="/Delivery">Delivery</a></li>
                     <li><a asp-page="/Contacts">Contacts</a></li>
                     @if (User.Identity.IsAuthenticated)
