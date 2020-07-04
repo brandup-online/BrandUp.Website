@@ -11,7 +11,7 @@
                 <a asp-area="" asp-page="/Index" class="logo applink">BrandUp.Website</a>
                 <div class="city"><a href="" data-command="toggle-city">@Model.WebsiteContext.Website.Title</a></div>
                 <ul class="menu">
-                    <li><a asp-page="/About">About</a></li>
+                    <li><a nav-url="@Url.Page("/About")">About</a></li>
                     <li><a asp-page="/Payment" nav-replace>Payment</a></li>
                     <li><a asp-page="/Delivery">Delivery</a></li>
                     <li><a asp-page="/Contacts">Contacts</a></li>

@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "brandup-ui": "^1.1.6",
-    "brandup-ui-app": "^1.2.18",
+    "brandup-ui-app": "^1.2.19",
     "brandup-ui-website": "../../src/brandup-ui-website"
   },
   "scripts": {

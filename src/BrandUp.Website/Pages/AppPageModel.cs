@@ -584,12 +584,12 @@ namespace BrandUp.Website.Pages
 
         #region Result methods
 
-        public Results.PageRedirectResult PageRedirect(string pageUrl, bool permament = false)
+        public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replaceUrl = false)
         {
             if (pageUrl == null)
                 throw new ArgumentNullException(nameof(pageUrl));
 
-            return new Results.PageRedirectResult(this, pageUrl, permament);
+            return new Results.PageRedirectResult(this, pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
         }
 
         #endregion

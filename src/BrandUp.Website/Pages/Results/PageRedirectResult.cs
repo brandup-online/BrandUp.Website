@@ -10,13 +10,13 @@ namespace BrandUp.Website.Pages.Results
     {
         public AppPageModel CurrentPage { get; }
         public string PageUrl { get; }
-        public bool IsPermament { get; }
+        public bool IsPermament { get; set; }
+        public bool ReplaceUrl { get; set; }
 
-        public PageRedirectResult(AppPageModel currentPage, string pageUrl, bool permament = false)
+        public PageRedirectResult(AppPageModel currentPage, string pageUrl)
         {
             CurrentPage = currentPage ?? throw new ArgumentNullException(nameof(currentPage));
             PageUrl = pageUrl ?? throw new ArgumentNullException(nameof(pageUrl));
-            IsPermament = permament;
         }
 
         public override Task ExecuteResultAsync(ActionContext context)
@@ -32,6 +32,8 @@ namespace BrandUp.Website.Pages.Results
             {
                 response.StatusCode = 200;
                 response.Headers.Add("Page-Location", PageUrl);
+                if (ReplaceUrl)
+                    response.Headers.Add("Page-Replace", "true");
             }
 
             return Task.CompletedTask;

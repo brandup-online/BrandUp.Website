@@ -42,7 +42,7 @@ namespace ExampleWebSite.Pages
 
             await HttpContext.SignInAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
-            return PageRedirect(Url.Page("/Index"));
+            return PageRedirect(Url.Page("/Index"), replaceUrl: true);
         }
     }
 }

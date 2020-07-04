@@ -98,26 +98,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                 switch (response.status) {
                     case 200: {
-                        const pageAction = response.xhr.getResponseHeader("Page-Action");
-                        if (pageAction) {
-                            switch (pageAction) {
-                                case "reset": {
-                                    location.href = context.fullUrl;
-                                    return;
-                                }
-                                default:
-                                    throw "Неизвестный тип действия для страницы.";
-                            }
-                        }
-
-                        const redirectLocation = response.xhr.getResponseHeader("Page-Location");
-                        if (redirectLocation) {
-                            if (redirectLocation.startsWith("/"))
-                                this.nav({ url: redirectLocation });
-                            else
-                                location.href = redirectLocation;
+                        if (this.__precessPageResponse(response))
                             return;
-                        }
 
                         context.items["nav"] = response.data;
 
@@ -266,14 +248,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                 switch (response.status) {
                     case 200: {
-                        const redirectLocation = response.xhr.getResponseHeader("Page-Location");
-                        if (redirectLocation) {
-                            if (redirectLocation.startsWith("/"))
-                                this.app.nav({ url: redirectLocation });
-                            else
-                                location.href = redirectLocation;
+                        if (this.__precessPageResponse(response))
                             return;
-                        }
 
                         this.__renderPage(items, navSequence, response.data ? response.data : "", next);
 
@@ -337,6 +313,32 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         next();
 
         this.__hideNavigationProgress();
+    }
+
+    private __precessPageResponse(response: AjaxResponse): boolean {
+        const pageAction = response.xhr.getResponseHeader("Page-Action");
+        if (pageAction) {
+            switch (pageAction) {
+                case "reset":
+                case "reload": {
+                    location.reload();
+                    return true;
+                }
+                default:
+                    throw "Неизвестный тип действия для страницы.";
+            }
+        }
+
+        const redirectLocation = response.xhr.getResponseHeader("Page-Location");
+        if (redirectLocation) {
+            this.nav({
+                url: redirectLocation,
+                replace: response.xhr.getResponseHeader("Page-Replace") === "true"
+            });
+            return true;
+        }
+
+        return false;
     }
 
     private __onPopState(event: PopStateEvent) {
@@ -428,11 +430,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 switch (response.status) {
                     case 200:
                     case 201: {
-                        const pageLocation = response.xhr.getResponseHeader("Page-Location");
-                        if (pageLocation) {
-                            this.app.nav({ url: pageLocation });
+                        if (this.__precessPageResponse(response))
                             return;
-                        }
 
                         this.updateHtml(response.data);
 
