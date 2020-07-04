@@ -12,6 +12,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     private __contentBodyElem: HTMLElement;
     private __page: Page = null;
     private __navCounter = 0;
+    private __currentUrl: UrlParsed = null;
     private __navigation: NavigationModel;
     private __loadingPage = false;
     readonly queue: AjaxQueue;
@@ -101,7 +102,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                         if (pageAction) {
                             switch (pageAction) {
                                 case "reset": {
-                                    location.href = context.url;
+                                    location.href = context.fullUrl;
                                     return;
                                 }
                                 default:
@@ -216,6 +217,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         }
 
         this.__navigation = data;
+        this.__currentUrl = { url: data.url, hash };
 
         if (prevNav && prevNav.bodyClass) {
             document.body.classList.remove(prevNav.bodyClass);
@@ -228,20 +230,22 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (navUrl === location.href)
             replace = true;
 
-        const navState: PageNavState = {
-            isBrandUp: true,
-            url: data.url,
-            title: data.title,
-            path: data.path,
-            params: data.query,
-            hash: hash
-        };
+        if (!hash) {
+            const navState: PageNavState = {
+                isBrandUp: true,
+                url: data.url,
+                title: data.title,
+                path: data.path,
+                params: data.query,
+                hash: hash
+            };
 
-        if (allowHistory) {
-            if (!replace)
-                window.history.pushState(navState, data.title, navUrl);
-            else
-                window.history.replaceState(navState, data.title, navUrl);
+            if (allowHistory) {
+                if (!replace)
+                    window.history.pushState(navState, data.title, navUrl);
+                else
+                    window.history.replaceState(navState, data.title, navUrl);
+            }
         }
 
         if (!replace)
@@ -324,14 +328,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         }
 
         this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
-
-        this.__page.render();
+        this.__page.render(this.__currentUrl.hash);
 
         items["page"] = this.__page;
 
-        next();
-
         this.__loadingPage = false;
+
+        next();
 
         this.__hideNavigationProgress();
     }
@@ -340,49 +343,60 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         event.preventDefault();
 
         const url = location.href;
+        const oldUrl = this.__currentUrl;
+        const newUrl = this.__extractHashFromUrl(url);
+
+        if (oldUrl.hash && !newUrl.hash) {
+            console.log(`remove hash: ${oldUrl.hash}`);
+        }
+        else if (!oldUrl.hash && newUrl.hash) {
+            console.log(`add hash: ${newUrl.hash}`);
+        }
+        else if (oldUrl.hash && newUrl.hash) {
+            console.log(`change hash: ${newUrl.hash}`);
+        }
+
+        this.__currentUrl = newUrl;
+
+        if ((oldUrl.hash || newUrl.hash) && oldUrl.url.toLowerCase() === newUrl.url.toLowerCase()) {
+            this.__page.changedHash(newUrl.hash, oldUrl.hash);
+            return;
+        }
+
         console.log("PopState: " + url);
 
-        if (url.lastIndexOf("#") > 0) {
-            const hashStartIndex = url.lastIndexOf("#");
-            const urlHash = url.substr(hashStartIndex + 1);
-            const urlWithoutHash = url.substr(0, hashStartIndex);
-
-            if (!event.state) {
-                console.log("PopState hash: " + urlHash);
-
-                const pageState: PageNavState = {
-                    isBrandUp: true,
-                    url: url.substr(0, hashStartIndex),
-                    title: this.__navigation.title,
-                    path: this.__navigation.path,
-                    params: this.__navigation.query,
-                    hash: urlHash
-                };
-
-                window.history.replaceState(pageState, pageState.title, location.href);
-
-                return;
-            }
-            else {
-                if (urlWithoutHash.toLowerCase() === this.__navigation.url.toLowerCase())
-                    return;
-            }
+        let state = event.state as PageNavState;
+        if (!state) {
+            state = {
+                isBrandUp: true,
+                url: this.__currentUrl.url,
+                title: this.__navigation.title,
+                path: this.__navigation.path,
+                params: this.__navigation.query,
+                hash: this.__currentUrl.hash
+            };
         }
 
-        if (event.state) {
-            const state = event.state as PageNavState;
-
-            this.app.nav({
-                url: state.url ? state.url : null,
-                replace: true,
-                context: {
-                    state
-                }
-            });
-        }
+        this.app.nav({
+            url: url,
+            replace: true,
+            context: {
+                state
+            }
+        });
     }
-    private __onHashChange(e: HashChangeEvent) {
-        console.log("HashChange to " + e.newURL);
+    private __onHashChange(_e: HashChangeEvent) {
+        // console.log("HashChange to " + e.newURL);
+        return;
+    }
+    private __extractHashFromUrl(url: string): UrlParsed {
+        const hashIndex = url.lastIndexOf("#");
+        if (hashIndex > 0)
+            return {
+                url: url.substr(0, hashIndex),
+                hash: url.substr(hashIndex + 1)
+            };
+        return { url, hash: null };
     }
 
     private _isSubmitting = false;
@@ -520,6 +534,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         return node;
     }
+}
+
+interface UrlParsed {
+    url: string;
+    hash: string;
 }
 
 export interface WebsiteOptions {

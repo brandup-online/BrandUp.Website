@@ -8,6 +8,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     readonly queue: AjaxQueue;
     private __destroyCallbacks: Array<() => void> = [];
     private __scripts: Array<UIElement> = [];
+    private __isRendered = false;
+    private __hash: string = null;
 
     constructor(website: Website, nav: NavigationModel, element: HTMLElement) {
         super();
@@ -29,18 +31,27 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
     get typeName(): string { return "BrandUp.Page"; }
     get model(): TModel { return this.nav.page as TModel; }
+    get hash(): string { return this.__hash; }
 
     protected onRenderContent() { return; }
+    protected onChangedHash(newHash: string, oldHash: string) {
+        return;
+    }
 
-    render() {
+    render(hash: string) {
+        if (this.__isRendered)
+            return;
+        this.__isRendered = true;
+        this.__hash = hash;
+
         this.refreshScripts();
+
         this.onRenderContent();
 
         this.element.addEventListener("submit", (e: Event) => {
             e.preventDefault();
             this.submit(e.target as HTMLFormElement);
         });
-
         this.element.addEventListener("invalid", (event: Event) => {
             event.preventDefault();
 
@@ -51,7 +62,6 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                 elem.classList.add("invalid-required");
             }
         }, true);
-
         this.element.addEventListener("change", (event: Event) => {
             const elem = event.target as HTMLInputElement;
             elem.classList.remove("invalid");
@@ -60,6 +70,11 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                 elem.classList.remove("invalid-required");
             }
         });
+    }
+    changedHash(newHash: string, oldHash: string) {
+        this.__hash = newHash;
+
+        this.onChangedHash(newHash, oldHash);
     }
     submit(form?: HTMLFormElement, handler?: string) {
         if (!form)

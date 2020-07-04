@@ -11,10 +11,10 @@
                 <a asp-area="" asp-page="/Index" class="logo applink">BrandUp.Website</a>
                 <div class="city"><a href="" data-command="toggle-city">@Model.WebsiteContext.Website.Title</a></div>
                 <ul class="menu">
-                    <li><a asp-page="/About" class="applink">About</a></li>
-                    <li><a asp-page="/Payment" class="applink">Payment</a></li>
-                    <li><a asp-page="/Delivery" class="applink">Delivery</a></li>
-                    <li><a asp-page="/Contacts" class="applink">Contacts</a></li>
+                    <li><a asp-page="/About">About</a></li>
+                    <li><a asp-page="/Payment">Payment</a></li>
+                    <li><a asp-page="/Delivery">Delivery</a></li>
+                    <li><a asp-page="/Contacts">Contacts</a></li>
                     @if (User.Identity.IsAuthenticated)
                     {
                         <li><a href="#" rel="nofollow" data-command="signout">Sign out</a></li>
@@ -22,7 +22,7 @@
                     else
                     {
 
-                        <li><a asp-page="/SignIn" class="applink">Sign in</a></li>
+                        <li><a asp-page="/SignIn">Sign in</a></li>
                     }
                 </ul>
             </div>
