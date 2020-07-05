@@ -85,6 +85,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         context.items["prevNav"] = this.__navigation;
 
+        this._isSubmitting = false;
         this.__loadingPage = true;
         const navSequence = this.__incNavSequence();
 
@@ -429,10 +430,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             handler = form.getAttribute("data-form-handler");
 
         const navSequence = this.__incNavSequence();
+        const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
 
         const submitCallback = (response: AjaxResponse) => {
+            this._isSubmitting = false;
+
             if (!this.__isNavOutdated(navSequence)) {
-                console.log(`form submitted: ${response.status}`);
+                console.log(`form submitted: ${method} ${url} ${response.status}`);
 
                 switch (response.status) {
                     case 200:
@@ -458,19 +462,18 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 }
             }
 
-            this._isSubmitting = false;
             this.__hideNavigationProgress();
         };
 
         this.__showNavigationProgress();
 
-        console.log("form submitting");
+        console.log(`form submitting: ${method} ${url}`);
 
         this.queue.reset(true);
         this.queue.push({
-            url: url,
+            url,
             urlParams: { _content: "", handler },
-            method: form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST",
+            method,
             data: new FormData(form),
             success: submitButton ? minWait(submitCallback) : submitCallback
         });

@@ -60,12 +60,13 @@ namespace BrandUp.Website.Pages
         #region IPageModel members
 
         public Uri Link { get; private set; }
-        public virtual string Title { get; }
+        public abstract string Title { get; }
         public virtual string Description { get; }
         public virtual string Keywords { get; }
         public virtual string CssClass { get; }
         public virtual string ScriptName { get; }
         public virtual Uri CanonicalLink => Link;
+        public virtual string Header => Title;
 
         #endregion
 

@@ -11,5 +11,6 @@ namespace BrandUp.Website.Pages
         string CssClass { get; }
         string ScriptName { get; }
         Uri CanonicalLink { get; }
+        string Header { get; }
     }
 }
