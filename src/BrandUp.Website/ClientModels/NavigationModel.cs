@@ -17,6 +17,7 @@ namespace BrandUp.Website.ClientModels
         public string Description { get; set; }
         public string Keywords { get; set; }
         public string BodyClass { get; set; }
+        public OpenGraphModel OpenGraph { get; set; }
         public PageModel Page { get; set; }
         [JsonExtensionData]
         public Dictionary<string, object> Data { get; set; }

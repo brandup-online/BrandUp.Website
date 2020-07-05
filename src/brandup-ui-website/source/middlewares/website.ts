@@ -1,6 +1,6 @@
 import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
 import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext } from "brandup-ui-app";
-import { NavigationModel, PageNavState, AntiforgeryOptions } from "../common";
+import { NavigationModel, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
 
@@ -51,11 +51,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__contentBodyElem = document.getElementById("page-content");
         if (!this.__contentBodyElem)
-            throw "Не найден элемент контента страницы.";
+            throw "Not found page content element.";
 
         if (allowHistory) {
             window.addEventListener("popstate", Utility.createDelegate(this, this.__onPopState));
-            window.addEventListener("hashchange", Utility.createDelegate(this, this.__onHashChange));
         }
 
         this.__renderPage(context.items, this.__navCounter, null, next);
@@ -201,6 +200,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
             else if (linkCanonical)
                 linkCanonical.remove();
+
+            this.__setOpenGraphProperty("type", data.openGraph ? data.openGraph.type : null);
+            this.__setOpenGraphProperty("title", data.openGraph ? data.openGraph.title : null);
+            this.__setOpenGraphProperty("image", data.openGraph ? data.openGraph.image : null);
+            this.__setOpenGraphProperty("url", data.openGraph ? data.openGraph.url : null);
+            this.__setOpenGraphProperty("site_name", data.openGraph ? data.openGraph.siteName : null);
+            this.__setOpenGraphProperty("description", data.openGraph ? data.openGraph.description : null);
         }
 
         this.__navigation = data;
@@ -218,25 +224,28 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             replace = true;
 
         if (!hash) {
-            const navState: PageNavState = {
-                isBrandUp: true,
-                url: data.url,
-                title: data.title,
-                path: data.path,
-                params: data.query,
-                hash: hash
-            };
-
             if (allowHistory) {
                 if (!replace)
-                    window.history.pushState(navState, data.title, navUrl);
+                    window.history.pushState(window.history.state, data.title, navUrl);
                 else
-                    window.history.replaceState(navState, data.title, navUrl);
+                    window.history.replaceState(window.history.state, data.title, navUrl);
             }
         }
 
         if (!replace)
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
+    }
+    private __setOpenGraphProperty(name: string, value: string) {
+        let metaTagElem = document.getElementById(`og-${name}`);
+        if (value) {
+            if (!metaTagElem) {
+                document.head.appendChild(metaTagElem = DOM.tag("meta", { id: `og-${name}`, property: name, content: value }));
+            }
+
+            metaTagElem.setAttribute("content", value);
+        }
+        else if (metaTagElem)
+            metaTagElem.remove();
     }
 
     private __loadContent(items: { [key: string]: any }, navSequence: number, next: () => void) {
@@ -372,29 +381,25 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         console.log("PopState: " + url);
 
-        let state = event.state as PageNavState;
-        if (!state) {
-            state = {
-                isBrandUp: true,
-                url: this.__currentUrl.url,
-                title: this.__navigation.title,
-                path: this.__navigation.path,
-                params: this.__navigation.query,
-                hash: this.__currentUrl.hash
-            };
-        }
+        //let state = event.state as PageNavState;
+        //if (!state) {
+        //    state = {
+        //        isBrandUp: true,
+        //        url: this.__currentUrl.url,
+        //        title: this.__navigation.title,
+        //        path: this.__navigation.path,
+        //        params: this.__navigation.query,
+        //        hash: this.__currentUrl.hash
+        //    };
+        //}
 
         this.app.nav({
             url: url,
             replace: true,
             context: {
-                state
+                state: event.state
             }
         });
-    }
-    private __onHashChange(_e: HashChangeEvent) {
-        // console.log("HashChange to " + e.newURL);
-        return;
     }
     private __extractHashFromUrl(url: string): UrlParsed {
         const hashIndex = url.lastIndexOf("#");

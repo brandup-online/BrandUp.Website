@@ -33,24 +33,24 @@ namespace BrandUp.Website.Pages
 
         #region OpenGraph members
 
-        public OpenGraphModel OpenGraph { get; set; }
-        public void SetOpenGraph(string type, string image, string title, string url, string description = null)
+        public PageOpenGraph OpenGraph { get; set; }
+        public void SetOpenGraph(string type, Uri image, string title, Uri url, string description = null)
         {
-            OpenGraph = new OpenGraphModel(type, image, title, url, description);
+            OpenGraph = new PageOpenGraph(type, image, title, url, description);
         }
-        public void SetOpenGraph(string image, string title, string url, string description = null)
+        public void SetOpenGraph(Uri image, string title, Uri url, string description = null)
         {
             SetOpenGraph("website", image, title, url, description);
         }
-        public void SetOpenGraph(string image, string title, string description = null)
+        public void SetOpenGraph(Uri image, string title, string description = null)
         {
-            SetOpenGraph(image, title, Url.Page(null, null, null, Request.Scheme, Request.Host.Value), description);
+            SetOpenGraph(image, title, Link, description);
         }
-        public void SetOpenGraph(string image)
+        public void SetOpenGraph(Uri image)
         {
-            SetOpenGraph(image, Title, Url.Page("", null, null, Request.Scheme, Request.Host.Value), Description);
+            SetOpenGraph(image, Title, Link, Description);
         }
-        public void SetOpenGraph(string image, string url)
+        public void SetOpenGraph(Uri image, Uri url)
         {
             SetOpenGraph(image, Title, url, Description);
         }
@@ -509,7 +509,8 @@ namespace BrandUp.Website.Pages
                 CanonicalLink = CanonicalLink,
                 Description = Description,
                 Keywords = Keywords,
-                BodyClass = CssClass
+                BodyClass = CssClass,
+                OpenGraph = OpenGraph?.CreateClientModel()
             };
 
             foreach (var kv in httpRequest.Query)
@@ -597,77 +598,5 @@ namespace BrandUp.Website.Pages
         }
 
         #endregion
-    }
-
-    public class OpenGraphModel
-    {
-        readonly Dictionary<string, string> items = new Dictionary<string, string>();
-
-        public OpenGraphModel(string type, string image, string title, string url, string description = null)
-        {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-            Image = image ?? throw new ArgumentNullException(nameof(image));
-            Title = title ?? throw new ArgumentNullException(nameof(title));
-            Url = url ?? throw new ArgumentNullException(nameof(url));
-            if (!string.IsNullOrEmpty(description))
-                Description = description;
-        }
-
-        public string Type { get => Get(OpenGraphProperties.Type); set => Set(OpenGraphProperties.Type, value); }
-        public string Image { get => Get(OpenGraphProperties.Image); set => Set(OpenGraphProperties.Image, value); }
-        public string Title { get => Get(OpenGraphProperties.Title); set => Set(OpenGraphProperties.Title, value); }
-        public string Description { get => Get(OpenGraphProperties.Description); set => Set(OpenGraphProperties.Description, value); }
-        public string Url { get => Get(OpenGraphProperties.Url); set => Set(OpenGraphProperties.Url, value); }
-
-        public string Get(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-
-            items.TryGetValue(NormalizeName(name), out string content);
-            return content;
-        }
-        public bool TryGet(string name, out string content)
-        {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-
-            return items.TryGetValue(NormalizeName(name), out content);
-        }
-        public bool Contains(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-
-            return items.ContainsKey(NormalizeName(name));
-        }
-        public void Set(string name, string content)
-        {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-
-            items[NormalizeName(name)] = content;
-        }
-        public bool Remove(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-
-            return items.Remove(NormalizeName(name));
-        }
-
-        static string NormalizeName(string name)
-        {
-            return name.Trim().ToLower();
-        }
-    }
-
-    public static class OpenGraphProperties
-    {
-        public const string Type = "type";
-        public const string Title = "title";
-        public const string Image = "image";
-        public const string Url = "url";
-        public const string Description = "description";
     }
 }

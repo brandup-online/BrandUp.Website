@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BrandUp.Website.TagHelpers
 {
-    public class EmbeddingTagHelperComponent : TagHelperComponent
+    public class WebsiteTagHelperComponent : TagHelperComponent
     {
         const string LoadingClass = "bp-state-loading";
 
@@ -20,7 +20,7 @@ namespace BrandUp.Website.TagHelpers
         [HtmlAttributeNotBound, ViewContext]
         public ViewContext ViewContext { get; set; }
 
-        public EmbeddingTagHelperComponent(IJsonHelper jsonHelper, IWebsiteEvents websiteEvents)
+        public WebsiteTagHelperComponent(IJsonHelper jsonHelper, IWebsiteEvents websiteEvents)
         {
             this.jsonHelper = jsonHelper ?? throw new ArgumentNullException(nameof(jsonHelper));
             this.websiteEvents = websiteEvents ?? throw new ArgumentNullException(nameof(websiteEvents));
@@ -69,12 +69,14 @@ namespace BrandUp.Website.TagHelpers
                     var og = appPageModel.OpenGraph;
                     if (og != null)
                     {
-                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Type}\" content=\"{og.Type}\">{Environment.NewLine}");
-                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Image}\" content=\"{og.Image}\">{Environment.NewLine}");
-                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Title}\" content=\"{og.Title}\">{Environment.NewLine}");
-                        outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Url}\" content=\"{og.Url}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta id=\"og-type\" property=\"og:{OpenGraphProperties.Type}\" content=\"{og.Type}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta id=\"og-image\" property=\"og:{OpenGraphProperties.Image}\" content=\"{og.Image}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta id=\"og-title\" property=\"og:{OpenGraphProperties.Title}\" content=\"{og.Title}\">{Environment.NewLine}");
+                        outputContent.AppendHtml($"    <meta id=\"og-url\" property=\"og:{OpenGraphProperties.Url}\" content=\"{og.Url}\">{Environment.NewLine}");
+                        if (og.SiteName != null)
+                            outputContent.AppendHtml($"    <meta id=\"og-site_name\" property=\"og:{OpenGraphProperties.SiteName}\" content=\"{og.SiteName}\" />{Environment.NewLine}");
                         if (og.Description != null)
-                            outputContent.AppendHtml($"    <meta property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
+                            outputContent.AppendHtml($"    <meta id=\"og-description\" property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
                     }
 
                     var startupModel = await appPageModel.GetStartupClientModelAsync(appPageModel);

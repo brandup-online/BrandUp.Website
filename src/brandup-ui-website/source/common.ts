@@ -3,14 +3,14 @@ export interface AntiforgeryOptions {
     formFieldName: string;
 }
 
-export interface PageNavState {
-    isBrandUp: boolean;
-    url: string;
-    title: string;
-    path: string;
-    hash: string;
-    params: { [key: string]: string };
-}
+//export interface PageNavState {
+//    isBrandUp: boolean;
+//    url: string;
+//    title: string;
+//    path: string;
+//    hash: string;
+//    params: { [key: string]: string };
+//}
 
 export interface NavigationModel {
     url: string;
@@ -24,8 +24,18 @@ export interface NavigationModel {
     keywords: string;
     isAuthenticated: boolean;
     bodyClass: string;
+    openGraph: PageOpenGraph;
     page: PageModel;
     [key: string]: any;
+}
+
+export interface PageOpenGraph {
+    type: string;
+    image: string;
+    title: string;
+    url: string;
+    siteName: string;
+    description: string;
 }
 
 export interface PageModel {
