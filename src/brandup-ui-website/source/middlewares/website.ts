@@ -73,7 +73,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     }
     navigate(context: NavigateContext, next: () => void) {
         if (!allowHistory) {
-            location.href = context.url ? context.url : location.href;
+            location.href = context.fullUrl ? context.fullUrl : location.href;
             return;
         }
 
@@ -91,7 +91,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             urlParams: { _nav: "" },
             type: "TEXT",
             data: this.__navigation.state ? this.__navigation.state : "",
-            success: (response: AjaxResponse) => {
+            success: (response: AjaxResponse<NavigationModel>) => {
                 if (this.__isNavOutdated(navSequence))
                     return;
 
