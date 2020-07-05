@@ -178,10 +178,7 @@ namespace BrandUp.Website.Pages
                                     if (NavigationState.TryGetValue("_start", out object startValue))
                                     {
                                         if ((long)startValue != StartDate.Ticks)
-                                        {
-                                            Response.Headers.Add("Page-Action", "reset");
-                                            context.Result = new OkResult();
-                                        }
+                                            throw new Exception("Reset application.");
                                     }
 
                                     string navAreaName = null;
@@ -191,13 +188,12 @@ namespace BrandUp.Website.Pages
                                     RouteData.TryGetAreaName(out string curAreaName);
 
                                     if (navAreaName == null || !string.Equals(navAreaName, curAreaName, StringComparison.InvariantCultureIgnoreCase))
-                                        throw new InvalidOperationException("Не задана или смена области страниц.");
+                                        throw new InvalidOperationException("Change area by navigating.");
                                 }
                             }
                             catch
                             {
-                                Response.Headers.Add("Page-Action", "reset");
-                                context.Result = new OkResult();
+                                HttpContext.Response.Headers.Add("Page-Reload", "true");
                             }
                         }
 

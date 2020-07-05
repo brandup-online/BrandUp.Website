@@ -5,6 +5,10 @@ import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
 
 const allowHistory = !!window.history && !!window.history.pushState;
+const pageReloadHeader = "Page-Reload";
+const pageActionHeader = "Page-Action";
+const pageLocationHeader = "Page-Location";
+const pageReplaceHeader = "Page-Replace";
 
 export class WebsiteMiddleware extends Middleware<ApplicationModel> implements Website {
     readonly options: WebsiteOptions;
@@ -104,15 +108,20 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                         this.setNavigation(response.data, context.hash, context.replace);
 
+                        if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
+                            location.reload();
+                            return;
+                        }
+
                         this.__loadContent(context.items, navSequence, next);
 
                         break;
                     }
                     default: {
                         if (context.replace)
-                            location.replace(context.url);
+                            location.replace(context.fullUrl);
                         else
-                            location.assign(context.url);
+                            location.assign(context.fullUrl);
                         break;
                     }
                 }
@@ -330,7 +339,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     }
 
     private __precessPageResponse(response: AjaxResponse): boolean {
-        const pageAction = response.xhr.getResponseHeader("Page-Action");
+        const pageAction = response.xhr.getResponseHeader(pageActionHeader);
         if (pageAction) {
             switch (pageAction) {
                 case "reset":
@@ -343,11 +352,11 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         }
 
-        const redirectLocation = response.xhr.getResponseHeader("Page-Location");
+        const redirectLocation = response.xhr.getResponseHeader(pageLocationHeader);
         if (redirectLocation) {
             this.nav({
                 url: redirectLocation,
-                replace: response.xhr.getResponseHeader("Page-Replace") === "true"
+                replace: response.xhr.getResponseHeader(pageReplaceHeader) === "true"
             });
             return true;
         }
@@ -380,18 +389,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         }
 
         console.log("PopState: " + url);
-
-        //let state = event.state as PageNavState;
-        //if (!state) {
-        //    state = {
-        //        isBrandUp: true,
-        //        url: this.__currentUrl.url,
-        //        title: this.__navigation.title,
-        //        path: this.__navigation.path,
-        //        params: this.__navigation.query,
-        //        hash: this.__currentUrl.hash
-        //    };
-        //}
 
         this.app.nav({
             url: url,

@@ -2,9 +2,10 @@
 <!DOCTYPE html>
 <html lang="ru" prefix="og: http://ogp.me/ns#">
 <head>
-    <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
 </head>
 <body>
+    <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
+
     <div class="app">
         <nav class="app-nav" role="navigation">
             <div class="content-width">
@@ -27,7 +28,7 @@
                 </ul>
             </div>
         </nav>
-        <main role="main" id="page-content" class="app-content content-width">
+        <main page-content role="main" class="app-content content-width">
             @RenderBody()
         </main>
     </div>
