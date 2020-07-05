@@ -47,29 +47,6 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         this.refreshScripts();
 
         this.onRenderContent();
-
-        this.element.addEventListener("submit", (e: Event) => {
-            e.preventDefault();
-            this.submit(e.target as HTMLFormElement);
-        });
-        this.element.addEventListener("invalid", (event: Event) => {
-            event.preventDefault();
-
-            const elem = event.target as HTMLInputElement;
-            elem.classList.add("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.add("invalid-required");
-            }
-        }, true);
-        this.element.addEventListener("change", (event: Event) => {
-            const elem = event.target as HTMLInputElement;
-            elem.classList.remove("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.remove("invalid-required");
-            }
-        });
     }
     changedHash(newHash: string, oldHash: string) {
         this.__hash = newHash;

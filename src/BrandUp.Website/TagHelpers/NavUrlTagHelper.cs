@@ -13,6 +13,9 @@ namespace BrandUp.Website.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (string.Equals(output.TagName, "form", System.StringComparison.OrdinalIgnoreCase))
+                return;
+
             if (NavUrl != null)
             {
                 if (string.Equals(output.TagName, "a", System.StringComparison.OrdinalIgnoreCase))

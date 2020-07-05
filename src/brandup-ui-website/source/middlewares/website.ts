@@ -51,7 +51,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     start(context: StartContext, next: () => void) {
         context.items["nav"] = this.__navigation;
 
-        document.body.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
+        const bodyElem = document.body;
+
+        bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
 
         this.__contentBodyElem = document.getElementById("page-content");
         if (!this.__contentBodyElem)
@@ -60,6 +62,29 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (allowHistory) {
             window.addEventListener("popstate", Utility.createDelegate(this, this.__onPopState));
         }
+
+        bodyElem.addEventListener("submit", (e: Event) => {
+            e.preventDefault();
+            this.submit(e.target as HTMLFormElement);
+        });
+        bodyElem.addEventListener("invalid", (event: Event) => {
+            event.preventDefault();
+
+            const elem = event.target as HTMLInputElement;
+            elem.classList.add("invalid");
+
+            if (elem.hasAttribute("data-val-required")) {
+                elem.classList.add("invalid-required");
+            }
+        }, true);
+        bodyElem.addEventListener("change", (event: Event) => {
+            const elem = event.target as HTMLInputElement;
+            elem.classList.remove("invalid");
+
+            if (elem.hasAttribute("data-val-required")) {
+                elem.classList.remove("invalid-required");
+            }
+        });
 
         this.__renderPage(context.items, this.__navCounter, null, next);
     }
@@ -429,9 +454,20 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         if (!handler)
             handler = form.getAttribute("data-form-handler");
 
-        const navSequence = this.__incNavSequence();
         const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
+        //if (method === "GET") {
+        //    const fd = new FormData(form);
 
+        //    this.nav({
+        //        url,
+        //        callback: () => {
+        //            this._isSubmitting = false;
+        //        }
+        //    });
+        //    return;
+        //}
+
+        const navSequence = this.__incNavSequence();
         const submitCallback = (response: AjaxResponse) => {
             this._isSubmitting = false;
 
