@@ -78,6 +78,8 @@ namespace BrandUp.Website.Pages
             var httpRequest = httpContext.Request;
             var requestQuery = httpRequest.Query;
 
+            httpContext.Features.Set<IPageFeature>(new PageFeature { PageModel = this });
+
             if (httpRequest.QueryString.HasValue)
             {
                 var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>();

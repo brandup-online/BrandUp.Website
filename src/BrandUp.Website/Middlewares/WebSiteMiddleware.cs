@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BrandUp.Website.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Options;
 using System;
@@ -8,7 +9,6 @@ namespace BrandUp.Website.Middlewares
 {
     public class WebsiteMiddleware
     {
-        public const string HttpContextWebsiteKey = "BRANDUP-WEBSITE-CONTEXT";
         public const string HttpContextDomainIsAliasKey = "BRANDUP-WEBSITE-ISALIAS";
 
         private readonly RequestDelegate next;
@@ -115,7 +115,8 @@ namespace BrandUp.Website.Middlewares
 
             var websitemTimeZone = await websiteStore.GetTimeZoneAsync(website);
             var websiteContext = new WebsiteContext(context, website, websitemTimeZone);
-            context.Items[HttpContextWebsiteKey] = websiteContext;
+
+            context.Features.Set<IWebsiteFeature>(new WebsiteFeature(websiteContext));
 
             await next(context);
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BrandUp.Website.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using System;
 
 namespace BrandUp.Website
@@ -10,7 +11,11 @@ namespace BrandUp.Website
             if (httpContext == null)
                 throw new ArgumentNullException(nameof(httpContext));
 
-            return (WebsiteContext)httpContext.Items[Middlewares.WebsiteMiddleware.HttpContextWebsiteKey];
+            var feature = httpContext.Features.Get<IWebsiteFeature>();
+            if (feature == null)
+                throw new InvalidOperationException("Http request is not website.");
+
+            return feature.WebsiteContext;
         }
     }
 }
