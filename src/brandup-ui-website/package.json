@@ -27,7 +27,7 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "brandup-ui-app": "^1.2.21"
+    "brandup-ui-app": "^1.2.22"
   },
   "devDependencies": {
     "@types/node": "^14.0.14",

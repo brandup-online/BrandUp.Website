@@ -1,5 +1,5 @@
 import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQueue } from "brandup-ui";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext, SubmitContext } from "brandup-ui-app";
 import { NavigationModel, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
 import minWait from "../utilities/wait";
@@ -63,10 +63,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             window.addEventListener("popstate", Utility.createDelegate(this, this.__onPopState));
         }
 
-        bodyElem.addEventListener("submit", (e: Event) => {
-            e.preventDefault();
-            this.submit(e.target as HTMLFormElement);
-        });
         bodyElem.addEventListener("invalid", (event: Event) => {
             event.preventDefault();
 
@@ -110,7 +106,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         context.items["prevNav"] = this.__navigation;
 
-        this._isSubmitting = false;
         this.__loadingPage = true;
         const navSequence = this.__incNavSequence();
 
@@ -152,6 +147,61 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                     }
                 }
             }
+        });
+    }
+    submit(context: SubmitContext, next: () => void) {
+        const { form } = context;
+        const url = form.action;
+        const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
+
+        const submitButton = DOM.queryElement(form, "[type=submit]");
+        if (submitButton)
+            submitButton.classList.add("loading");
+        form.classList.add("loading");
+
+        const navSequence = this.__incNavSequence();
+        const submitCallback = (response: AjaxResponse) => {
+            if (!this.__isNavOutdated(navSequence)) {
+                console.log(`form submitted: ${method} ${url} ${response.status}`);
+
+                switch (response.status) {
+                    case 200:
+                    case 201: {
+                        if (this.__precessPageResponse(response))
+                            return;
+
+                        this.updateHtml(response.data);
+
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
+
+                if (submitButton)
+                    submitButton.classList.remove("loading");
+                form.classList.remove("loading");
+            }
+
+            next();
+
+            this.__hideNavigationProgress();
+        };
+
+        this.__showNavigationProgress();
+
+        console.log(`form submitting: ${method} ${url}`);
+
+        const handler = form.getAttribute("data-form-handler");
+
+        this.queue.reset(true);
+        this.queue.push({
+            url,
+            urlParams: { _content: "", handler },
+            method,
+            data: new FormData(form),
+            success: submitButton ? minWait(submitCallback) : submitCallback
         });
     }
     stop(context: StopContext, next) {
@@ -432,87 +482,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 hash: url.substr(hashIndex + 1)
             };
         return { url, hash: null };
-    }
-
-    private _isSubmitting = false;
-    submit(form: HTMLFormElement, url: string = null, handler: string = null) {
-        if (!form.checkValidity() && !form.noValidate)
-            return;
-
-        if (this._isSubmitting)
-            return;
-        this._isSubmitting = true;
-
-        const submitButton = DOM.queryElement(form, "[type=submit]");
-        if (submitButton)
-            submitButton.classList.add("loading");
-        form.classList.add("loading");
-
-        if (!url)
-            url = form.action;
-
-        if (!handler)
-            handler = form.getAttribute("data-form-handler");
-
-        const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
-        //if (method === "GET") {
-        //    const fd = new FormData(form);
-
-        //    this.nav({
-        //        url,
-        //        callback: () => {
-        //            this._isSubmitting = false;
-        //        }
-        //    });
-        //    return;
-        //}
-
-        const navSequence = this.__incNavSequence();
-        const submitCallback = (response: AjaxResponse) => {
-            this._isSubmitting = false;
-
-            if (!this.__isNavOutdated(navSequence)) {
-                console.log(`form submitted: ${method} ${url} ${response.status}`);
-
-                switch (response.status) {
-                    case 200:
-                    case 201: {
-                        if (this.__precessPageResponse(response))
-                            return;
-
-                        this.updateHtml(response.data);
-
-                        break;
-                    }
-                    case 400:
-                    case 500: {
-                        if (submitButton)
-                            submitButton.classList.remove("loading");
-                        form.classList.remove("loading");
-
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
-                }
-            }
-
-            this.__hideNavigationProgress();
-        };
-
-        this.__showNavigationProgress();
-
-        console.log(`form submitting: ${method} ${url}`);
-
-        this.queue.reset(true);
-        this.queue.push({
-            url,
-            urlParams: { _content: "", handler },
-            method,
-            data: new FormData(form),
-            success: submitButton ? minWait(submitCallback) : submitCallback
-        });
     }
 
     private __incNavSequence() {

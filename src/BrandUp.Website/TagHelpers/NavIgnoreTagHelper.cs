@@ -7,10 +7,13 @@ namespace BrandUp.Website.TagHelpers
     {
         const string AttributeName = "data-nav-ignore";
 
+        [HtmlAttributeName("nav-ignore")]
+        public bool NavIgnore { get; set; }
+
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (!output.Attributes.ContainsName(AttributeName))
-                output.Attributes.SetAttribute(AttributeName, string.Empty);
+            if (NavIgnore)
+                output.Attributes.SetAttribute(new TagHelperAttribute(AttributeName, null, HtmlAttributeValueStyle.Minimized));
         }
     }
 }

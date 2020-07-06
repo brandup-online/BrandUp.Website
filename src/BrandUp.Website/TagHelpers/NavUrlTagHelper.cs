@@ -2,7 +2,7 @@
 
 namespace BrandUp.Website.TagHelpers
 {
-    [HtmlTargetElement(Attributes = "asp-page")]
+    [HtmlTargetElement("a", Attributes = "asp-page")]
     [HtmlTargetElement(Attributes = "nav-url")]
     public class NavUrlTagHelper : TagHelper
     {
@@ -13,9 +13,6 @@ namespace BrandUp.Website.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (string.Equals(output.TagName, "form", System.StringComparison.OrdinalIgnoreCase))
-                return;
-
             if (NavUrl != null)
             {
                 if (string.Equals(output.TagName, "a", System.StringComparison.OrdinalIgnoreCase))
@@ -24,25 +21,7 @@ namespace BrandUp.Website.TagHelpers
                     output.Attributes.SetAttribute("data-nav-url", NavUrl);
             }
 
-            string cssClass;
-            var hasLinkClass = false;
-            if (output.Attributes.TryGetAttribute("class", out TagHelperAttribute attribute))
-            {
-                cssClass = attribute.Value.ToString();
-                hasLinkClass = cssClass.Contains("applink");
-            }
-            else
-                cssClass = string.Empty;
-
-            if (!hasLinkClass)
-            {
-                if (!string.IsNullOrEmpty(cssClass))
-                    cssClass += " " + LinkClass;
-                else
-                    cssClass = LinkClass;
-            }
-
-            output.Attributes.SetAttribute("class", cssClass);
+            output.Attributes.AddCssClass(LinkClass);
         }
     }
 }

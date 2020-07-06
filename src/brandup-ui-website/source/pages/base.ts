@@ -53,14 +53,14 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         this.onChangedHash(newHash, oldHash);
     }
-    submit(form?: HTMLFormElement, handler?: string) {
+    submit(form?: HTMLFormElement) {
         if (!form)
-            form = DOM.getElementByName("form") as HTMLFormElement;
+            form = DOM.queryElement(this.element, "form") as HTMLFormElement;
 
         if (!form)
             throw `Not found form by submit.`;
 
-        this.website.submit(form, null, handler);
+        this.website.app.submit({ form });
     }
     buildUrl(queryParams: { [key: string]: string }): string {
         const params: { [key: string]: string } = {};
@@ -131,6 +131,5 @@ export interface Website {
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
     nav(options: NavigationOptions);
-    submit(form: HTMLFormElement, url?: string, handler?: string);
     getScript(name: string): Promise<{ default: any }>;
 }
