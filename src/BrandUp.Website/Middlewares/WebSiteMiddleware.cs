@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Options;
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 
 namespace BrandUp.Website.Middlewares
@@ -120,34 +119,34 @@ namespace BrandUp.Website.Middlewares
 
             await next(context);
 
-            if (context.Response.HasStarted
-                || context.Response.StatusCode < 400
-                || context.Response.StatusCode >= 600
-                || context.Response.ContentLength.HasValue
-                || !string.IsNullOrEmpty(context.Response.ContentType))
-            {
-                return;
-            }
+            //if (context.Response.HasStarted
+            //    || context.Response.StatusCode < 400
+            //    || context.Response.StatusCode >= 600
+            //    || context.Response.ContentLength.HasValue
+            //    || !string.IsNullOrEmpty(context.Response.ContentType))
+            //{
+            //    return;
+            //}
 
-            var pathFormat = "/notfound";
+            //var pathFormat = "/notfound";
 
-            var newPath = new PathString(string.Format(CultureInfo.InvariantCulture, pathFormat, context.Response.StatusCode));
+            //var newPath = new PathString(string.Format(CultureInfo.InvariantCulture, pathFormat, context.Response.StatusCode));
 
-            var originalPath = context.Request.Path;
-            var originalQueryString = context.Request.QueryString;
+            //var originalPath = context.Request.Path;
+            //var originalQueryString = context.Request.QueryString;
 
-            context.Request.Path = newPath;
-            //context.Request.QueryString = new QueryString();
+            //context.Request.Path = newPath;
+            ////context.Request.QueryString = new QueryString();
 
-            try
-            {
-                await next(context);
-            }
-            finally
-            {
-                context.Request.Path = originalPath;
-                //context.Request.QueryString = originalQueryString;
-            }
+            //try
+            //{
+            //    await next(context);
+            //}
+            //finally
+            //{
+            //    context.Request.Path = originalPath;
+            //    //context.Request.QueryString = originalQueryString;
+            //}
         }
     }
 }
