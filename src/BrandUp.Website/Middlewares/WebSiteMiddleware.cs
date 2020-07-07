@@ -33,7 +33,7 @@ namespace BrandUp.Website.Middlewares
             var requestHost = request.Host.Host.ToLower();
 
             // Redirect by www subdomain.
-            if (requestHost.StartsWith("www"))
+            if (requestHost.StartsWith("www", StringComparison.InvariantCultureIgnoreCase))
             {
                 var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: new HostString(webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
@@ -43,7 +43,7 @@ namespace BrandUp.Website.Middlewares
             }
 
             // Redirect by aliases.
-            if (!requestHost.EndsWith(webSiteHost))
+            if (!requestHost.EndsWith(webSiteHost, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (webSiteOptions.Value.Aliases != null)
                 {

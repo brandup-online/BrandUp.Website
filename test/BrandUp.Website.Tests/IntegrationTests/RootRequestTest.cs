@@ -35,6 +35,7 @@ namespace BrandUp.Website.IntegrationTests
         [Theory]
         [InlineData("http://localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://www.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        [InlineData("https://WWW.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://www.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
