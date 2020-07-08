@@ -23,8 +23,8 @@
     "uglifyjs-webpack-plugin": "^2.2.0"
   },
   "dependencies": {
-    "brandup-ui": "^1.1.7",
-    "brandup-ui-app": "^1.2.23",
+    "brandup-ui": "^1.1.8",
+    "brandup-ui-app": "^1.2.24",
     "brandup-ui-website": "../../src/brandup-ui-website"
   },
   "scripts": {

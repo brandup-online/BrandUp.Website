@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <None Remove="_client\middlewares\auth.ts" />
+    <None Remove="_client\middlewares\city.ts" />
     <None Remove="_client\pages\signin.ts" />
   </ItemGroup>
 
@@ -19,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="_client\middlewares\city.ts" />
     <TypeScriptCompile Include="_client\middlewares\auth.ts" />
     <TypeScriptCompile Include="_client\pages\signin.ts">
       <SubType>Code</SubType>

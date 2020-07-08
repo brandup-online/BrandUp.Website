@@ -117,6 +117,7 @@ input, textarea, button {
             width: 180px;
             max-height: 300px;
             overflow: auto;
+            display: none;
 
             & ul {
                 list-style: none;
@@ -136,6 +137,12 @@ input, textarea, button {
                 &:hover {
                     text-decoration: underline;
                 }
+            }
+        }
+
+        &.expanded {
+            & .cities {
+                display: block;
             }
         }
     }

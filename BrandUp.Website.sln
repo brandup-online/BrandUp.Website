@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleWebSite", "examples\
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "brandup-ui-website", "src\brandup-ui-website\brandup-ui-website.njsproj", "{42581FC8-4457-49EF-8061-FA3D4C583B16}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F1785BFF-4D74-4DFE-B6B3-EAAA864B4037}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_solution", "_solution", "{F1785BFF-4D74-4DFE-B6B3-EAAA864B4037}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		README.md = README.md
