@@ -18,7 +18,7 @@ namespace BrandUp.Website
         public SingleWebsiteStore(string title)
         {
             if (string.IsNullOrEmpty(title))
-                throw new ArgumentException();
+                throw new ArgumentException("Title is requiread and not empty.", nameof(title));
 
             website = new SingleWebsite(title);
         }

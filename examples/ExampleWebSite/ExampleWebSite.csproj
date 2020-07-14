@@ -9,6 +9,7 @@
     <None Remove="_client\middlewares\auth.ts" />
     <None Remove="_client\middlewares\city.ts" />
     <None Remove="_client\pages\signin.ts" />
+    <None Remove="_client\typings\api.d.ts" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +26,7 @@
     <TypeScriptCompile Include="_client\pages\signin.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="_client\typings\api.d.ts" />
   </ItemGroup>
 
   <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">

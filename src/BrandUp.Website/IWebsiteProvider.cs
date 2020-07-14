@@ -23,6 +23,9 @@ namespace BrandUp.Website
 
         public string GetWebsiteName(HttpContext context, string requestHost)
         {
+            if (requestHost == null)
+                throw new ArgumentNullException(nameof(requestHost));
+
             string websiteName = null;
             if (!string.Equals(requestHost, webSiteHost, StringComparison.OrdinalIgnoreCase))
                 websiteName = requestHost.Substring(0, requestHost.Length - webSiteHost.Length - 1).ToLower();
@@ -34,12 +37,15 @@ namespace BrandUp.Website
     {
         public string GetWebsiteName(HttpContext context, string requestHost)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             string websiteName = null;
             var requestPath = context.Request.Path;
             if (requestPath.HasValue)
             {
                 var path = requestPath.Value.ToLower().Trim(new char[] { '/' });
-                var firstShlashIndex = path.IndexOf('/');
+                var firstShlashIndex = path.IndexOf('/', StringComparison.InvariantCultureIgnoreCase);
                 if (firstShlashIndex > 0)
                     websiteName = path.Substring(0, firstShlashIndex);
                 else

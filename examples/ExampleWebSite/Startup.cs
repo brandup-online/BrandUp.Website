@@ -1,4 +1,5 @@
 using BrandUp.Website;
+using ExampleWebSite.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -96,6 +97,8 @@ namespace ExampleWebSite
 
             #endregion
 
+            services.AddSingleton<CityRepository>();
+
             services
                 .AddWebsite(options =>
                 {
@@ -104,7 +107,7 @@ namespace ExampleWebSite
                 .AddWebsiteEvents<ExambleWebsiteEvents>()
                 .AddPageEvents<Pages.PageEvents>()
                 .AddWebsiteProvider<SubdomainWebsiteProvider>()
-                .AddWebsiteStore<WebsiteStore>(ServiceLifetime.Singleton)
+                .AddWebsiteStoreFrom<CityRepository>()
                 .AddVisitorStore<VisitorStore>(ServiceLifetime.Singleton);
         }
 

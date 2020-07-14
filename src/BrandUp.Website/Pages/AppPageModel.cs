@@ -74,6 +74,9 @@ namespace BrandUp.Website.Pages
 
         public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
             var requestQuery = httpRequest.Query;
@@ -207,6 +210,8 @@ namespace BrandUp.Website.Pages
                         NavigationState.Add("_start", StartDate.Ticks);
 
                         RouteData.TryGetAreaName(out string areaName);
+                        if (areaName == null)
+                            areaName = string.Empty;
 
                         NavigationState.Add("_area", areaName.ToLower());
 
@@ -480,7 +485,7 @@ namespace BrandUp.Website.Pages
             }
 
             var startContext = new StartWebsiteContext(appPageModel, startupModel.Model.Data);
-            await websiteEvents.StartAsync(startContext);
+            await websiteEvents.StartAsync(startContext).ConfigureAwait(false);
 
             startupModel.Nav = await appPageModel.GetNavigationClientModelAsync();
 
@@ -494,7 +499,7 @@ namespace BrandUp.Website.Pages
             var protector = protectionProvider.CreateProtector("BrandUp.Pages");
 
             var renderTitleContext = new RenderPageTitleContext(this);
-            await websiteEvents.RenderPageTitle(renderTitleContext);
+            await websiteEvents.RenderPageTitle(renderTitleContext).ConfigureAwait(false);
 
             var navModel = new ClientModels.NavigationModel
             {
@@ -533,12 +538,12 @@ namespace BrandUp.Website.Pages
             }
 
             var pageNavigationContext = new PageNavidationContext(this, navModel.Data);
-            await OnPageNavigationAsync(pageNavigationContext);
+            await OnPageNavigationAsync(pageNavigationContext).ConfigureAwait(false);
 
             if (pageEvents != null)
-                await pageEvents.PageNavigationAsync(pageNavigationContext);
+                await pageEvents.PageNavigationAsync(pageNavigationContext).ConfigureAwait(false);
 
-            navModel.Page = await GetPageClientModelAsync();
+            navModel.Page = await GetPageClientModelAsync().ConfigureAwait(false);
 
             return navModel;
         }
@@ -553,10 +558,10 @@ namespace BrandUp.Website.Pages
             Helpers.ClientModelHelper.CopyProperties(this, model.Data);
 
             var pageBuildContext = new PageBuildContext(this, model.Data);
-            await OnPageBuildAsync(pageBuildContext);
+            await OnPageBuildAsync(pageBuildContext).ConfigureAwait(false);
 
             if (pageEvents != null)
-                await pageEvents.PageBuildAsync(pageBuildContext);
+                await pageEvents.PageBuildAsync(pageBuildContext).ConfigureAwait(false);
 
             return model;
         }

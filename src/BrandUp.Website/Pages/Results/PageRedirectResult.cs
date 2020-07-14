@@ -21,6 +21,9 @@ namespace BrandUp.Website.Pages.Results
 
         public override Task ExecuteResultAsync(ActionContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             var response = context.HttpContext.Response;
 
             if (CurrentPage.RequestMode == AppPageRequestMode.Start)

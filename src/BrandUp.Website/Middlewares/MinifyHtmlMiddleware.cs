@@ -8,18 +8,12 @@ namespace BrandUp.Website.Middlewares
 {
     public class MinifyHtmlMiddleware
     {
+        // Replace all spaces between tags skipping PRE tags
+        private readonly static Regex regex1 = new Regex(@"(?<=\s)\s+(?![^<>]*</pre>)", RegexOptions.Compiled);
+        // Replace all new lines between tags skipping PRE tags
+        private readonly static Regex regex2 = new Regex("\n(?![^<]*</pre>)", RegexOptions.Compiled);
+
         private readonly RequestDelegate next;
-        private readonly static Regex regex1;
-        private readonly static Regex regex2;
-
-        static MinifyHtmlMiddleware()
-        {
-            // Replace all spaces between tags skipping PRE tags
-            regex1 = new Regex(@"(?<=\s)\s+(?![^<>]*</pre>)", RegexOptions.Compiled);
-
-            // Replace all new lines between tags skipping PRE tags
-            regex2 = new Regex("\n(?![^<]*</pre>)", RegexOptions.Compiled);
-        }
 
         public MinifyHtmlMiddleware(RequestDelegate next)
         {
@@ -28,6 +22,9 @@ namespace BrandUp.Website.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             var responseBody = context.Response.Body;
 
             using var newResponseBody = new MemoryStream();
@@ -38,7 +35,7 @@ namespace BrandUp.Website.Middlewares
             newResponseBody.Seek(0, SeekOrigin.Begin);
             context.Response.Body = responseBody;
 
-            if (!context.Response.Headers.TryGetValue("Content-type", out Microsoft.Extensions.Primitives.StringValues contentType) || !contentType[0].StartsWith("text/html"))
+            if (!context.Response.Headers.TryGetValue("Content-type", out Microsoft.Extensions.Primitives.StringValues contentType) || !contentType[0].StartsWith("text/html", StringComparison.InvariantCultureIgnoreCase))
             {
                 await newResponseBody.CopyToAsync(responseBody);
                 return;

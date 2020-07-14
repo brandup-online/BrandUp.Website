@@ -88,7 +88,14 @@ module.exports = () => {
                     }
                 }
             })],
-            namedModules: true
+            namedModules: false,
+            moduleIds: isDevBuild ? 'natural' : 'size',
+            chunkIds: isDevBuild ? 'natural' : 'total-size',
+            removeAvailableModules: true,
+            removeEmptyChunks: true,
+            occurrenceOrder: true,
+            providedExports: false,
+            usedExports: false
         },
         plugins: [
             new CheckerPlugin(),

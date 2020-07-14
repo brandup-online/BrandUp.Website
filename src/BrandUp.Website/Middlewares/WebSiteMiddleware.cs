@@ -29,6 +29,9 @@ namespace BrandUp.Website.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             var request = context.Request;
             var requestHost = request.Host.Host.ToLower();
 

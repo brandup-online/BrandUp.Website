@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System;
 
 namespace BrandUp.Website
 {
@@ -6,6 +7,9 @@ namespace BrandUp.Website
     {
         public static bool TryGetValue(this IQueryCollection collection, string name, out string value)
         {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+
             if (!collection.TryGetValue(name, out Microsoft.Extensions.Primitives.StringValues values))
             {
                 value = default;

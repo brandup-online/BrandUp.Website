@@ -6,12 +6,7 @@ namespace BrandUp.Website.Helpers
     public static class SeoHelper
     {
         const string RegexExpression = "(Google|Yahoo|Rambler|Bot|Yandex|Spider|Snoopy|Crawler|Finder|Mail|bing|Aport|WebAlta|Slurp|curl)";
-        readonly static Regex searchEngineRegex;
-
-        static SeoHelper()
-        {
-            searchEngineRegex = new Regex(RegexExpression, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        }
+        readonly static Regex searchEngineRegex = new Regex(RegexExpression, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
         public static bool IsBot(string userAgent, out SearchBotName searchBot)
         {

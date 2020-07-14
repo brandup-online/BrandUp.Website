@@ -1,20 +1,20 @@
 ﻿using BrandUp.Website;
-using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExampleWebSite
+namespace ExampleWebSite.Repositories
 {
-    public class WebsiteStore : IWebsiteStore
+    public class CityRepository : IWebsiteStore
     {
-        readonly List<CityWebsite> items = new List<CityWebsite>();
+        readonly List<City> items = new List<City>();
         readonly Dictionary<string, int> names = new Dictionary<string, int>();
         readonly Dictionary<string, int> ids = new Dictionary<string, int>();
 
-        public WebsiteStore(IWebHostEnvironment hostingEnvironment)
+        public CityRepository(Microsoft.AspNetCore.Hosting.IWebHostEnvironment hostingEnvironment)
         {
             if (hostingEnvironment == null)
                 throw new ArgumentNullException(nameof(hostingEnvironment));
@@ -27,62 +27,66 @@ namespace ExampleWebSite
                 using var dataFileStream = dataFile.CreateReadStream();
                 using var streamReader = new StreamReader(dataFileStream);
                 using var jsonReader = new JsonTextReader(streamReader);
-                foreach (var item in serializer.Deserialize<CityWebsite[]>(jsonReader))
+                foreach (var item in serializer.Deserialize<City[]>(jsonReader))
                     AddWebsite(item);
             }
         }
 
-        private void AddWebsite(CityWebsite website)
+        private void AddWebsite(City website)
         {
             if (website == null)
                 throw new ArgumentNullException(nameof(website));
 
             var index = items.Count;
             items.Add(website);
-            names.Add(website.Name.ToLower(), index);
+            names.Add(NormalizeIdentifier(website.Name), index);
             if (website.NameAliases != null)
             {
                 foreach (var name in website.NameAliases)
-                    names.Add(name.ToLower(), index);
+                    names.Add(NormalizeIdentifier(name), index);
             }
-            ids.Add(website.Id.ToLower(), index);
+            ids.Add(NormalizeIdentifier(website.Id), index);
         }
+        private string NormalizeIdentifier(string value)
+        {
+            return value.Trim().ToLower();
+        }
+
+        public IQueryable<City> Cities => items.AsQueryable();
 
         #region IWebsiteStore members
 
-        public Task<IWebsite> FindByIdAsync(string id)
+        Task<IWebsite> IWebsiteStore.FindByIdAsync(string id)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
-            id = id.ToLower();
-            if (!ids.TryGetValue(id, out int index))
+            if (!ids.TryGetValue(NormalizeIdentifier(id), out int index))
                 return Task.FromResult<IWebsite>(null);
 
             return Task.FromResult<IWebsite>(items[index]);
         }
-        public Task<IWebsite> FindByNameAsync(string name)
+        Task<IWebsite> IWebsiteStore.FindByNameAsync(string name)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
 
-            name = name.ToLower();
-            if (!names.TryGetValue(name, out int index))
+            if (!names.TryGetValue(NormalizeIdentifier(name), out int index))
                 return Task.FromResult<IWebsite>(null);
 
             return Task.FromResult<IWebsite>(items[index]);
         }
-        public Task<string[]> GetAliasesAsync(IWebsite website)
+        Task<string[]> IWebsiteStore.GetAliasesAsync(IWebsite website)
         {
             if (website == null)
                 throw new ArgumentNullException(nameof(website));
-            var w = website as CityWebsite ?? throw new ArgumentException();
+            var w = website as City ?? throw new ArgumentException();
 
             return Task.FromResult(w.NameAliases);
         }
-        public Task<TimeZoneInfo> GetTimeZoneAsync(IWebsite website)
+        Task<TimeZoneInfo> IWebsiteStore.GetTimeZoneAsync(IWebsite website)
         {
-            var w = website as CityWebsite ?? throw new ArgumentException();
+            var w = website as City ?? throw new ArgumentException();
             var timeZone = w.TimeZone ?? "Europe/Moscow";
 
             if (!TimeZoneConverter.TZConvert.TryIanaToWindows(timeZone, out string windowsTimeZoneId))
@@ -94,7 +98,7 @@ namespace ExampleWebSite
         #endregion
     }
 
-    public class CityWebsite : IWebsite
+    public class City : IWebsite
     {
         [JsonProperty("sourceId")]
         public string Id { get; set; }
@@ -105,7 +109,7 @@ namespace ExampleWebSite
         public string TitleWherePre { get; set; }
         public string TimeZone { get; set; }
 
-        public CityWebsite(string id, string name, string title, string timeZone)
+        public City(string id, string name, string title, string timeZone)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             Name = name ?? throw new ArgumentNullException(nameof(name));

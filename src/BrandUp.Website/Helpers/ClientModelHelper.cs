@@ -28,6 +28,9 @@ namespace BrandUp.Website.Helpers
         }
         private static List<ClientProperty> GetClientProperties(Type model)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             var clientProperties = new List<ClientProperty>();
 
             var modelProperties = model.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty);
@@ -53,6 +56,9 @@ namespace BrandUp.Website.Helpers
 
         private static string NormalizeName(string value)
         {
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentNullException(nameof(value));
+
             return value.Substring(0, 1).ToLower() + value.Substring(1);
         }
 
