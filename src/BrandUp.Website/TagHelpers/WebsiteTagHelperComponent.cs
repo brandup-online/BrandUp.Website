@@ -2,10 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BrandUp.Website.TagHelpers
@@ -32,24 +29,9 @@ namespace BrandUp.Website.TagHelpers
             {
                 if (string.Equals(context.TagName, "head", StringComparison.OrdinalIgnoreCase))
                 {
-                    var websiteOptions = ViewContext.HttpContext.RequestServices.GetRequiredService<IOptions<WebsiteOptions>>().Value;
                     var outputContent = output.PreContent;
 
                     outputContent.AppendHtml($"{Environment.NewLine}    <meta charset=\"utf-8\" />{Environment.NewLine}");
-                    if (websiteOptions.Adaptive != null && websiteOptions.Adaptive.Enable)
-                    {
-                        var viewportParams = new List<string>
-                        {
-                            $"width={websiteOptions.Adaptive.Width}",
-                            $"initial-scale={websiteOptions.Adaptive.InitialScale}"
-                        };
-                        if (!string.IsNullOrEmpty(websiteOptions.Adaptive.MinimumScale))
-                            viewportParams.Add($"initial-scale={websiteOptions.Adaptive.MinimumScale}");
-                        if (!string.IsNullOrEmpty(websiteOptions.Adaptive.MaximumScale))
-                            viewportParams.Add($"initial-scale={websiteOptions.Adaptive.MaximumScale}");
-
-                        outputContent.AppendHtml($"    <meta name=\"viewport\" content=\"{string.Join(", ", viewportParams)}\" />{Environment.NewLine}");
-                    }
 
                     var renderTitleContext = new RenderPageTitleContext(appPageModel);
                     await websiteEvents.RenderPageTitle(renderTitleContext);
