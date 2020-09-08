@@ -3,6 +3,5 @@
     public interface IVisitor
     {
         string Id { get; }
-        string WebsiteId { get; }
     }
 }
