@@ -15,7 +15,7 @@ namespace BrandUp.Website
             if (feature == null)
                 throw new InvalidOperationException("Http request is not website.");
 
-            return feature.WebsiteContext;
+            return feature.Context;
         }
     }
 }

@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "brandup-ui": "^1.1.10",
-    "brandup-ui-app": "^1.2.26",
+    "brandup-ui-app": "^1.2.27",
     "brandup-ui-website": "../../src/brandup-ui-website"
   },
   "scripts": {

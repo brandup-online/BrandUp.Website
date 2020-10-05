@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -112,7 +111,8 @@ namespace BrandUp.Website.Pages
                 httpRequest.QueryString = Microsoft.AspNetCore.Http.QueryString.Create(newQuery);
             }
 
-            WebsiteContext = HttpContext.RequestServices.GetRequiredService<WebsiteContext>();
+            var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
+            WebsiteContext = websiteFeature.Context;
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
             Link = new Uri(HttpContext.Request.GetDisplayUrl());
 
@@ -150,7 +150,7 @@ namespace BrandUp.Website.Pages
                         if (navStateData != null)
                         {
                             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-                            var protector = protectionProvider.CreateProtector("BrandUp.Pages");
+                            var protector = protectionProvider.CreateProtector(webSiteOptions.Value.ProtectionPurpose);
                             try
                             {
                                 var requestState = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(protector.Unprotect(navStateData));
@@ -278,60 +278,6 @@ namespace BrandUp.Website.Pages
 
             WebsiteContext.SetVisitor(visitor);
 
-            #region Website
-
-            var website = WebsiteContext.Website;
-            var websiteStore = HttpContext.RequestServices.GetRequiredService<IWebsiteStore>();
-            var websiteCookieName = $"{cookiesPrefix}_w";
-
-            if (request.Cookies.TryGetValue(websiteCookieName, out string cookieWebsiteId))
-            {
-                if (!string.Equals(cookieWebsiteId, website.Id, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var cookieWebsite = await websiteStore.FindByIdAsync(cookieWebsiteId);
-                    if (cookieWebsite != null)
-                    {
-                        // Если сайт в cookie отличается от текеущего.
-
-                        var redirectUrl = string.Concat(request.Scheme, "://", !string.IsNullOrEmpty(cookieWebsite.Name) ? cookieWebsite.Name + "." : "", webSiteHost, request.PathBase.ToUriComponent(), request.Path.ToUriComponent());
-                        var query = QueryHelpers.ParseQuery(request.QueryString.ToUriComponent());
-                        query.Remove("_nav");
-                        var qb = new QueryBuilder();
-                        foreach (var kv in query)
-                            qb.Add(kv.Key, (IEnumerable<string>)kv.Value);
-
-                        redirectUrl += qb.ToQueryString();
-                        context.Result = PageRedirect(redirectUrl);
-                        return;
-                    }
-
-                    var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = true,
-                        Domain = webSiteHost,
-                        Path = "/"
-                    };
-                    Response.Cookies.Delete(websiteCookieName, cookieOptions);
-                }
-            }
-            else
-            {
-                var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    Expires = DateTimeOffset.UtcNow.AddMonths(6),
-                    MaxAge = TimeSpan.FromDays(30 * 12),
-                    Domain = webSiteHost,
-                    Path = "/"
-                };
-
-                Response.Cookies.Append(websiteCookieName, website.Id, cookieOptions);
-            }
-
-            #endregion
-
             var pageRequestContext = new PageRequestContext(this);
             await OnPageRequestAsync(pageRequestContext);
 
@@ -414,7 +360,8 @@ namespace BrandUp.Website.Pages
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-            var protector = protectionProvider.CreateProtector("BrandUp.Pages");
+            var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
+            var protector = protectionProvider.CreateProtector(websiteFeature.Options.ProtectionPurpose);
 
             var renderTitleContext = new RenderPageTitleContext(this);
             await websiteEvents.RenderPageTitle(renderTitleContext).ConfigureAwait(false);

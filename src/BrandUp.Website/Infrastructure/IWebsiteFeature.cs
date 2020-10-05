@@ -4,16 +4,19 @@ namespace BrandUp.Website.Infrastructure
 {
     public class WebsiteFeature : IWebsiteFeature
     {
-        public WebsiteContext WebsiteContext { get; }
+        public WebsiteOptions Options { get; }
+        public WebsiteContext Context { get; }
 
-        public WebsiteFeature(WebsiteContext context)
+        public WebsiteFeature(WebsiteOptions options, WebsiteContext context)
         {
-            WebsiteContext = context ?? throw new ArgumentNullException(nameof(context));
+            Options = options ?? throw new ArgumentNullException(nameof(options));
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
     }
 
     public interface IWebsiteFeature
     {
-        WebsiteContext WebsiteContext { get; }
+        WebsiteOptions Options { get; }
+        WebsiteContext Context { get; }
     }
 }

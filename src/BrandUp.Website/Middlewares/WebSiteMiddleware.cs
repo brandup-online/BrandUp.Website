@@ -119,7 +119,7 @@ namespace BrandUp.Website.Middlewares
             var websitemTimeZone = await websiteStore.GetTimeZoneAsync(website);
             var websiteContext = new WebsiteContext(context, website, websitemTimeZone);
 
-            context.Features.Set<IWebsiteFeature>(new WebsiteFeature(websiteContext));
+            context.Features.Set<IWebsiteFeature>(new WebsiteFeature(webSiteOptions.Value, websiteContext));
 
             await next(context);
 
