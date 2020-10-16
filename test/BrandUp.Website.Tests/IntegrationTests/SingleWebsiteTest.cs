@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
@@ -56,7 +57,7 @@ namespace BrandUp.Website.IntegrationTests
 
                     services.Configure<WebsiteOptions>((options) =>
                     {
-                        options.Aliases = new string[] { "alias.ru" };
+                        options.Aliases = new List<string> { "alias.ru" };
                     });
                 });
         }
