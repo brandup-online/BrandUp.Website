@@ -223,10 +223,10 @@ namespace BrandUp.Website.Pages
 
             #region Visitor
 
-            IVisitor visitor = null;
             var visitorStore = HttpContext.RequestServices.GetService<IVisitorStore>();
             if (!isBot && visitorStore != null)
             {
+                IVisitor visitor = null;
                 var visitorCookieName = $"{cookiesPrefix}_v";
 
                 var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
@@ -272,11 +272,11 @@ namespace BrandUp.Website.Pages
 
                 if (isGetRequest)
                     await visitorStore.UpdateLastVisitDateAsync(visitor, DateTime.UtcNow);
+
+                WebsiteContext.SetVisitor(visitor);
             }
 
             #endregion
-
-            WebsiteContext.SetVisitor(visitor);
 
             var pageRequestContext = new PageRequestContext(this);
             await OnPageRequestAsync(pageRequestContext);
