@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using BrandUp.Website;
 using ExampleWebSite.Repositories;
 using Microsoft.AspNetCore.Builder;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
 
 namespace ExampleWebSite
 {
@@ -114,15 +114,7 @@ namespace ExampleWebSite
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-#pragma warning disable CS0618 // Type or member is obsolete
-                app.UseWebpackDevMiddleware(new Microsoft.AspNetCore.SpaServices.Webpack.WebpackDevMiddlewareOptions
-                {
-                    HotModuleReplacement = true
-                });
-#pragma warning restore CS0618 // Type or member is obsolete
-            }
             else
             {
                 app.UseExceptionHandler("/error");
