@@ -1,29 +1,29 @@
-﻿using BrandUp.Website.Pages;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using BrandUp.Website.Pages;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace BrandUp.Website
 {
     public class DefaultWebsiteEvents : IWebsiteEvents
     {
-        public Task StartAsync(StartWebsiteContext context)
+        public virtual Task StartAsync(StartWebsiteContext context)
         {
             return Task.CompletedTask;
         }
-        public Task RenderBodyTag(OnRenderTagContext context)
+        public virtual Task RenderBodyTag(OnRenderTagContext context)
         {
             return Task.CompletedTask;
         }
-        public Task RenderHeadTag(OnRenderTagContext context)
+        public virtual Task RenderHeadTag(OnRenderTagContext context)
         {
             return Task.CompletedTask;
         }
-        public Task RenderPageTitle(RenderPageTitleContext context)
+        public virtual Task RenderPageTitle(RenderPageTitleContext context)
         {
             context.Title = context.PageModel.Title;
 

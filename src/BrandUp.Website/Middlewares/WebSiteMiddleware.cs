@@ -1,9 +1,10 @@
-﻿using BrandUp.Website.Infrastructure;
+﻿using System;
+using System.Threading.Tasks;
+using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System;
-using System.Threading.Tasks;
 
 namespace BrandUp.Website.Middlewares
 {
@@ -13,16 +14,12 @@ namespace BrandUp.Website.Middlewares
 
         private readonly RequestDelegate next;
         private readonly IOptions<WebsiteOptions> webSiteOptions;
-        private readonly IWebsiteStore websiteStore;
-        private readonly IWebsiteProvider websiteProvider;
         private readonly string webSiteHost;
 
-        public WebsiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions, IWebsiteStore websiteStore, IWebsiteProvider websiteProvider)
+        public WebsiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions)
         {
             this.next = next ?? throw new ArgumentNullException(nameof(next));
             this.webSiteOptions = webSiteOptions ?? throw new ArgumentNullException(nameof(webSiteOptions));
-            this.websiteStore = websiteStore ?? throw new ArgumentNullException(nameof(websiteStore));
-            this.websiteProvider = websiteProvider ?? throw new ArgumentNullException(nameof(websiteProvider));
 
             webSiteHost = this.webSiteOptions.Value.Host.ToLower();
         }
@@ -34,6 +31,8 @@ namespace BrandUp.Website.Middlewares
 
             var request = context.Request;
             var requestHost = request.Host.Host.ToLower();
+            var websiteStore = context.RequestServices.GetRequiredService<IWebsiteStore>();
+            var websiteProvider = context.RequestServices.GetRequiredService<IWebsiteProvider>();
 
             // Redirect by www subdomain.
             if (requestHost.StartsWith("www", StringComparison.InvariantCultureIgnoreCase))
