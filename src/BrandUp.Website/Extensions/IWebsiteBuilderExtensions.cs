@@ -1,7 +1,7 @@
-﻿using BrandUp.Website.Builder;
+﻿using System;
+using BrandUp.Website.Builder;
 using BrandUp.Website.Pages;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace BrandUp.Website
 {
@@ -57,12 +57,12 @@ namespace BrandUp.Website
         }
 
         public static IWebsiteBuilder AddVisitorStore<TImplementation>(this IWebsiteBuilder builder, ServiceLifetime serviceLifetime)
-            where TImplementation : class, IVisitorStore
+            where TImplementation : class, Visitors.IVisitorStore
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
 
-            builder.Services.Add(new ServiceDescriptor(typeof(IVisitorStore), typeof(TImplementation), serviceLifetime));
+            builder.Services.Add(new ServiceDescriptor(typeof(Visitors.IVisitorStore), typeof(TImplementation), serviceLifetime));
             return builder;
         }
 

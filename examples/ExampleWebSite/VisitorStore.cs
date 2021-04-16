@@ -1,7 +1,7 @@
-﻿using BrandUp.Website;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BrandUp.Website.Visitors;
 
 namespace ExampleWebSite
 {
@@ -52,5 +52,6 @@ namespace ExampleWebSite
     {
         public string Id { get; } = Guid.NewGuid().ToString().ToLower();
         public DateTime LastVisitDate { get; set; }
+        public string Yclid { get; set; }
     }
 }

@@ -1,9 +1,9 @@
-﻿using BrandUp.Website.Pages;
+﻿using System;
+using System.Threading.Tasks;
+using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using System;
-using System.Threading.Tasks;
 
 namespace BrandUp.Website.TagHelpers
 {
@@ -63,6 +63,7 @@ namespace BrandUp.Website.TagHelpers
 
                     var startupModel = await appPageModel.GetStartupClientModelAsync(appPageModel);
 
+                    outputContent.AppendHtml($"    <script>window.dataLayer = window.dataLayer || [];</script>{Environment.NewLine}");
                     outputContent.AppendHtml($"    <script>var appStartup = {jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
 
                     await websiteEvents.RenderHeadTag(new OnRenderTagContext(ViewContext, context, output));

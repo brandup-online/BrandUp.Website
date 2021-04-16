@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Antiforgery;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BrandUp.Website.Pages
 {
@@ -223,58 +223,21 @@ namespace BrandUp.Website.Pages
 
             #region Visitor
 
-            var visitorStore = HttpContext.RequestServices.GetService<IVisitorStore>();
-            if (!isBot && visitorStore != null)
-            {
-                IVisitor visitor = null;
-                var visitorCookieName = $"{cookiesPrefix}_v";
+            //var visitorStore = HttpContext.RequestServices.GetService<Visitors.IVisitorStore>();
+            //if (!isBot && visitorStore != null)
+            //{
+            //    var visitor = WebsiteContext.Visitor;
+            //    if (visitor == null)
+            //    {
+            //        var utcNow = DateTime.UtcNow;
+            //        visitor = await visitorStore.CreateAsync(utcNow);
 
-                var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-                var protector = protectionProvider.CreateProtector(webSiteOptions.Value.ProtectionPurpose);
+            //        WebsiteContext.SetVisitor(visitor);
 
-                if (request.Cookies.TryGetValue(visitorCookieName, out string visitorIdValue))
-                {
-                    try
-                    {
-                        var visitorId = protector.Unprotect(visitorIdValue);
-                        visitor = await visitorStore.FindByIdAsync(visitorId);
-                    }
-                    catch (System.Security.Cryptography.CryptographicException) { }
-                }
-
-                if (visitor == null)
-                {
-                    if (isGetRequest || RequestMode == AppPageRequestMode.Navigation)
-                    {
-                        // Создаём нового посетителя, только при GET запросе.
-
-                        visitor = await visitorStore.CreateAsync(DateTime.UtcNow);
-                        HttpContext.Items[Constants.VisitorHttpContextKeyName] = visitor.Id;
-
-                        var cookieOptions = new Microsoft.AspNetCore.Http.CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            Expires = DateTimeOffset.UtcNow.AddMonths(6),
-                            MaxAge = TimeSpan.FromDays(30 * 12),
-                            Domain = webSiteHost,
-                            Path = "/"
-                        };
-
-                        Response.Cookies.Append(visitorCookieName, protector.Protect(visitor.Id), cookieOptions);
-                    }
-                    else
-                    {
-                        context.Result = BadRequest();
-                        return;
-                    }
-                }
-
-                if (isGetRequest)
-                    await visitorStore.UpdateLastVisitDateAsync(visitor, DateTime.UtcNow);
-
-                WebsiteContext.SetVisitor(visitor);
-            }
+            //        var visitorProvider = HttpContext.RequestServices.GetRequiredService<Visitors.IVisitorProvider>();
+            //        visitorProvider.Set(new Visitors.VisitorTicket { Id = visitor.Id, IssuedDate = utcNow });
+            //    }
+            //}
 
             #endregion
 

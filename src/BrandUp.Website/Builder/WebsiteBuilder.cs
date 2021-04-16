@@ -1,9 +1,9 @@
-﻿using BrandUp.Website.Identity;
+﻿using System;
+using BrandUp.Website.Identity;
 using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace BrandUp.Website.Builder
 {
@@ -32,6 +32,8 @@ namespace BrandUp.Website.Builder
             services.AddScoped<IWebsiteClock, DefaultWebsiteClock>();
             services.AddTransient<IWebsiteEvents, DefaultWebsiteEvents>();
             services.AddTransient<IAccessProvider, HttpAccessProvider>();
+
+            services.AddScoped<Visitors.IVisitorProvider, Visitors.CookieVisitorProvider>();
         }
     }
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace BrandUp.Website
+namespace BrandUp.Website.Visitors
 {
     public interface IVisitorStore
     {

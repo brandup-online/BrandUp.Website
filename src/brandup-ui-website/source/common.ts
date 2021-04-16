@@ -3,15 +3,6 @@ export interface AntiforgeryOptions {
     formFieldName: string;
 }
 
-//export interface PageNavState {
-//    isBrandUp: boolean;
-//    url: string;
-//    title: string;
-//    path: string;
-//    hash: string;
-//    params: { [key: string]: string };
-//}
-
 export interface NavigationModel {
     url: string;
     path: string;

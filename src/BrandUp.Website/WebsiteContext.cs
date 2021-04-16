@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Http;
 
 namespace BrandUp.Website
 {
@@ -8,7 +8,7 @@ namespace BrandUp.Website
         public HttpContext HttpContext { get; }
         public IWebsite Website { get; }
         public TimeZoneInfo TimeZone { get; }
-        public IVisitor Visitor { get; private set; }
+        public Visitors.IVisitor Visitor { get; private set; }
 
         public WebsiteContext(HttpContext httpContext, IWebsite website, TimeZoneInfo timeZone)
         {
@@ -17,9 +17,9 @@ namespace BrandUp.Website
             TimeZone = timeZone ?? throw new ArgumentNullException(nameof(timeZone));
         }
 
-        internal void SetVisitor(IVisitor visitor)
-        {
-            Visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
-        }
+        //internal void SetVisitor(Visitors.IVisitor visitor)
+        //{
+        //    Visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
+        //}
     }
 }

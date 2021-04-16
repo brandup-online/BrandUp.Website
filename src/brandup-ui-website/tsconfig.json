@@ -5,6 +5,9 @@
     "target": "es5",
     "sourceMap": false,
     "strict": false,
+    "lib": [ "DOM" ],
+    "types": [ "node" ],
+    "esModuleInterop": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "baseUrl": "./source",
@@ -14,6 +17,7 @@
     "declarationMap": false,
     "removeComments": false
   },
+  "include": [ "source" ],
   "exclude": [
     "node_modules",
     "dist",

@@ -118,6 +118,36 @@ namespace BrandUp.Website.Middlewares
             var websitemTimeZone = await websiteStore.GetTimeZoneAsync(website);
             var websiteContext = new WebsiteContext(context, website, websitemTimeZone);
 
+            #region Visitor
+
+            //var visitorStore = context.RequestServices.GetService<Visitors.IVisitorStore>();
+            //if (visitorStore != null && !request.IsBot())
+            //{
+            //    var visitorProvider = context.RequestServices.GetRequiredService<Visitors.IVisitorProvider>();
+            //    var visitorTicket = visitorProvider.Get();
+            //    if (visitorTicket != null)
+            //    {
+            //        var visitor = await visitorStore.FindByIdAsync(visitorTicket.Id);
+            //        if (visitor != null)
+            //        {
+            //            var utcNow = DateTime.UtcNow;
+
+            //            if (request.Method == "GET")
+            //                await visitorStore.UpdateLastVisitDateAsync(visitor, utcNow);
+
+            //            websiteContext.SetVisitor(visitor);
+
+            //            if (visitorTicket.IssuedDate <= utcNow)
+            //            {
+            //                visitorTicket.IssuedDate = utcNow.AddDays(1);
+            //                visitorProvider.Set(visitorTicket);
+            //            }
+            //        }
+            //    }
+            //}
+
+            #endregion
+
             context.Features.Set<IWebsiteFeature>(new WebsiteFeature(webSiteOptions.Value, websiteContext));
 
             await next(context);
