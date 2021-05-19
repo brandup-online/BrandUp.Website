@@ -176,10 +176,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 switch (response.status) {
                     case 200:
                     case 201: {
-                        if (this.__precessPageResponse(response))
-                            return;
-
-                        this.updateHtml(response.data);
+                        if (!this.__precessPageResponse(response))
+                            this.updateHtml(response.data);
 
                         break;
                     }

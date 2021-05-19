@@ -1,4 +1,4 @@
-﻿import { Middleware, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
+﻿import { Middleware, NavigateContext, StartContext, LoadContext, NavigatingContext, SubmitContext } from "brandup-ui-app";
 import { DOM, ajaxRequest, AjaxResponse } from "brandup-ui";
 import { Website } from "brandup-ui-website";
 
@@ -83,8 +83,12 @@ export class CityMiddleware extends Middleware {
     navigate(context: NavigateContext, next) {
         const website = context.items["website"] as Website;
 
-        console.log(website.validationToken);
+        //console.log(website.validationToken);
 
+        next();
+    }
+
+    sublit(context: SubmitContext, next: () => void) {
         next();
     }
 }
