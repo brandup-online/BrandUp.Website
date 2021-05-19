@@ -23,6 +23,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
     get id(): string { return this.app.model.websiteId; }
     get visitorId(): string { return this.app.model.visitorId; }
+    get validationToken(): string { return this.__navigation ? this.__navigation.validationToken : null; }
 
     constructor(nav: NavigationModel, options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
@@ -49,6 +50,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     }
 
     start(context: StartContext, next: () => void) {
+        context.items["website"] = this;
         context.items["nav"] = this.__navigation;
 
         const bodyElem = document.body;
@@ -85,14 +87,18 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.__renderPage(context.items, this.__navCounter, null, next);
     }
     loaded(context: LoadContext, next: () => void) {
+        context.items["website"] = this;
         context.items["nav"] = this.__navigation;
         context.items["page"] = this.__page;
 
         next();
     }
     navigating(context: NavigatingContext, next) {
+        context.items["website"] = this;
         context.items["nav"] = this.__navigation;
         context.items["page"] = this.__page;
+
+        this.__showNavigationProgress();
 
         next();
     }
@@ -102,8 +108,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             return;
         }
 
-        this.__showNavigationProgress();
-
+        context.items["website"] = this;
         context.items["prevNav"] = this.__navigation;
 
         this.__loadingPage = true;
@@ -153,6 +158,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         const { form } = context;
         const url = form.action;
         const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
+
+        context.items["website"] = this;
+        context.items["nav"] = this.__navigation;
+        context.items["page"] = this.__page;
 
         const submitButton = DOM.queryElement(form, "[type=submit]");
         if (submitButton)
@@ -205,6 +214,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         });
     }
     stop(context: StopContext, next) {
+        context.items["website"] = this;
         context.items["nav"] = this.__navigation;
         context.items["page"] = this.__page;
 
@@ -502,12 +512,15 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__loaderElem.classList.remove("show", "show2", "finish");
         this.__loaderElem.style.width = "0%";
-        this.__loaderElem.classList.add("show");
 
-        this.__loaderElem.style.width = "50%";
-        this.__progressTimeout = window.setTimeout(() => {
-            this.__loaderElem.classList.add("show2");
+        window.setTimeout(() => {
+            this.__loaderElem.classList.add("show");
             this.__loaderElem.style.width = "70%";
+        }, 10);
+
+        this.__progressTimeout = window.setTimeout(() => {
+            this.__loaderElem.classList.add("show");
+            this.__loaderElem.style.width = "100%";
         }, 1700);
 
         this.__progressStart = Date.now();
@@ -525,7 +538,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             this.__loaderElem.style.width = "100%";
 
             this.__progressInterval = window.setTimeout(() => {
-                this.__loaderElem.classList.remove("show", "show2", "finish");
+                this.__loaderElem.classList.remove("show", "finish");
                 this.__loaderElem.style.width = "0%";
             }, 180);
         }, d);

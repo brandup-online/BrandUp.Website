@@ -3,12 +3,13 @@
     "module": "ES2020",
     "moduleResolution": "node",
     "target": "es5",
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": false,
     "lib": [ "ES2020", "DOM" ],
     "baseUrl": "./_client",
     "noImplicitAny": false,
     "noEmitOnError": true,
+    "declaration": false,
     "declarationMap": false
   },
   "exclude": [

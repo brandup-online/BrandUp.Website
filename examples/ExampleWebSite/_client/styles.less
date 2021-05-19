@@ -211,16 +211,12 @@ input, textarea, button {
     display: block;
     opacity: 0;
     visibility: collapse;
-    transition: visibility ease 300ms, opacity ease 300ms, width ease-in-out 100ms;
+    transition: visibility ease 300ms, opacity ease 300ms;
 
     &.show {
         opacity: 1;
-        transition: width ease-in-out 1700ms;
+        transition: width ease-in-out 1500ms;
         visibility: visible;
-    }
-
-    &.show2 {
-        transition: width ease-in-out 15000ms;
     }
 
     &.finish {

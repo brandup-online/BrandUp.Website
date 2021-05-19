@@ -127,6 +127,7 @@ export interface Website {
     readonly queue: AjaxQueue;
     readonly id: string;
     readonly visitorId: string;
+    readonly validationToken: string;
     updateHtml(html: string);
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;

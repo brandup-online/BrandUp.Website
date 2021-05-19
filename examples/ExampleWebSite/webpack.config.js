@@ -56,12 +56,6 @@ module.exports = () => {
                 },
                 {
                     test: /\.svg$/,
-                    include: [
-                        path.resolve(__dirname, "_client", "brandup.pages"),
-                        path.resolve(__dirname, "_client", "designers"),
-                        path.resolve(__dirname, "_client", "pages"),
-                        path.resolve(__dirname, "_client", "svg")
-                    ],
                     use: 'raw-loader'
                 },
                 {
