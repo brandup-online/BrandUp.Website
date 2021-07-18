@@ -56,6 +56,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         const bodyElem = document.body;
 
         bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
+        this.__showNavigationProgress();
 
         this.__contentBodyElem = document.getElementById("page-content");
         if (!this.__contentBodyElem)
@@ -92,6 +93,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         context.items["page"] = this.__page;
 
         next();
+
+        this.__hideNavigationProgress();
     }
     navigating(context: NavigatingContext, next) {
         context.items["website"] = this;
