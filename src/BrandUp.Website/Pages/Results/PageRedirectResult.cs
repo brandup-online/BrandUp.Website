@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace BrandUp.Website.Pages.Results
 {
@@ -29,6 +29,8 @@ namespace BrandUp.Website.Pages.Results
             if (CurrentPage.RequestMode == AppPageRequestMode.Start)
             {
                 response.StatusCode = (int)(IsPermament ? HttpStatusCode.PermanentRedirect : HttpStatusCode.Redirect);
+                if (response.Headers.ContainsKey("Location"))
+                    response.Headers.Remove("Location");
                 response.Headers.Add("Location", PageUrl);
             }
             else
