@@ -2,7 +2,7 @@ import { DOM, ajaxRequest, Utility, AjaxRequest, AjaxResponse, AJAXMethod, AjaxQ
 import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext, SubmitContext } from "brandup-ui-app";
 import { NavigationModel, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
-import minWait from "../utilities/wait";
+import { minWait } from "../utilities/wait";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 const pageReloadHeader = "Page-Reload";

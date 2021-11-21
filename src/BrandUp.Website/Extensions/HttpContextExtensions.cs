@@ -1,6 +1,6 @@
-﻿using System;
-using BrandUp.Website.Infrastructure;
+﻿using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using System;
 
 namespace BrandUp.Website
 {
@@ -17,13 +17,5 @@ namespace BrandUp.Website
 
             return feature.Context;
         }
-        //public static Visitors.IVisitor GetVisitor(this HttpContext httpContext)
-        //{
-        //    if (httpContext == null)
-        //        throw new ArgumentNullException(nameof(httpContext));
-
-        //    var websiteContext = GetWebsiteContext(httpContext);
-        //    return websiteContext?.Visitor;
-        //}
     }
 }
