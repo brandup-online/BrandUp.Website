@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Antiforgery;
+﻿using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BrandUp.Website.Pages
 {
@@ -221,26 +221,6 @@ namespace BrandUp.Website.Pages
 
             #endregion
 
-            #region Visitor
-
-            //var visitorStore = HttpContext.RequestServices.GetService<Visitors.IVisitorStore>();
-            //if (!isBot && visitorStore != null)
-            //{
-            //    var visitor = WebsiteContext.Visitor;
-            //    if (visitor == null)
-            //    {
-            //        var utcNow = DateTime.UtcNow;
-            //        visitor = await visitorStore.CreateAsync(utcNow);
-
-            //        WebsiteContext.SetVisitor(visitor);
-
-            //        var visitorProvider = HttpContext.RequestServices.GetRequiredService<Visitors.IVisitorProvider>();
-            //        visitorProvider.Set(new Visitors.VisitorTicket { Id = visitor.Id, IssuedDate = utcNow });
-            //    }
-            //}
-
-            #endregion
-
             var pageRequestContext = new PageRequestContext(this);
             await OnPageRequestAsync(pageRequestContext);
 
@@ -280,7 +260,7 @@ namespace BrandUp.Website.Pages
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
         }
-        internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync(AppPageModel appPageModel)
+        internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync()
         {
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
@@ -311,10 +291,10 @@ namespace BrandUp.Website.Pages
                 };
             }
 
-            var startContext = new StartWebsiteContext(appPageModel, startupModel.Model.Data);
+            var startContext = new StartWebsiteContext(this, startupModel.Model.Data);
             await websiteEvents.StartAsync(startContext).ConfigureAwait(false);
 
-            startupModel.Nav = await appPageModel.GetNavigationClientModelAsync();
+            startupModel.Nav = await GetNavigationClientModelAsync();
 
             return startupModel;
         }

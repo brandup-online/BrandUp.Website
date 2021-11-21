@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using BrandUp.Website.Pages;
+﻿using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using System;
+using System.Threading.Tasks;
 
 namespace BrandUp.Website.TagHelpers
 {
@@ -61,7 +61,7 @@ namespace BrandUp.Website.TagHelpers
                             outputContent.AppendHtml($"    <meta id=\"og-description\" property=\"og:{OpenGraphProperties.Description}\" content=\"{og.Description}\" />{Environment.NewLine}");
                     }
 
-                    var startupModel = await appPageModel.GetStartupClientModelAsync(appPageModel);
+                    var startupModel = await appPageModel.GetStartupClientModelAsync();
 
                     outputContent.AppendHtml($"    <script>window.dataLayer = window.dataLayer || [];</script>{Environment.NewLine}");
                     outputContent.AppendHtml($"    <script>var appStartup = {jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
