@@ -11,3 +11,12 @@
     <p><a href="#test2">test2</a></p>
     <p><a nav-url="/company">hotfound</a></p>
 </section>
+
+<section>
+    @{
+        var webSiteContext = HttpContext.GetWebsiteContext(); 
+    }
+    <p>WebSite Id: @webSiteContext.Website.Id</p>
+    <p>WebSite Name: @webSiteContext.Website.Name</p>
+    <p>WebSite Title: @webSiteContext.Website.Title</p>
+</section>

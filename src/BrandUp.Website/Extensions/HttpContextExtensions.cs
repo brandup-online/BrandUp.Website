@@ -6,7 +6,7 @@ namespace BrandUp.Website
 {
     public static class HttpContextExtensions
     {
-        public static WebsiteContext GetWebsiteContext(this HttpContext httpContext)
+        public static IWebsiteContext GetWebsiteContext(this HttpContext httpContext)
         {
             if (httpContext == null)
                 throw new ArgumentNullException(nameof(httpContext));
