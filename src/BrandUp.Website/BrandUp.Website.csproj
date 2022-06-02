@@ -14,4 +14,8 @@
     <PackageReference Include="System.Text.Json" Version="6.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BrandUp.Website.Abstractions\BrandUp.Website.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

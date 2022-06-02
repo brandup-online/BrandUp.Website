@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BrandUp.Website.Infrastructure
+namespace BrandUp.Website
 {
     public interface IWebsiteClock
     {

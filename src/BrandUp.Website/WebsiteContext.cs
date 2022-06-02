@@ -16,10 +16,4 @@ namespace BrandUp.Website
             TimeZone = timeZone ?? throw new ArgumentNullException(nameof(timeZone));
         }
     }
-
-    public interface IWebsiteContext
-    {
-        IWebsite Website { get; }
-        TimeZoneInfo TimeZone { get; }
-    }
 }

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>netstandard2.1</TargetFramework>
+	  <Company>BrandUp.online</Company>
+	  <Authors>Dmitry Kovyazin</Authors>
+	  <Nullable>disable</Nullable>
+	  <RootNamespace>BrandUp.Website</RootNamespace>
+  </PropertyGroup>
+
+</Project>
