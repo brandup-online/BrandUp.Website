@@ -1,7 +1,7 @@
-﻿using System;
-using BrandUp.Website.Builder;
+﻿using BrandUp.Website.Builder;
 using BrandUp.Website.Pages;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace BrandUp.Website
 {
@@ -13,6 +13,26 @@ namespace BrandUp.Website
                 throw new ArgumentNullException(nameof(builder));
 
             builder.Services.Add(new ServiceDescriptor(typeof(IWebsiteStore), new SingleWebsiteStore(title)));
+            return builder;
+        }
+
+        public static IWebsiteBuilder AddMultyWebsite<TWebsiteStore>(this IWebsiteBuilder builder, ServiceLifetime serviceLifetime)
+            where TWebsiteStore : class, IWebsiteStore
+        {
+            if (builder == null)
+                throw new ArgumentNullException(nameof(builder));
+
+            builder.Services.Add(new ServiceDescriptor(typeof(IWebsiteStore), typeof(TWebsiteStore), serviceLifetime));
+            return builder;
+        }
+
+        public static IWebsiteBuilder AddMultyWebsiteFrom<TWebsiteStore>(this IWebsiteBuilder builder)
+            where TWebsiteStore : class, IWebsiteStore
+        {
+            if (builder == null)
+                throw new ArgumentNullException(nameof(builder));
+
+            builder.Services.Add(new ServiceDescriptor(typeof(IWebsiteStore), (s) => s.GetRequiredService<TWebsiteStore>(), ServiceLifetime.Transient));
             return builder;
         }
 
@@ -36,43 +56,13 @@ namespace BrandUp.Website
             return builder;
         }
 
-        public static IWebsiteBuilder AddWebsiteStore<TImplementation>(this IWebsiteBuilder builder, ServiceLifetime serviceLifetime)
-            where TImplementation : class, IWebsiteStore
+        public static IWebsiteBuilder AddUrlMapProvider<T>(this IWebsiteBuilder builder)
+            where T : class, Infrastructure.IUrlMapProvider
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
 
-            builder.Services.Add(new ServiceDescriptor(typeof(IWebsiteStore), typeof(TImplementation), serviceLifetime));
-            return builder;
-        }
-
-        public static IWebsiteBuilder AddWebsiteStoreFrom<TFrom>(this IWebsiteBuilder builder)
-            where TFrom : class, IWebsiteStore
-        {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-
-            builder.Services.Add(new ServiceDescriptor(typeof(IWebsiteStore), (s) => s.GetRequiredService<TFrom>(), ServiceLifetime.Transient));
-            return builder;
-        }
-
-        public static IWebsiteBuilder AddVisitorStore<TImplementation>(this IWebsiteBuilder builder, ServiceLifetime serviceLifetime)
-            where TImplementation : class, Visitors.IVisitorStore
-        {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-
-            builder.Services.Add(new ServiceDescriptor(typeof(Visitors.IVisitorStore), typeof(TImplementation), serviceLifetime));
-            return builder;
-        }
-
-        public static IWebsiteBuilder AddWebsiteProvider<T>(this IWebsiteBuilder builder)
-            where T : class, IWebsiteProvider
-        {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-
-            builder.Services.AddSingleton<IWebsiteProvider, T>();
+            builder.Services.AddSingleton<Infrastructure.IUrlMapProvider, T>();
             return builder;
         }
 

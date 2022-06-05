@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using BrandUp.Website;
 using ExampleWebSite.Repositories;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace ExampleWebSite
 {
@@ -106,9 +106,8 @@ namespace ExampleWebSite
                 })
                 .AddWebsiteEvents<ExambleWebsiteEvents>()
                 .AddPageEvents<Pages.PageEvents>()
-                .AddWebsiteProvider<SubdomainWebsiteProvider>()
-                .AddWebsiteStoreFrom<CityRepository>()
-                .AddVisitorStore<VisitorStore>(ServiceLifetime.Singleton);
+                .AddUrlMapProvider<BrandUp.Website.Infrastructure.SubdomainUrlMapProvider>()
+                .AddMultyWebsiteFrom<CityRepository>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

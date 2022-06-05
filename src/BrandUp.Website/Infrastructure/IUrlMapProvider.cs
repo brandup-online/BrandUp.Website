@@ -2,18 +2,18 @@
 using Microsoft.Extensions.Options;
 using System;
 
-namespace BrandUp.Website
+namespace BrandUp.Website.Infrastructure
 {
-    public interface IWebsiteProvider
+    public interface IUrlMapProvider
     {
-        string GetWebsiteName(HttpContext context, string requestHost);
+        string ExtractName(HttpContext context, string requestHost);
     }
 
-    public class SubdomainWebsiteProvider : IWebsiteProvider
+    public class SubdomainUrlMapProvider : IUrlMapProvider
     {
         readonly string webSiteHost;
 
-        public SubdomainWebsiteProvider(IOptions<WebsiteOptions> options)
+        public SubdomainUrlMapProvider(IOptions<WebsiteOptions> options)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
@@ -21,21 +21,21 @@ namespace BrandUp.Website
             webSiteHost = options.Value.Host.ToLower();
         }
 
-        public string GetWebsiteName(HttpContext context, string requestHost)
+        public string ExtractName(HttpContext context, string requestHost)
         {
             if (requestHost == null)
                 throw new ArgumentNullException(nameof(requestHost));
 
             string websiteName = null;
-            if (!string.Equals(requestHost, webSiteHost, StringComparison.OrdinalIgnoreCase))
-                websiteName = requestHost.Substring(0, requestHost.Length - webSiteHost.Length - 1).ToLower();
+            if (!string.Equals(requestHost, webSiteHost, StringComparison.InvariantCultureIgnoreCase))
+                websiteName = requestHost[..(requestHost.Length - webSiteHost.Length - 1)].ToLower();
             return websiteName;
         }
     }
 
-    public class PathWebsiteProvider : IWebsiteProvider
+    public class PathUrlMapProvider : IUrlMapProvider
     {
-        public string GetWebsiteName(HttpContext context, string requestHost)
+        public string ExtractName(HttpContext context, string requestHost)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -47,7 +47,7 @@ namespace BrandUp.Website
                 var path = requestPath.Value.ToLower().Trim(new char[] { '/' });
                 var firstShlashIndex = path.IndexOf('/', StringComparison.InvariantCultureIgnoreCase);
                 if (firstShlashIndex > 0)
-                    websiteName = path.Substring(0, firstShlashIndex);
+                    websiteName = path[..firstShlashIndex];
                 else
                     websiteName = path;
             }

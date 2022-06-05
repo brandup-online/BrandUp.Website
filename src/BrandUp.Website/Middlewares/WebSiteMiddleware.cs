@@ -32,7 +32,7 @@ namespace BrandUp.Website.Middlewares
             var request = context.Request;
             var requestHost = request.Host.Host.ToLower();
             var websiteStore = context.RequestServices.GetRequiredService<IWebsiteStore>();
-            var websiteProvider = context.RequestServices.GetRequiredService<IWebsiteProvider>();
+            var websiteProvider = context.RequestServices.GetRequiredService<IUrlMapProvider>();
 
             // Redirect by www subdomain.
             if (requestHost.StartsWith("www", StringComparison.InvariantCultureIgnoreCase))
@@ -78,7 +78,7 @@ namespace BrandUp.Website.Middlewares
             if (request.Scheme == "http")
                 needRedirectToHttps = true;
 
-            var websiteName = websiteProvider.GetWebsiteName(context, requestHost);
+            var websiteName = websiteProvider.ExtractName(context, requestHost);
             if (websiteName == null)
                 websiteName = string.Empty;
 

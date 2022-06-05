@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace BrandUp.Website.IntegrationTests
@@ -31,9 +30,6 @@ namespace BrandUp.Website.IntegrationTests
 
             var responseHtml = await response.Content.ReadAsStringAsync();
             Assert.Contains("</body>", responseHtml);
-
-            var visitorStore = (ExampleWebSite.VisitorStore)factory.Services.GetService<Visitors.IVisitorStore>();
-            Assert.Equal(0, visitorStore.Count);
         }
 
         [Theory]
@@ -51,9 +47,6 @@ namespace BrandUp.Website.IntegrationTests
 
             var responseHtml = await response.Content.ReadAsStringAsync();
             Assert.Empty(responseHtml);
-
-            var visitorStore = (ExampleWebSite.VisitorStore)factory.Services.GetService<Visitors.IVisitorStore>();
-            Assert.Equal(0, visitorStore.Count);
         }
 
         [Theory]
@@ -71,9 +64,6 @@ namespace BrandUp.Website.IntegrationTests
 
             var responseHtml = await response.Content.ReadAsStringAsync();
             Assert.Empty(responseHtml);
-
-            var visitorStore = (ExampleWebSite.VisitorStore)factory.Services.GetService<Visitors.IVisitorStore>();
-            Assert.Equal(0, visitorStore.Count);
         }
     }
 }

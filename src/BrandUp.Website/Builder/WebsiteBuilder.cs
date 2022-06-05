@@ -32,8 +32,6 @@ namespace BrandUp.Website.Builder
             services.AddScoped<IWebsiteClock, DefaultWebsiteClock>();
             services.AddTransient<IWebsiteEvents, DefaultWebsiteEvents>();
             services.AddTransient<IAccessProvider, HttpAccessProvider>();
-
-            services.AddScoped<Visitors.IVisitorProvider, Visitors.CookieVisitorProvider>();
         }
     }
 

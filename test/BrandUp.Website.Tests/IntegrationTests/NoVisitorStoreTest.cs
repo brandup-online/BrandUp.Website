@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace BrandUp.Website.IntegrationTests
@@ -52,8 +51,6 @@ namespace BrandUp.Website.IntegrationTests
                 .UseEnvironment("Test")
                 .ConfigureTestServices(services =>
                 {
-                    services.RemoveAll<Visitors.IVisitorStore>();
-
                     services.Configure<WebsiteOptions>((options) =>
                     {
                         options.Aliases = new List<string> { "alias.ru" };
