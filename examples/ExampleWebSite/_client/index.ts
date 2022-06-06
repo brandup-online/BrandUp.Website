@@ -1,7 +1,7 @@
 ﻿import { host } from "brandup-ui-website";
 import { AuthMiddleware } from "./middlewares/auth";
-import "./styles.less";
 import { CityMiddleware } from "./middlewares/city";
+import "./styles.less";
 
 host.start({
     pageTypes: {

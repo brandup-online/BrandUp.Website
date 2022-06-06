@@ -1,8 +1,8 @@
 # BrandUp.Website
 
-Базовый инфраструктурный фреймворк для Web-сайтов.
+Р‘Р°Р·РѕРІС‹Р№ РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂРЅС‹Р№ С„СЂРµР№РјРІРѕСЂРє РґР»СЏ Web-СЃР°Р№С‚РѕРІ.
 
-## Конфигурация
+## РљРѕРЅС„РёРіСѓСЂР°С†РёСЏ
 
 ```
 {
@@ -23,20 +23,20 @@
 }
 ```
 
-**Website:Host** - доменное имя сайта.
+**Website:Host** - РґРѕРјРµРЅРЅРѕРµ РёРјСЏ СЃР°Р№С‚Р°.
 
-**Website:Aliases** - список алиасов, с которых будет выполняться автоматический редирект на домен Host.
+**Website:Aliases** - СЃРїРёСЃРѕРє Р°Р»РёР°СЃРѕРІ, СЃ РєРѕС‚РѕСЂС‹С… Р±СѓРґРµС‚ РІС‹РїРѕР»РЅСЏС‚СЊСЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ СЂРµРґРёСЂРµРєС‚ РЅР° РґРѕРјРµРЅ Host.
 
-**Website:CookiesPrefix** - префикс ключей Cookies.
+**Website:CookiesPrefix** - РїСЂРµС„РёРєСЃ РєР»СЋС‡РµР№ Cookies.
 
 **Website:ProtectionPurpose** - The purpose to be assigned to the newly-created Microsoft.AspNetCore.DataProtection.IDataProtector.
 
-Использование параметров сайта:
+РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РїР°СЂР°РјРµС‚СЂРѕРІ СЃР°Р№С‚Р°:
 ```
 var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>()
 ```
 
-## Запуск
+## Р—Р°РїСѓСЃРє
 
 ```
 
@@ -65,9 +65,9 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```
 
-## Контекст сайта
+## РљРѕРЅС‚РµРєСЃС‚ СЃР°Р№С‚Р°
 
-Контекст сайта **IWebsiteContext** создаётся для каждого входящего запроса. Он доступен через IServiceProvider.
+РљРѕРЅС‚РµРєСЃС‚ СЃР°Р№С‚Р° **IWebsiteContext** СЃРѕР·РґР°С‘С‚СЃСЏ РґР»СЏ РєР°Р¶РґРѕРіРѕ РІС…РѕРґСЏС‰РµРіРѕ Р·Р°РїСЂРѕСЃР°. РћРЅ РґРѕСЃС‚СѓРїРµРЅ С‡РµСЂРµР· IServiceProvider.
 
 ## _Layout
 
@@ -94,9 +94,9 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```
 
-## Модель страницы
+## РњРѕРґРµР»СЊ СЃС‚СЂР°РЅРёС†С‹
 
-Базовым классом модели страницы является класс AppPageModel.
+Р‘Р°Р·РѕРІС‹Рј РєР»Р°СЃСЃРѕРј РјРѕРґРµР»Рё СЃС‚СЂР°РЅРёС†С‹ СЏРІР»СЏРµС‚СЃСЏ РєР»Р°СЃСЃ AppPageModel.
 
 ```
 
@@ -106,9 +106,11 @@ public class IndexModel : AppPageModel
     public override string Description => Title;
     public override string Keywords => Title;
     public override string Header => Title;
+    public override string ScriptName => "page script name";
+    public override string CssClass => "page css class";
 
     /// <summary>
-    /// Вызывается при запросе страницы.
+    /// Р’С‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё Р·Р°РїСЂРѕСЃРµ СЃС‚СЂР°РЅРёС†С‹.
     /// </summary>
     protected override Task OnPageRequestAsync(PageRequestContext context)
     {
@@ -120,7 +122,7 @@ public class IndexModel : AppPageModel
     }
 
     /// <summary>
-    /// Вызывается при конструировании контекста сайта для клиента.
+    /// Р’С‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё РєРѕРЅСЃС‚СЂСѓРёСЂРѕРІР°РЅРёРё РєРѕРЅС‚РµРєСЃС‚Р° СЃР°Р№С‚Р° РґР»СЏ РєР»РёРµРЅС‚Р°.
     /// </summary>
     protected override Task OnPageBuildAsync(PageBuildContext context)
     {
@@ -128,7 +130,7 @@ public class IndexModel : AppPageModel
     }
 
     /// <summary>
-    /// Вызывается при конструировании контекста навигации для клиента.
+    /// Р’С‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё РєРѕРЅСЃС‚СЂСѓРёСЂРѕРІР°РЅРёРё РєРѕРЅС‚РµРєСЃС‚Р° РЅР°РІРёРіР°С†РёРё РґР»СЏ РєР»РёРµРЅС‚Р°.
     /// </summary>
     protected override Task OnPageNavigationAsync(PageNavidationContext context)
     {
@@ -136,7 +138,7 @@ public class IndexModel : AppPageModel
     }
 
     /// <summary>
-    /// Вызывается при рендеринге представления страницы.
+    /// Р’С‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё СЂРµРЅРґРµСЂРёРЅРіРµ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ СЃС‚СЂР°РЅРёС†С‹.
     /// </summary>
     protected override Task OnPageRenderAsync(PageRenderContext context)
     {
@@ -158,5 +160,58 @@ public class IndexModel : AppPageModel
     <p>WebSite Name: @webSiteContext.Website.Name</p>
     <p>WebSite Title: @webSiteContext.Website.Title</p>
 </div>
+
+```
+
+## РљР»РёРµРЅС‚СЃРєРѕРµ РїСЂРёР»РѕР¶РµРЅРёРµ
+
+```
+
+import { host } from "brandup-ui-website";
+import { AuthMiddleware } from "./middlewares/auth";
+import "./styles.less";
+
+host.start({
+    pageTypes: {
+        "signin": ()=> import("./pages/signin")
+    }
+}, (builder) => {
+        builder
+            .useMiddleware(new AuthMiddleware());
+    });
+
+import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
+import { ajaxRequest } from "brandup-ui";
+
+export class AuthMiddleware extends Middleware<ApplicationModel> {
+    start(context: StartContext, next) {
+        this.app.registerCommand("signout", () => {
+            ajaxRequest({
+                url: this.app.uri("api/auth/signout"),
+                method: "POST",
+                state: null,
+                success: () => {
+                    this.app.reload();
+                }
+            });
+        });
+
+        console.log(`website id: ${this.app.model.websiteId}`);
+
+        next();
+    }
+
+    loaded(context: LoadContext, next) {
+        next();
+    }
+
+    navigating(context: NavigatingContext, next) {
+        next();
+    }
+
+    navigate(context: NavigateContext, next) {
+        next();
+    }
+}
 
 ```
