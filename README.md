@@ -2,6 +2,11 @@
 
 Базовый инфраструктурный фреймворк для Web-сайтов.
 
+## Installation
+
+NuGet-package: [https://www.nuget.org/packages/BrandUp.Website/](https://www.nuget.org/packages/BrandUp.Website/)
+
+
 ## Конфигурация
 
 ```
