@@ -30,15 +30,6 @@ export class AuthMiddleware extends Middleware<ApplicationModel> {
 
     navigating(context: NavigatingContext, next) {
         console.log(context);
-
-        const state = context.context.state;
-
-        if (state && state.IsTourvisor) {
-            if (state.Back) {
-                context.isCancel = true;
-            }
-        }
-
         next();
     }
 
