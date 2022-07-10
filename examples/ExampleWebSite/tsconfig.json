@@ -7,10 +7,8 @@
     "strict": false,
     "lib": [ "ES2020", "DOM" ],
     "baseUrl": "./_client",
-    "esModuleInterop": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
-    "declaration": false,
     "declarationMap": false
   },
   "exclude": [

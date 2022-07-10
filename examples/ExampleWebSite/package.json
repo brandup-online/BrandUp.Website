@@ -23,8 +23,11 @@
     "webpack-hot-middleware": "^2.25.0"
   },
   "dependencies": {
-    "brandup-ui-app": "^1.2.28",
-    "brandup-ui-website": "../../src/brandup-ui-website"
+    "brandup-ui-website": "../../src/brandup-ui-website",
+    "brandup-ui": "^2.0.5",
+    "brandup-ui-app": "^2.0.1",
+    "brandup-ui-ajax": "^2.0.5",
+    "brandup-ui-dom": "^2.0.5"
   },
   "scripts": {
     "build": "webpack -p --progress --config webpack.config.js",

@@ -5,15 +5,12 @@
     "target": "es5",
     "sourceMap": false,
     "strict": false,
-    "lib": [ "DOM" ],
-    "types": [ "node" ],
+    "lib": [ "DOM", "ES2020" ],
     "esModuleInterop": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "baseUrl": "./source",
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationDir": "./source",
+    "declaration": false,
     "declarationMap": false,
     "removeComments": false
   },
@@ -22,10 +19,9 @@
     "node_modules",
     "dist",
     ".vs",
-    ".vscode",
-    "test"
+    ".vscode"
   ],
-  "compileOnSave": true,
+  "compileOnSave": false,
   "typeAcquisition": {
     "enable": true
   }

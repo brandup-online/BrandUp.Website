@@ -1,5 +1,5 @@
-﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
-import { ajaxRequest } from "brandup-ui";
+﻿import { ajaxRequest } from "brandup-ui-ajax";
+import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
 
 export class AuthMiddleware extends Middleware<ApplicationModel> {
     start(context: StartContext, next) {

@@ -1,5 +1,6 @@
-﻿import { Middleware, NavigateContext, StartContext, LoadContext, NavigatingContext, SubmitContext } from "brandup-ui-app";
-import { DOM, ajaxRequest, AjaxResponse } from "brandup-ui";
+﻿import { ajaxRequest, AjaxResponse } from "brandup-ui-ajax";
+import { Middleware, NavigateContext, StartContext, LoadContext, NavigatingContext, SubmitContext } from "brandup-ui-app";
+import { DOM } from "brandup-ui-dom";
 import { Website } from "brandup-ui-website";
 
 const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: string, on: () => void, off?: () => void) => {

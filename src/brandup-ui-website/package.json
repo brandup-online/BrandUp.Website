@@ -22,24 +22,19 @@
     "url": "https://github.com/dkovyazin/BrandUp.Website/issues",
     "email": "it@brandup.online"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./source/index.ts",
+  "types": "./source/index.ts",
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "brandup-ui-app": "^1.2.28"
+    "brandup-ui-app": "^2.0.1",
+    "brandup-ui-ajax": "^2.0.5",
+    "brandup-ui-dom": "^2.0.5"
   },
   "devDependencies": {
-    "@types/node": "^14.17.0",
-    "dts-bundle": "^0.7.3",
-    "npm-run-all": "^4.1.5",
-    "ts-loader": "^3.1.0",
-    "ts-npm-lint": "^0.1.0",
-    "typescript": "^3.9.9"
+    "typescript": "^4.7.4"
   },
   "scripts": {
-    "_tsc": "tsc && ts-npm-lint --fix-typings",
-    "_bundle": "node build/make-bundle",
-    "build": "run-s _tsc _bundle"
+    "build": "tsc"
   }
 }

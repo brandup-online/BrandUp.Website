@@ -4,17 +4,16 @@ const path = require('path');
 const webpack = require('webpack');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const bundleOutputDir = './wwwroot/dist';
 
-module.exports = () => {
+module.exports = (env) => {
     const isDevBuild = process.env.NODE_ENV !== "production";
 
     console.log(`NODE_ENV: "${process.env.NODE_ENV}"`);
     console.log(`isDevBuild: ${isDevBuild}`);
 
-    return {
+    return [{
         entry: {
             app: path.resolve(__dirname, '_client', 'index.ts')
         },
@@ -22,8 +21,8 @@ module.exports = () => {
         output: {
             path: path.join(__dirname, bundleOutputDir),
             filename: '[name].js',
-            chunkFilename: isDevBuild ? '[name].js' : '[name].[hash:4].js',
-            publicPath: '/dist/'
+            publicPath: 'dist/',
+            libraryTarget: 'umd'
         },
         module: {
             rules: [
@@ -35,6 +34,10 @@ module.exports = () => {
                 {
                     test: /\.(le|c)ss$/,
                     use: [
+                        //{
+                        //    loader: 'style-loader',
+                        //    options: { }
+                        //},
                         {
                             loader: MiniCssExtractPlugin.loader
                         },
@@ -43,10 +46,8 @@ module.exports = () => {
                             options: {
                                 minimize: !isDevBuild
                             }
-                        },
-                        {
-                            loader: 'less-loader',
-                            options: {
+                        }, {
+                            loader: 'less-loader', options: {
                                 strictMath: false,
                                 noIeCompat: true,
                                 minimize: !isDevBuild
@@ -54,14 +55,7 @@ module.exports = () => {
                         }
                     ]
                 },
-                {
-                    test: /\.svg$/,
-                    use: 'raw-loader'
-                },
-                {
-                    test: /\.(png|jpg|jpeg|gif)$/,
-                    use: 'url-loader?limit=25000'
-                }
+                { test: /\.(png|jpg|jpeg|gif|svg)$/, use: 'url-loader?limit=25000' }
             ]
         },
         optimization: {
@@ -93,18 +87,13 @@ module.exports = () => {
         },
         plugins: [
             new CheckerPlugin(),
-            new MiniCssExtractPlugin({
-                filename: "[name].css",
-                chunkFilename: isDevBuild ? '[name].css' : '[name].[contenthash:4].css',
-                minimize: !isDevBuild
-            })
+            new MiniCssExtractPlugin()
         ].concat(isDevBuild ? [
+            // Plugins that apply in development builds only
             new webpack.SourceMapDevToolPlugin({
                 filename: '[file].map', // Remove this line if you prefer inline source maps
                 moduleFilenameTemplate: path.relative(bundleOutputDir, '[resourcePath]') // Point sourcemap entries to the original file locations on disk
             })
-        ] : [
-                new OptimizeCSSAssetsPlugin({})
-            ])
-    };
+        ] : [])
+    }];
 };
