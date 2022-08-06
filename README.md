@@ -41,7 +41,7 @@ NuGet-package: [https://www.nuget.org/packages/BrandUp.Website/](https://www.nug
 var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>()
 ```
 
-## Запуск
+### Запуск
 
 ```
 
@@ -70,11 +70,13 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```
 
-## Контекст сайта
+### Контекст сайта
 
 Контекст сайта **IWebsiteContext** создаётся для каждого входящего запроса. Он доступен через IServiceProvider.
 
-## _Layout
+## Представления и модели
+
+### Представление _Layout
 
 ```
 
@@ -99,7 +101,27 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```
 
-## Модель страницы
+### Представление страницы
+
+В представлении страницы необходимо обязательно вызвать метод `Model.RenderPage(this)`.
+
+```
+@page
+@model IndexModel
+@{ Model.RenderPage(this); }
+
+<header class="page-header">
+    <h1>@Model.Header</h1>
+</header>
+
+<section>
+    <p><a href="#test1">test1</a></p>
+    <p><a href="#test2">test2</a></p>
+    <p><a nav-url="/company">hotfound</a></p>
+</section>
+```
+
+### Модель страницы
 
 Базовым классом модели страницы является класс AppPageModel.
 
@@ -166,6 +188,31 @@ public class IndexModel : AppPageModel
     <p>WebSite Title: @webSiteContext.Website.Title</p>
 </div>
 
+```
+
+### Ссылки и навигация
+
+Чтобы навигация между страницами была без перезагрузки страницы, ссылка должна иметь класс `applink`.
+
+Этот класс для ссылок проставляется автоматически в случаях:
+
+```
+<a nav-url="@Url.Page("/Catalog")" clasa="item">Каталог</a>
+<a asp-page="@Url.Page("/Catalog")" clasa="item">Каталог</a>
+```
+
+Результатом в обоих случаях будет:
+
+```
+<a href="/catalog" class="item applink">Каталог</a>
+```
+
+Так же во время навигации по ссылке можно перезаписывать текущее состояние навигации:
+
+```
+<a nav-url="@Url.Page("/Catalog")" nav-replace clasa="item">Каталог</a>
+
+<a href="/catalog" data-nav-replace class="item applink">Каталог</a>
 ```
 
 ## Клиентское приложение
