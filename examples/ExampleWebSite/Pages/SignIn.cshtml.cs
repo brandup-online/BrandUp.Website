@@ -17,6 +17,8 @@ namespace ExampleWebSite.Pages
         public override string Description => Title;
         public override string Keywords => Title;
 
+        [FromQuery]
+        public string ReturnUrl { get; set; }
         [BindProperty, Required, Display(Name = "E-mail"), EmailAddress]
         public string Email { get; set; }
 
@@ -42,7 +44,10 @@ namespace ExampleWebSite.Pages
 
             await HttpContext.SignInAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
-            return PageRedirect(Url.Page("/Index"), replaceUrl: true);
+            if (string.IsNullOrEmpty(ReturnUrl))
+                ReturnUrl = Url.Page("/Index");
+
+            return PageRedirect(ReturnUrl, replaceUrl: true);
         }
     }
 }

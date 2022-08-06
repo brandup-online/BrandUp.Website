@@ -206,10 +206,17 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         const handler = form.getAttribute("data-form-handler");
 
+        var urlParams: { [key: string]: string; } = {};
+        for (var key in this.__navigation.query)
+            urlParams[key] = this.__navigation.query[key];
+
+        urlParams["_content"] = "";
+        urlParams["handler"] = handler;
+
         this.queue.reset(true);
         this.queue.push({
             url,
-            urlParams: { _content: "", handler },
+            urlParams,
             method,
             data: new FormData(form),
             success: submitButton ? minWait(submitCallback) : submitCallback

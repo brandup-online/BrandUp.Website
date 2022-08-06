@@ -93,6 +93,7 @@ namespace ExampleWebSite
                     options.Cookie.Name = "ExampleWebSite_id";
                     options.SlidingExpiration = true;
                     options.ReturnUrlParameter = "returnUrl";
+                    options.LoginPath = "/signin";
                 });
 
             #endregion

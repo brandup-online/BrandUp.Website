@@ -12,3 +12,10 @@
         <button type="submit">test</button>
     </form>
 </section>
+
+<section>
+    <a nav-url="@Url.Page(string.Empty, new { ReturnUrl = Url.Page("SignIn") })">set redirect</a>
+    <form asp-antiforgery="true" asp-page-handler="Redirect">
+        <button type="submit">Redirect</button>
+    </form>
+</section>
