@@ -37,7 +37,7 @@ namespace BrandUp.Website.Middlewares
 
             if (!context.Response.Headers.TryGetValue("Content-type", out Microsoft.Extensions.Primitives.StringValues contentType) || !contentType[0].StartsWith("text/html", StringComparison.InvariantCultureIgnoreCase))
             {
-                await newResponseBody.CopyToAsync(responseBody);
+                await newResponseBody.CopyToAsync(responseBody, context.RequestAborted);
                 return;
             }
 
