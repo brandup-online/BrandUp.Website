@@ -1,5 +1,5 @@
 import { AJAXMethod, AjaxQueue, ajaxRequest, AjaxRequest, AjaxResponse } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext, SubmitContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext, SubmitContext, InvokeContext } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
 import { NavigationModel, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
@@ -86,7 +86,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
 
-        this.__renderPage(context.items, this.__navCounter, null, next);
+        this.__renderPage(context, this.__navCounter, null, next);
     }
     loaded(context: LoadContext, next: () => void) {
         context.items["website"] = this;
@@ -106,7 +106,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         next();
     }
-    navigate(context: NavigateContext, next: () => void) {
+    navigate(context: NavigateContext, next: () => void, end: () => void) {
         if (!allowHistory) {
             location.href = context.fullUrl ? context.fullUrl : location.href;
             return;
@@ -131,7 +131,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                 switch (response.status) {
                     case 200: {
-                        if (this.__precessPageResponse(response))
+                        if (this.__precessPageResponse(response, end))
                             return;
 
                         context.items["nav"] = response.data;
@@ -143,7 +143,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                             return;
                         }
 
-                        this.__loadContent(context.items, navSequence, next);
+                        this.__loadContent(context, navSequence, next, end);
 
                         break;
                     }
@@ -158,7 +158,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
     }
-    submit(context: SubmitContext, next: () => void) {
+    submit(context: SubmitContext, next: () => void, end: () => void) {
         const { form } = context;
         const url = form.action;
         const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
@@ -180,7 +180,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 switch (response.status) {
                     case 200:
                     case 201: {
-                        if (!this.__precessPageResponse(response))
+                        if (!this.__precessPageResponse(response, end))
                             this.updateHtml(response.data);
 
                         break;
@@ -242,7 +242,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     updateHtml(html: string) {
         const navSequence = this.__incNavSequence();
 
-        this.__renderPage({}, navSequence, html, () => { return; });
+        this.__renderPage({ items: {} }, navSequence, html, () => { return; });
     }
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
         return this.app.uri(path, queryParams);
@@ -352,7 +352,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             metaTagElem.remove();
     }
 
-    private __loadContent(items: { [key: string]: any }, navSequence: number, next: () => void) {
+    private __loadContent(context: InvokeContext, navSequence: number, next: () => void, end: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
@@ -366,10 +366,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
                 switch (response.status) {
                     case 200: {
-                        if (this.__precessPageResponse(response))
+                        if (this.__precessPageResponse(response, end))
                             return;
 
-                        this.__renderPage(items, navSequence, response.data ? response.data : "", next);
+                        this.__renderPage(context, navSequence, response.data ? response.data : "", next);
 
                         break;
                     }
@@ -385,7 +385,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
     }
-    private __renderPage(items: { [key: string]: any }, navSequence: number, contentHtml: string, next: () => void) {
+    private __renderPage(context: InvokeContext, navSequence: number, contentHtml: string, next: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
@@ -399,14 +399,14 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 throw `Not found page type "${pageTypeName}".`;
 
             pageTypeFactory()
-                .then((pageType) => { this.__createPage(items, navSequence, pageType.default, contentHtml, next); })
+                .then((pageType) => { this.__createPage(context, navSequence, pageType.default, contentHtml, next); })
                 .catch(() => { throw `Error loading page type "${pageTypeName}".`; });
         }
         else {
-            this.__createPage(items, navSequence, Page, contentHtml, next);
+            this.__createPage(context, navSequence, Page, contentHtml, next);
         }
     }
-    private __createPage(items: { [key: string]: any }, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
+    private __createPage(context: InvokeContext, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
@@ -424,7 +424,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
         this.__page.render(this.__currentUrl.hash);
 
-        items["page"] = this.__page;
+        context.items["page"] = this.__page;
 
         this.__loadingPage = false;
 
@@ -433,7 +433,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.__hideNavigationProgress();
     }
 
-    private __precessPageResponse(response: AjaxResponse): boolean {
+    private __precessPageResponse(response: AjaxResponse, end: () => void): boolean {
         const pageAction = response.xhr.getResponseHeader(pageActionHeader);
         if (pageAction) {
             switch (pageAction) {
@@ -449,6 +449,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         const redirectLocation = response.xhr.getResponseHeader(pageLocationHeader);
         if (redirectLocation) {
+            end();
+
             this.nav({
                 url: redirectLocation,
                 replace: response.xhr.getResponseHeader(pageReplaceHeader) === "true"

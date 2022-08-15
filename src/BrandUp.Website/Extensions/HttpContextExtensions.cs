@@ -17,5 +17,15 @@ namespace BrandUp.Website
 
             return feature.Context;
         }
+
+        public static void SetMinifyHtml(this HttpContext httpContext)
+        {
+            if (httpContext == null)
+                throw new ArgumentNullException(nameof(httpContext));
+
+            var minifyHtmlFeature = httpContext.Features.Get<IMinifyHtmlFeature>();
+            if (minifyHtmlFeature != null)
+                minifyHtmlFeature.SetMinify();
+        }
     }
 }

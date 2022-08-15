@@ -111,6 +111,9 @@ namespace BrandUp.Website.Pages
                 httpRequest.QueryString = Microsoft.AspNetCore.Http.QueryString.Create(newQuery);
             }
 
+            if (RequestMode == AppPageRequestMode.Content || RequestMode == AppPageRequestMode.Start)
+                HttpContext.SetMinifyHtml();
+
             var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
             WebsiteContext = websiteFeature.Context;
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();

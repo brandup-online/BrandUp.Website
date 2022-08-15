@@ -27,9 +27,9 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "brandup-ui-app": "^2.0.1",
-    "brandup-ui-ajax": "^2.0.5",
-    "brandup-ui-dom": "^2.0.5"
+    "brandup-ui-app": "^2.0.2",
+    "brandup-ui-ajax": "^2.0.6",
+    "brandup-ui-dom": "^2.0.6"
   },
   "devDependencies": {
     "typescript": "^4.7.4"

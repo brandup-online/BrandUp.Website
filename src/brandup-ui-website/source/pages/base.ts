@@ -92,7 +92,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                     if (!this.__scripts)
                         return;
 
-                    const uiElem: UIElement = new t.default(elem);
+                    const uiElem: UIElement = new t.default(elem, this.website, this);
                     this.__scripts.push(uiElem);
                 });
             }

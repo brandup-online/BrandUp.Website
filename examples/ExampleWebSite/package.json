@@ -24,10 +24,10 @@
   },
   "dependencies": {
     "brandup-ui-website": "../../src/brandup-ui-website",
-    "brandup-ui": "^2.0.5",
-    "brandup-ui-app": "^2.0.1",
-    "brandup-ui-ajax": "^2.0.5",
-    "brandup-ui-dom": "^2.0.5"
+    "brandup-ui": "^2.0.6",
+    "brandup-ui-app": "^2.0.2",
+    "brandup-ui-ajax": "^2.0.6",
+    "brandup-ui-dom": "^2.0.6"
   },
   "scripts": {
     "build": "webpack -p --progress --config webpack.config.js",
