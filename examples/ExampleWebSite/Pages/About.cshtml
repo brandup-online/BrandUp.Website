@@ -1,6 +1,6 @@
 ﻿@page
 @model AboutModel
-@{ Model.RenderPage(this); }
+@{ await Model.RenderPageAsync(this); }
 
 <header class="page-header">
     <h1>@Model.Title</h1>

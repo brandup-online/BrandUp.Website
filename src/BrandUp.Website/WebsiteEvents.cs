@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using BrandUp.Website.Pages;
+﻿using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BrandUp.Website
 {
@@ -23,12 +23,6 @@ namespace BrandUp.Website
         {
             return Task.CompletedTask;
         }
-        public virtual Task RenderPageTitle(RenderPageTitleContext context)
-        {
-            context.Title = context.PageModel.Title;
-
-            return Task.CompletedTask;
-        }
     }
 
     public interface IWebsiteEvents
@@ -36,7 +30,6 @@ namespace BrandUp.Website
         Task StartAsync(StartWebsiteContext context);
         Task RenderHeadTag(OnRenderTagContext context);
         Task RenderBodyTag(OnRenderTagContext context);
-        Task RenderPageTitle(RenderPageTitleContext context);
     }
 
     public class StartWebsiteContext : WebsiteEventContext

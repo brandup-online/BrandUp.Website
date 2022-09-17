@@ -108,7 +108,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 ```
 @page
 @model IndexModel
-@{ Model.RenderPage(this); }
+@{ await Model.RenderPageAsync(this); }
 
 <header class="page-header">
     <h1>@Model.Header</h1>
@@ -137,39 +137,35 @@ public class IndexModel : AppPageModel
     public override string CssClass => "page css class";
 
     /// <summary>
-    /// Вызывается при запросе страницы.
+    /// Выполняется всегда при запросе страницы.
     /// </summary>
     protected override Task OnPageRequestAsync(PageRequestContext context)
     {
-        SetOpenGraph(Url.ContentLink("~/images/og.jpg"));
-
-        OpenGraph.SiteName = "Example website";
-
         return base.OnPageRequestAsync(context);
     }
 
     /// <summary>
-    /// Вызывается при конструировании контекста сайта для клиента.
-    /// </summary>
-    protected override Task OnPageBuildAsync(PageBuildContext context)
-    {
-        return base.OnPageBuildAsync(context);
-    }
-
-    /// <summary>
-    /// Вызывается при конструировании контекста навигации для клиента.
-    /// </summary>
-    protected override Task OnPageNavigationAsync(PageNavidationContext context)
-    {
-        return base.OnPageNavigationAsync(context);
-    }
-
-    /// <summary>
-    /// Вызывается при рендеринге представления страницы.
+    /// Выполняется перед рендерингом представления страницы.
     /// </summary>
     protected override Task OnPageRenderAsync(PageRenderContext context)
     {
         return base.OnPageRenderAsync(context);
+    }
+
+    /// <summary>
+    /// Выполняется при конструировании контекста сайта для клиента.
+    /// </summary>
+    protected override Task OnPageClientBuildAsync(PageBuildContext context)
+    {
+        return base.OnPageClientBuildAsync(context);
+    }
+
+    /// <summary>
+    /// Выполняется при конструировании контекста навигации для клиента.
+    /// </summary>
+    protected override Task OnPageClientNavigationAsync(PageNavidationContext context)
+    {
+        return base.OnPageClientNavigationAsync(context);
     }
 }
 

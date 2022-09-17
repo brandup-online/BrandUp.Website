@@ -33,9 +33,7 @@ namespace BrandUp.Website.TagHelpers
 
                     outputContent.AppendHtml($"{Environment.NewLine}    <meta charset=\"utf-8\" />{Environment.NewLine}");
 
-                    var renderTitleContext = new RenderPageTitleContext(appPageModel);
-                    await websiteEvents.RenderPageTitle(renderTitleContext);
-                    outputContent.AppendHtml($"    <title>{renderTitleContext.Title ?? ""}</title>{Environment.NewLine}");
+                    outputContent.AppendHtml($"    <title>{appPageModel.Title ?? ""}</title>{Environment.NewLine}");
 
                     if (!string.IsNullOrEmpty(appPageModel.Description))
                         outputContent.AppendHtml($"    <meta id=\"page-meta-description\" name=\"description\" content=\"{appPageModel.Description}\">{Environment.NewLine}");

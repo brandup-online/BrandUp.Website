@@ -33,26 +33,6 @@ namespace BrandUp.Website.Pages
         #region OpenGraph members
 
         public PageOpenGraph OpenGraph { get; set; }
-        public void SetOpenGraph(string type, Uri image, string title, Uri url, string description = null)
-        {
-            OpenGraph = new PageOpenGraph(type, image, title, url, description);
-        }
-        public void SetOpenGraph(Uri image, string title, Uri url, string description = null)
-        {
-            SetOpenGraph("website", image, title, url, description);
-        }
-        public void SetOpenGraph(Uri image, string title, string description = null)
-        {
-            SetOpenGraph(image, title, Link, description);
-        }
-        public void SetOpenGraph(Uri image)
-        {
-            SetOpenGraph(image, Title, Link, Description);
-        }
-        public void SetOpenGraph(Uri image, Uri url)
-        {
-            SetOpenGraph(image, Title, url, Description);
-        }
 
         #endregion
 
@@ -213,8 +193,7 @@ namespace BrandUp.Website.Pages
                         NavigationState.Add("_start", StartDate.Ticks);
 
                         RouteData.TryGetAreaName(out string areaName);
-                        if (areaName == null)
-                            areaName = string.Empty;
+                        areaName ??= string.Empty;
 
                         NavigationState.Add("_area", areaName.ToLower());
 
@@ -246,22 +225,22 @@ namespace BrandUp.Website.Pages
             }
 
             await base.OnPageHandlerExecutionAsync(context, next);
-
-            var pageRenderContext = new PageRenderContext(this);
-            await OnPageRenderAsync(pageRenderContext);
-            if (pageEvents != null)
-                await pageEvents.PageRenderAsync(pageRenderContext);
         }
 
         #endregion
 
-        public void RenderPage(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
+        public async Task RenderPageAsync(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
         {
             if (page == null)
                 throw new ArgumentNullException(nameof(page));
 
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
+
+            var pageRenderContext = new PageRenderContext(this, page);
+            await OnPageRenderAsync(pageRenderContext);
+            if (pageEvents != null)
+                await pageEvents.PageRenderAsync(pageRenderContext);
         }
         internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync()
         {
@@ -308,9 +287,6 @@ namespace BrandUp.Website.Pages
             var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
             var protector = protectionProvider.CreateProtector(websiteFeature.Options.ProtectionPurpose);
 
-            var renderTitleContext = new RenderPageTitleContext(this);
-            await websiteEvents.RenderPageTitle(renderTitleContext).ConfigureAwait(false);
-
             var navModel = new ClientModels.NavigationModel
             {
                 IsAuthenticated = httpContext.User.Identity.IsAuthenticated,
@@ -319,7 +295,7 @@ namespace BrandUp.Website.Pages
                 Query = new Dictionary<string, object>(),
                 Data = new Dictionary<string, object>(),
                 State = protector.Protect(JsonSerializer.Serialize(NavigationState)),
-                Title = renderTitleContext.Title,
+                Title = Title,
                 CanonicalLink = CanonicalLink,
                 Description = Description,
                 Keywords = Keywords,
@@ -347,11 +323,11 @@ namespace BrandUp.Website.Pages
                 navModel.ValidationToken = antiforgeryTokenSet.RequestToken;
             }
 
-            var pageNavigationContext = new PageNavidationContext(this, navModel.Data);
-            await OnPageNavigationAsync(pageNavigationContext).ConfigureAwait(false);
+            var pageNavigationContext = new PageClientNavidationContext(this, navModel.Data);
+            await OnPageClientNavigationAsync(pageNavigationContext).ConfigureAwait(false);
 
             if (pageEvents != null)
-                await pageEvents.PageNavigationAsync(pageNavigationContext).ConfigureAwait(false);
+                await pageEvents.PageClientNavigationAsync(pageNavigationContext).ConfigureAwait(false);
 
             navModel.Page = await GetPageClientModelAsync().ConfigureAwait(false);
 
@@ -367,11 +343,11 @@ namespace BrandUp.Website.Pages
 
             Helpers.ClientModelHelper.CopyProperties(this, model.Data);
 
-            var pageBuildContext = new PageBuildContext(this, model.Data);
-            await OnPageBuildAsync(pageBuildContext).ConfigureAwait(false);
+            var pageBuildContext = new PageClientBuildContext(this, model.Data);
+            await OnPageClientBuildAsync(pageBuildContext).ConfigureAwait(false);
 
             if (pageEvents != null)
-                await pageEvents.PageBuildAsync(pageBuildContext).ConfigureAwait(false);
+                await pageEvents.PageClientBuildAsync(pageBuildContext).ConfigureAwait(false);
 
             return model;
         }
@@ -382,15 +358,15 @@ namespace BrandUp.Website.Pages
         {
             return Task.CompletedTask;
         }
-        protected virtual Task OnPageNavigationAsync(PageNavidationContext context)
-        {
-            return Task.CompletedTask;
-        }
-        protected virtual Task OnPageBuildAsync(PageBuildContext context)
-        {
-            return Task.CompletedTask;
-        }
         protected virtual Task OnPageRenderAsync(PageRenderContext context)
+        {
+            return Task.CompletedTask;
+        }
+        protected virtual Task OnPageClientNavigationAsync(PageClientNavidationContext context)
+        {
+            return Task.CompletedTask;
+        }
+        protected virtual Task OnPageClientBuildAsync(PageClientBuildContext context)
         {
             return Task.CompletedTask;
         }

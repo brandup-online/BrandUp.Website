@@ -5,7 +5,7 @@ namespace ExampleWebSite.Pages
 {
     public class PageEvents : IPageEvents
     {
-        public Task PageBuildAsync(PageBuildContext context)
+        public Task PageClientBuildAsync(PageClientBuildContext context)
         {
             return Task.CompletedTask;
         }
@@ -15,7 +15,7 @@ namespace ExampleWebSite.Pages
             return Task.CompletedTask;
         }
 
-        public Task PageNavigationAsync(PageNavidationContext context)
+        public Task PageClientNavigationAsync(PageClientNavidationContext context)
         {
             return Task.CompletedTask;
         }

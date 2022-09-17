@@ -16,9 +16,7 @@ namespace ExampleWebSite.Pages
         /// </summary>
         protected override Task OnPageRequestAsync(PageRequestContext context)
         {
-            SetOpenGraph(Url.ContentLink("~/images/og.jpg"));
-
-            OpenGraph.SiteName = "Example website";
+            OpenGraph = new PageOpenGraph("website", Url.ContentLink("~/images/og.jpg"), Title, Link, Description);
 
             return base.OnPageRequestAsync(context);
         }
@@ -26,17 +24,17 @@ namespace ExampleWebSite.Pages
         /// <summary>
         /// Вызывается при конструировании контекста сайта для клиента.
         /// </summary>
-        protected override Task OnPageBuildAsync(PageBuildContext context)
+        protected override Task OnPageClientBuildAsync(PageClientBuildContext context)
         {
-            return base.OnPageBuildAsync(context);
+            return base.OnPageClientBuildAsync(context);
         }
 
         /// <summary>
         /// Вызывается при конструировании контекста навигации для клиента.
         /// </summary>
-        protected override Task OnPageNavigationAsync(PageNavidationContext context)
+        protected override Task OnPageClientNavigationAsync(PageClientNavidationContext context)
         {
-            return base.OnPageNavigationAsync(context);
+            return base.OnPageClientNavigationAsync(context);
         }
 
         /// <summary>
