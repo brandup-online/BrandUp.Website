@@ -1,9 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>netstandard2.1</TargetFramework>
+	<TargetFramework>net7.0</TargetFramework>
 	  <Company>BrandUp.online</Company>
 	  <Authors>Dmitry Kovyazin</Authors>
+	  <Product>BrandUp.Website</Product>
+	  <RepositoryUrl>https://github.com/dkovyazin/BrandUp.Website</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/dkovyazin/BrandUp.Website</PackageProjectUrl>
 	  <Nullable>disable</Nullable>
 	  <RootNamespace>BrandUp.Website</RootNamespace>
   </PropertyGroup>
