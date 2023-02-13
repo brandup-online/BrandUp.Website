@@ -1,10 +1,9 @@
 ﻿"use strict";
 
 const path = require('path');
-const webpack = require('webpack');
-const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 const bundleOutputDir = './wwwroot/dist';
 
 module.exports = (env) => {
@@ -17,83 +16,69 @@ module.exports = (env) => {
         entry: {
             app: path.resolve(__dirname, '_client', 'index.ts')
         },
-        resolve: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+        resolve: { extensions: ['.js', '.jsx', '.ts', '.tsx', '.less'] },
         output: {
             path: path.join(__dirname, bundleOutputDir),
             filename: '[name].js',
-            publicPath: 'dist/',
-            libraryTarget: 'umd'
+            chunkFilename: isDevBuild ? '[name].js' : '[name].[contenthash].js',
+            iife: true,
+            clean: true,
+            publicPath: 'dist/'
         },
         module: {
             rules: [
                 {
                     test: /\.tsx?$/,
-                    include: /_client/,
-                    use: 'awesome-typescript-loader?silent=true'
+                    loader: 'ts-loader',
+                    options: { allowTsInNodeModules: true }
                 },
                 {
                     test: /\.(le|c)ss$/,
+                    include: /_client/,
                     use: [
-                        //{
-                        //    loader: 'style-loader',
-                        //    options: { }
-                        //},
-                        {
-                            loader: MiniCssExtractPlugin.loader
-                        },
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                minimize: !isDevBuild
-                            }
-                        }, {
-                            loader: 'less-loader', options: {
-                                strictMath: false,
-                                noIeCompat: true,
-                                minimize: !isDevBuild
-                            }
-                        }
+                        { loader: MiniCssExtractPlugin.loader },
+                        { loader: 'css-loader', options: { importLoaders: 2 } },
+                        { loader: 'less-loader', options: { webpackImporter: true, lessOptions: { math: 'always' } } }
                     ]
                 },
-                { test: /\.(png|jpg|jpeg|gif|svg)$/, use: 'url-loader?limit=25000' }
+                {
+                    test: /\.svg$/,
+                    include: /_client/,
+                    use: 'raw-loader'
+                },
+                {
+                    test: /\.(png|jpg|jpeg|gif)$/,
+                    include: /_client/,
+                    use: 'url-loader?limit=25000'
+                }
             ]
         },
         optimization: {
-            minimize: true,
-            minimizer: [new UglifyJsPlugin({
-                cache: true,
-                parallel: true,
-                uglifyOptions: {
-                    mangle: {
-                        toplevel: true,
-                        keep_fnames: false
+            minimize: !isDevBuild,
+            minimizer: [
+                new CssMinimizerPlugin(),
+                new TerserPlugin({
+                    terserOptions: {
+                        compress: true,
+                        keep_classnames: false,
+                        keep_fnames: false,
+                        format: {
+                            comments: false
+                        },
                     },
-                    keep_fnames: false,
-                    keep_classnames: false,
-                    ie8: false,
-                    output: {
-                        beautify: isDevBuild
-                    }
-                }
-            })],
-            namedModules: false,
-            moduleIds: isDevBuild ? 'natural' : 'size',
-            chunkIds: isDevBuild ? 'natural' : 'total-size',
+                    extractComments: false
+                })
+            ],
             removeAvailableModules: true,
             removeEmptyChunks: true,
-            occurrenceOrder: true,
             providedExports: false,
             usedExports: false
         },
         plugins: [
-            new CheckerPlugin(),
-            new MiniCssExtractPlugin()
-        ].concat(isDevBuild ? [
-            // Plugins that apply in development builds only
-            new webpack.SourceMapDevToolPlugin({
-                filename: '[file].map', // Remove this line if you prefer inline source maps
-                moduleFilenameTemplate: path.relative(bundleOutputDir, '[resourcePath]') // Point sourcemap entries to the original file locations on disk
+            new MiniCssExtractPlugin({
+                filename: '[name].css',
+                chunkFilename: isDevBuild ? '[id].css' : '[id].[contenthash].css'
             })
-        ] : [])
+        ]
     }];
 };

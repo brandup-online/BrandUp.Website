@@ -5,8 +5,8 @@
 	  <Company>BrandUp.online</Company>
 	  <Authors>Dmitry Kovyazin</Authors>
 	  <Product>BrandUp.Website</Product>
-	  <RepositoryUrl>https://github.com/dkovyazin/BrandUp.Website</RepositoryUrl>
-	  <PackageProjectUrl>https://github.com/dkovyazin/BrandUp.Website</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
 	  <Nullable>disable</Nullable>
 	  <RootNamespace>BrandUp.Website</RootNamespace>
   </PropertyGroup>

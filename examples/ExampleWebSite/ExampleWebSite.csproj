@@ -12,7 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.3" />-->
-    <PackageReference Include="TimeZoneConverter" Version="6.0.1" />
+    <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
     <ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
   </ItemGroup>
 

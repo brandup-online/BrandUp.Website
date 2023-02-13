@@ -18,7 +18,7 @@
                     <li><a nav-url="@Url.Page("/About")">About</a></li>
                     <li><a asp-page="/Payment" nav-replace>Payment</a></li>
                     <li><a asp-page="/Delivery">Delivery</a></li>
-                    <li><a asp-page="/Contacts">Contacts</a></li>
+                    <li><a asp-page="/Contacts" nav-replace>Contacts</a></li>
                     @if (User.Identity.IsAuthenticated)
                     {
                         <li><a href="#" rel="nofollow" data-command="signout">Sign out</a></li>
