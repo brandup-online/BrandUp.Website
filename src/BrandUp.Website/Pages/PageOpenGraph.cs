@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BrandUp.Website.Pages
+﻿namespace BrandUp.Website.Pages
 {
     public class PageOpenGraph
     {

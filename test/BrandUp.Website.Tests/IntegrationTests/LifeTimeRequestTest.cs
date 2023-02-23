@@ -1,8 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-
 namespace BrandUp.Website.IntegrationTests
 {
     public class LifeTimeRequestTest : IClassFixture<CustomWebApplicationFactory>

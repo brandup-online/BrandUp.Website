@@ -1,7 +1,6 @@
 ﻿using BrandUp.Website.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using System;
 
 namespace BrandUp.Website
 {

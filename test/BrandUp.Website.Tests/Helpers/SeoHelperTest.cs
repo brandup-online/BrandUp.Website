@@ -1,6 +1,4 @@
-﻿using Xunit;
-
-namespace BrandUp.Website.Helpers
+﻿namespace BrandUp.Website.Helpers
 {
     public class SeoHelperTest
     {

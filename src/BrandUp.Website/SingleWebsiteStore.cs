@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace BrandUp.Website
+﻿namespace BrandUp.Website
 {
     public class SingleWebsiteStore : IWebsiteStore
     {

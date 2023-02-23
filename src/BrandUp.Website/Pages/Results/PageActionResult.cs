@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System;
-using System.Threading.Tasks;
 
 namespace BrandUp.Website.Pages.Results
 {

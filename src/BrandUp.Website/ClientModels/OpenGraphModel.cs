@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BrandUp.Website.ClientModels
+﻿namespace BrandUp.Website.ClientModels
 {
     public class OpenGraphModel
     {

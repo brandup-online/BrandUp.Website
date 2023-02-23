@@ -1,9 +1,6 @@
-﻿using BrandUp.Website.Infrastructure;
+﻿using System.Text.RegularExpressions;
+using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace BrandUp.Website.Middlewares
 {

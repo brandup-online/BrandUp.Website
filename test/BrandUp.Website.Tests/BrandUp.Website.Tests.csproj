@@ -6,6 +6,8 @@
     <IsPackable>false</IsPackable>
 
     <RootNamespace>BrandUp.Website</RootNamespace>
+
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +37,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\examples\ExampleWebSite\ExampleWebSite.csproj" />
     <ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

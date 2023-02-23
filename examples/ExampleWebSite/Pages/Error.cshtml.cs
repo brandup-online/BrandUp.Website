@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace ExampleWebSite.Pages
 {

@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace BrandUp.Website.Identity
+﻿namespace BrandUp.Website.Identity
 {
     public interface IAccessProvider
     {

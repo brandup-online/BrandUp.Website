@@ -1,16 +1,11 @@
-﻿using Microsoft.AspNetCore.Antiforgery;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BrandUp.Website.Pages
 {
@@ -239,6 +234,7 @@ namespace BrandUp.Website.Pages
 
             var pageRenderContext = new PageRenderContext(this, page);
             await OnPageRenderAsync(pageRenderContext);
+
             if (pageEvents != null)
                 await pageEvents.PageRenderAsync(pageRenderContext);
         }
@@ -333,7 +329,7 @@ namespace BrandUp.Website.Pages
 
             return navModel;
         }
-        private async Task<ClientModels.PageModel> GetPageClientModelAsync()
+        async Task<ClientModels.PageModel> GetPageClientModelAsync()
         {
             var model = new ClientModels.PageModel
             {

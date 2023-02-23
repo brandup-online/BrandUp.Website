@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BrandUp.Website.Infrastructure
+﻿namespace BrandUp.Website.Infrastructure
 {
     public class WebsiteFeature : IWebsiteFeature
     {

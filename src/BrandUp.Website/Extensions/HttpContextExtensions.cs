@@ -1,6 +1,5 @@
 ﻿using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Http;
-using System;
 
 namespace BrandUp.Website
 {

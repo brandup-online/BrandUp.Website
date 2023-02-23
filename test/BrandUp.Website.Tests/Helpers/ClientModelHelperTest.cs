@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Xunit;
-
-namespace BrandUp.Website.Helpers
+﻿namespace BrandUp.Website.Helpers
 {
     public class ClientModelHelperTest
     {

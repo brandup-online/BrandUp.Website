@@ -9,6 +9,7 @@
 	  <PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
 	  <Nullable>disable</Nullable>
 	  <RootNamespace>BrandUp.Website</RootNamespace>
+	  <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

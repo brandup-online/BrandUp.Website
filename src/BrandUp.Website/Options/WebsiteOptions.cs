@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace BrandUp.Website
+﻿namespace BrandUp.Website
 {
     public class WebsiteOptions
     {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BrandUp.Website.Pages
+﻿namespace BrandUp.Website.Pages
 {
     public interface IPageModel
     {

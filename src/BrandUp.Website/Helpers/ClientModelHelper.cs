@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace BrandUp.Website.Helpers
@@ -26,7 +24,7 @@ namespace BrandUp.Website.Helpers
                 destinationData.Add(clientProperty.ClientName, value);
             }
         }
-        private static List<ClientProperty> GetClientProperties(Type model)
+        static List<ClientProperty> GetClientProperties(Type model)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -54,12 +52,12 @@ namespace BrandUp.Website.Helpers
             return clientProperties;
         }
 
-        private static string NormalizeName(string value)
+        static string NormalizeName(string value)
         {
             if (string.IsNullOrEmpty(value))
                 throw new ArgumentNullException(nameof(value));
 
-            return value.Substring(0, 1).ToLower() + value.Substring(1);
+            return value[..1].ToLower() + value[1..];
         }
 
         class ClientProperty

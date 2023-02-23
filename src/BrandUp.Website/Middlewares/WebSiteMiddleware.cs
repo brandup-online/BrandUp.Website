@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using BrandUp.Website.Infrastructure;
+﻿using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.DependencyInjection;

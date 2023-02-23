@@ -1,7 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Xunit;
-
 namespace BrandUp.Website.IntegrationTests
 {
     public class BotRequestTest : IClassFixture<CustomWebApplicationFactory>

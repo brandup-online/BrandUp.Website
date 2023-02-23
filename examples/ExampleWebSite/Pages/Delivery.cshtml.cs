@@ -1,6 +1,5 @@
 ﻿using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace ExampleWebSite.Pages
 {
