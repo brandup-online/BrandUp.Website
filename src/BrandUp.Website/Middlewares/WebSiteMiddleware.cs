@@ -72,9 +72,7 @@ namespace BrandUp.Website.Middlewares
                 return;
             }
 
-            var needRedirectToHttps = false;
-            if (request.Scheme == "http")
-                needRedirectToHttps = true;
+            var needRedirectToHttps = request.Scheme == "http";
 
             var websiteName = websiteProvider.ExtractName(context, requestHost);
             if (websiteName == null)
@@ -94,8 +92,12 @@ namespace BrandUp.Website.Middlewares
                 {
                     if (string.Equals(websiteName, alias, StringComparison.OrdinalIgnoreCase))
                     {
+                        var scheme = request.Scheme;
+                        if (needRedirectToHttps && webSiteOptions.Value.RedirectToHttps)
+                            scheme = "https";
+
                         var redirectHost = new HostString((!string.IsNullOrEmpty(website.Name) ? website.Name + "." : "") + webSiteHost);
-                        var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: redirectHost, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                        var redirectUrl = UriHelper.BuildAbsolute(scheme: scheme, host: redirectHost, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                         context.Response.StatusCode = 301;
                         context.Response.Headers.Add("Location", redirectUrl);
@@ -104,7 +106,7 @@ namespace BrandUp.Website.Middlewares
                 }
             }
 
-            if (needRedirectToHttps)
+            if (needRedirectToHttps && webSiteOptions.Value.RedirectToHttps)
             {
                 var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: request.Host, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 

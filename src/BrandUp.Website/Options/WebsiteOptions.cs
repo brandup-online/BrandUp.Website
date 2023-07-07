@@ -6,6 +6,7 @@
         public List<string> Aliases { get; set; }
         public string CookiesPrefix { get; set; }
         public string ProtectionPurpose { get; set; } = "BrandUp.Website";
+        public bool RedirectToHttps { get; set; } = true;
 
         public void Validate()
         {
