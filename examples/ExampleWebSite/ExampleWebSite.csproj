@@ -1,34 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <TypeScriptToolsVersion>4.7</TypeScriptToolsVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<TargetFramework>net7.0</TargetFramework>
+	<TypeScriptToolsVersion>4.7</TypeScriptToolsVersion>
+	<ImplicitUsings>enable</ImplicitUsings>
+		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Microsoft.AspNetCore.Mvc.WebApiCompatShim" Version="2.2.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.6.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.3" />-->
-    <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
-    <ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
+	<PackageReference Include="TimeZoneConverter" Version="6.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
   </ItemGroup>
 
   <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
-    <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
-    <!--<Exec Command="npm install" />-->
-    <Exec Command="set NODE_ENV=production&amp;&amp; node node_modules/webpack/bin/webpack.js --env.prod --mode=production --progress" />
+	<!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
+	<!--<Exec Command="npm install" />-->
+	<Exec Command="set NODE_ENV=production&amp;&amp; node node_modules/webpack/bin/webpack.js --env.prod --mode=production --progress" />
 
-    <!-- Include the newly-built files in the publish output -->
-    <ItemGroup>
-      <DistFiles Include="wwwroot\dist\**" />
-      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
-        <RelativePath>%(DistFiles.Identity)</RelativePath>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </ResolvedFileToPublish>
-    </ItemGroup>
+	<!-- Include the newly-built files in the publish output -->
+	<ItemGroup>
+	  <DistFiles Include="wwwroot\dist\**" />
+	  <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+		<RelativePath>%(DistFiles.Identity)</RelativePath>
+		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </ResolvedFileToPublish>
+	</ItemGroup>
   </Target>
 </Project>
