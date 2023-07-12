@@ -44,7 +44,7 @@ namespace BrandUp.Website.IntegrationTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder
-                .UseEnvironment("Test")
+                .UseEnvironment("Development")
                 .ConfigureTestServices(services =>
                 {
                     services.Configure<WebsiteOptions>((options) =>
