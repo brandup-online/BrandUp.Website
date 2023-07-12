@@ -1,0 +1,110 @@
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+- group: brandup-website-version
+- name: vmImageName
+  value: 'ubuntu-latest'
+- name: restore-projects
+  value: '**/*.csproj'
+- name: test-projects
+  value: '**/*[Tt]ests/*.csproj'
+- name: buildPlatform
+  value: 'Any CPU'
+- name: buildConfiguration
+  value: 'Release'
+- name: artifact-name
+  value: drop
+
+name: $(version-major).$(version-minor).$(version-patch).$(rev:r)
+
+pool:
+  vmImage: $(vmImageName)
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+
+    steps:
+    - script: |
+        echo "Hello, world!"
+        echo "build number - $(Build.BuildNumber)"
+      displayName: 'print variables'
+
+    - checkout: self
+      clean: true
+      persistCredentials: true
+
+    - task: UseDotNet@2
+      displayName: 'use dotnet 7.x'
+      inputs:
+        packageType: 'sdk'
+        version: '7.x'
+        
+    - task: Npm@1
+      displayName: 'npm install ExampleWebSite'
+      inputs:
+        command: 'install'
+        workingDir: 'examples/ExampleWebSite'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet restore'
+      inputs:
+        command: 'restore'
+        projects: $(restore-projects)
+        feedRestore: 'BrandUp'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet build'
+      inputs:
+        command: 'build'
+        projects: $(restore-projects)
+        arguments: --configuration $(buildConfiguration) /p:Version=$(Build.BuildNumber) /p:FileVersion=$(Build.BuildNumber)
+
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet test'
+      inputs:
+        command: test
+        projects: $(test-projects)
+        arguments: --configuration $(buildConfiguration) --collect "Code coverage" --logger trx
+        failTaskOnFailedTests: true
+        publishTestResults: true
+
+    - task: PublishTestResults@2
+      enabled: false
+      displayName: 'publish test results'
+      condition: succeededOrFailed()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '$(Agent.TempDirectory)/**/*.trx'
+
+    - task: PublishCodeCoverageResults@2
+      enabled: false
+      displayName: 'publish code coverage'
+      inputs:
+        summaryFileLocation: '$(Agent.TempDirectory)/**/*.coverage'
+        pathToSources: '$(System.DefaultWorkingDirectory)/src/'
+        
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet pack'
+      inputs:
+        command: pack
+        packagesToPack: 'src/*/*.csproj'
+        versioningScheme: byBuildNumber
+        packDirectory: $(Build.ArtifactStagingDirectory)
+
+    - publish: $(build.artifactstagingdirectory)
+      displayName: publish artifact
+      condition: succeededOrFailed()
+      artifact: $(artifact-name)
+      
+    - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      - template: deploy/templates/set-tag.template.yml
