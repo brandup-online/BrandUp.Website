@@ -41,7 +41,7 @@ namespace BrandUp.Website.IntegrationTests
         }
     }
 
-    public class SingleWebsiteWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Startup>
+    public class SingleWebsiteWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {

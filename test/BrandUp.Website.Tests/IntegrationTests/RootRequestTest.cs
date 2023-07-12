@@ -97,12 +97,11 @@ namespace BrandUp.Website.IntegrationTests
         }
     }
 
-    public class CustomWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Startup>
+    public class CustomWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder
-                .UseEnvironment("Test")
                 .ConfigureTestServices(services =>
                 {
                     services.Configure<WebsiteOptions>((options) =>
@@ -110,6 +109,8 @@ namespace BrandUp.Website.IntegrationTests
                         options.Aliases = new List<string> { "alias.ru" };
                     });
                 });
+
+            builder.UseEnvironment("Development");
         }
     }
 }

@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<TypeScriptToolsVersion>4.7</TypeScriptToolsVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
 		<UserSecretsId>bcbd8f0f-aa2a-4e71-bbb2-0cc1ca0ab896</UserSecretsId>
+		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>

@@ -39,7 +39,7 @@ namespace BrandUp.Website.IntegrationTests
         }
     }
 
-    public class NoVisitorStoreWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Startup>
+    public class NoVisitorStoreWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
