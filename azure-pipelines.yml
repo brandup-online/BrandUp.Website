@@ -25,7 +25,7 @@ variables:
 - name: envName
   value: 'brandup-website'
 
-name: $(version-major).$(version-minor).$(version-patch).$(rev:r)
+name: $(version-major).$(version-minor).$(rev:r)
 
 pool:
   vmImage: $(vmImageName)
