@@ -18,8 +18,10 @@ variables:
   value: 'Release'
 - name: artifact-name
   value: drop
-- name: publish-feed-credentials
+- name: publish-nuget-credentials
   value: 'nuget.org BrandUp'
+- name: publish-npm-credentials
+  value: 'npm brandup'
 - name: envName
   value: 'brandup-website'
 
@@ -32,11 +34,10 @@ stages:
 - stage: Build
   displayName: Build stage
   jobs:
-  - job: Build
-    displayName: Build
+  - job: Build-Net
+    displayName: Build .NET
     pool:
       vmImage: $(vmImageName)
-
     steps:
     - script: |
         echo "Hello, world!"
@@ -53,17 +54,17 @@ stages:
         packageType: 'sdk'
         version: '7.x'
         
-    - task: Npm@1
-      displayName: 'npm install brandup-ui-website'
-      inputs:
-        command: 'install'
-        workingDir: 'src/brandup-ui-website'
+    #- task: Npm@1
+    #  displayName: 'npm install brandup-ui-website'
+    #  inputs:
+    #    command: 'install'
+    #    workingDir: 'src/brandup-ui-website'
 
-    - task: Npm@1
-      displayName: 'npm install ExampleWebSite'
-      inputs:
-        command: 'install'
-        workingDir: 'examples/ExampleWebSite'
+    #- task: Npm@1
+    #  displayName: 'npm install ExampleWebSite'
+    #  inputs:
+    #    command: 'install'
+    #    workingDir: 'examples/ExampleWebSite'
 
     - task: DotNetCoreCLI@2
       displayName: 'dotnet restore'
@@ -96,13 +97,6 @@ stages:
       inputs:
         testRunner: VSTest
         testResultsFiles: '$(Agent.TempDirectory)/**/*.trx'
-
-    #- task: PublishCodeCoverageResults@2
-    #  enabled: false
-    #  displayName: 'publish code coverage'
-    #  inputs:
-    #    summaryFileLocation: '$(Agent.TempDirectory)/**/*.coverage'
-    #    pathToSources: '$(System.DefaultWorkingDirectory)/src/'
         
     - task: DotNetCoreCLI@2
       displayName: 'dotnet pack'
@@ -110,7 +104,7 @@ stages:
         command: pack
         packagesToPack: 'src/*/*.csproj'
         versioningScheme: byBuildNumber
-        packDirectory: $(Build.ArtifactStagingDirectory)
+        packDirectory: $(Build.ArtifactStagingDirectory)/nuget/
 
     - publish: $(build.artifactstagingdirectory)
       displayName: publish artifact
@@ -120,6 +114,62 @@ stages:
     - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
       - template: deploy/templates/set-tag.template.yml
   
+  - job: Build-Npm
+    displayName: Build NPM
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - script: |
+        echo "Hello, world!"
+        echo "build number - $(Build.BuildNumber)"
+      displayName: 'print variables'
+
+    - checkout: self
+      clean: true
+      persistCredentials: true
+
+    - task: Npm@1
+      displayName: 'npm install'
+      inputs:
+        command: 'install'
+        workingDir: 'src/brandup-ui-website'
+
+    - task: Npm@1
+      displayName: 'npm update'
+      inputs:
+        command: custom
+        customCommand: update
+        workingDir: 'src/brandup-ui-website'
+
+    - task: Npm@1
+      displayName: 'npm build'
+      inputs:
+        command: custom
+        customCommand: 'run build'
+        workingDir: 'src/brandup-ui-website'
+
+    - task: Npm@1
+      displayName: 'npm set version'
+      inputs:
+        command: custom
+        customCommand: 'version "$(Build.BuildNumber)" --no-git-tag-version'
+        workingDir: 'src/brandup-ui-website'
+
+    - task: CopyFiles@2
+      displayName: 'npm copy to artifact'
+      inputs:
+        SourceFolder: 'src/brandup-ui-website'
+        Contents: |
+         source/**
+         package.json
+         README.md
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/npm/brandup-ui-website/'
+
+    - publish: $(build.artifactstagingdirectory)
+      displayName: publish artifact
+      condition: succeededOrFailed()
+      artifact: $(artifact-name)
+
 - stage: Production
   displayName: Deploy stage
   dependsOn: Build
@@ -135,8 +185,16 @@ stages:
         deploy:
           steps:
           - task: DotNetCoreCLI@2
+            displayName: 'publish nuget'
             inputs:
               command: 'push'
-              packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+              packagesToPush: '$(Pipeline.Workspace)/$(artifact-name)/nuget/*.nupkg'
               nuGetFeedType: 'external'
-              publishFeedCredentials: $(publish-feed-credentials)
+              publishFeedCredentials: $(publish-nuget-credentials)
+
+          - task: Npm@1
+            displayName: 'publish npm'
+            inputs:
+              command: publish
+              workingDir: '$(Pipeline.Workspace)/$(artifact-name)/npm/brandup-ui-website/'
+              publishEndpoint: '$(publish-npm-credentials)'
