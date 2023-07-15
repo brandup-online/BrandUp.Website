@@ -34,7 +34,7 @@ stages:
 - stage: Build
   displayName: Build stage
   jobs:
-  - job: Build-Net
+  - job: BuildNet
     displayName: Build .NET
     pool:
       vmImage: $(vmImageName)
@@ -110,12 +110,10 @@ stages:
       displayName: publish artifact
       condition: succeededOrFailed()
       artifact: $(artifact-name)
-      
-    - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-      - template: deploy/templates/set-tag.template.yml
-  
-  - job: Build-Npm
+
+  - job: BuildNpm
     displayName: Build NPM
+    dependsOn: [ BuildNet ]
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -170,12 +168,28 @@ stages:
       condition: succeededOrFailed()
       artifact: $(artifact-name)
 
+  - job: GitTag
+    displayName: Add git tag
+    dependsOn: [ BuildNet, BuildNpm ]
+    condition: succeeded()
+    steps:
+    - checkout: self
+      clean: true
+      persistCredentials: true
+
+    - pwsh: |
+          git config --global user.name "AzureDevOps Agent"
+          git tag "$(Build.BuildNumber)" --force
+          git push origin "$(Build.BuildNumber)" --force
+          Write-Output "Tagging $(Build.Repository.Name) with $(Build.BuildNumber)"
+      displayName:  set git tag
+
 - stage: Production
   displayName: Deploy stage
   dependsOn: Build
   jobs:
   - deployment: Production
-    #condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+    condition: succeeded()
     displayName: Production
     pool:
       vmImage: $(vmImageName)
