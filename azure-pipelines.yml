@@ -5,7 +5,7 @@ resources:
 - repo: self
 
 variables:
-- group: brandup-website-version
+- group: brandup-website
 - name: vmImageName
   value: 'ubuntu-latest'
 - name: restore-projects
@@ -16,12 +16,6 @@ variables:
   value: 'Any CPU'
 - name: buildConfiguration
   value: 'Release'
-- name: artifact-name
-  value: drop
-- name: publish-nuget-credentials
-  value: 'nuget.org BrandUp'
-- name: publish-npm-credentials
-  value: 'npm brandup'
 - name: envName
   value: 'brandup-website'
 
