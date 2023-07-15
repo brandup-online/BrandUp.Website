@@ -6,6 +6,7 @@ resources:
 
 variables:
 - group: brandup-website
+- group: public-nuget
 - name: vmImageName
   value: 'ubuntu-latest'
 - name: restore-projects
@@ -192,20 +193,16 @@ stages:
       runOnce:
         deploy:
           steps:
-
-          - task: UseDotNet@2
-            displayName: 'use dotnet 7.x'
-            inputs:
-              packageType: 'sdk'
-              version: '7.x'
-
+          
           - task: DotNetCoreCLI@2
             displayName: 'publish nuget'
             inputs:
-              command: 'push'
-              packagesToPush: '$(Pipeline.Workspace)/net/*.nupkg'
-              nuGetFeedType: 'external'
-              externalEndpoint: $(publish-nuget-credentials)
+              command: custom
+              custom: nuget
+              arguments: >
+                push $(Pipeline.Workspace)/net/*.nupkg
+                -s $(nuget-api-url)
+                -k $(nuget-api-key)
 
           - task: Npm@1
             displayName: 'publish npm'
