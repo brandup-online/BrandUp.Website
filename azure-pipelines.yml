@@ -20,6 +20,8 @@ variables:
   value: drop
 - name: publish-feed-credentials
   value: 'nuget.org BrandUp'
+- name: envName
+  value: 'brandup-website'
 
 name: $(version-major).$(version-minor).$(version-patch).$(rev:r)
 
@@ -120,13 +122,14 @@ stages:
   
 - stage: Production
   displayName: Deploy stage
-#  dependsOn: Build
+  dependsOn: Build
   jobs:
   - deployment: Production
-#    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+    #condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
     displayName: Production
     pool:
       vmImage: $(vmImageName)
+    environment: $(envName)
     strategy:
       runOnce:
         deploy:
