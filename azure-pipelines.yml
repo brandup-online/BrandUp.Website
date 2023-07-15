@@ -35,7 +35,7 @@ stages:
   displayName: Build stage
   jobs:
   - job: BuildNet
-    displayName: Build .NET
+    displayName: Build NET
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -104,12 +104,12 @@ stages:
         command: pack
         packagesToPack: 'src/*/*.csproj'
         versioningScheme: byBuildNumber
-        packDirectory: $(Build.ArtifactStagingDirectory)/nuget/
+        packDirectory: $(Build.ArtifactStagingDirectory)
 
     - publish: $(build.artifactstagingdirectory)
       displayName: publish artifact
       condition: succeededOrFailed()
-      artifact: $(artifact-name)
+      artifact: net
 
   - job: BuildNpm
     displayName: Build NPM
@@ -161,12 +161,12 @@ stages:
          source/**
          package.json
          README.md
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/npm/brandup-ui-website/'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/brandup-ui-website/'
 
     - publish: $(build.artifactstagingdirectory)
       displayName: publish artifact
       condition: succeededOrFailed()
-      artifact: $(artifact-name)
+      artifact: npm
 
   - job: GitTag
     displayName: Add git tag
@@ -202,7 +202,7 @@ stages:
             displayName: 'publish nuget'
             inputs:
               command: 'push'
-              packagesToPush: '$(Pipeline.Workspace)/$(artifact-name)/nuget/*.nupkg'
+              packagesToPush: '$(Pipeline.Workspace)/net/*.nupkg'
               nuGetFeedType: 'external'
               publishFeedCredentials: $(publish-nuget-credentials)
 
@@ -210,5 +210,5 @@ stages:
             displayName: 'publish npm'
             inputs:
               command: publish
-              workingDir: '$(Pipeline.Workspace)/$(artifact-name)/npm/brandup-ui-website/'
+              workingDir: '$(Pipeline.Workspace)/npm/brandup-ui-website/'
               publishEndpoint: '$(publish-npm-credentials)'
