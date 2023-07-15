@@ -192,13 +192,20 @@ stages:
       runOnce:
         deploy:
           steps:
+
+          - task: UseDotNet@2
+            displayName: 'use dotnet 7.x'
+            inputs:
+              packageType: 'sdk'
+              version: '7.x'
+
           - task: DotNetCoreCLI@2
             displayName: 'publish nuget'
             inputs:
               command: 'push'
               packagesToPush: '$(Pipeline.Workspace)/net/*.nupkg'
               nuGetFeedType: 'external'
-              publishFeedCredentials: $(publish-nuget-credentials)
+              externalEndpoint: $(publish-nuget-credentials)
 
           - task: Npm@1
             displayName: 'publish npm'
