@@ -2,13 +2,13 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 		<Company>BrandUp.online</Company>
 		<Authors>Dmitry Kovyazin</Authors>
 		<Product>BrandUp.Website</Product>
 		<RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	</PropertyGroup>
 
 	<ItemGroup>

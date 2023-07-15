@@ -80,24 +80,25 @@ stages:
       inputs:
         command: test
         projects: $(test-projects)
-        arguments: --configuration $(buildConfiguration) --collect "Code coverage" --logger trx
+        arguments: --configuration $(buildConfiguration) --collect "Code coverage"
         failTaskOnFailedTests: true
         publishTestResults: true
+        testRunTitle: "solution tests"
 
     - task: PublishTestResults@2
       enabled: false
-      displayName: 'publish test results'
+      displayName: 'publish test/coverage results'
       condition: succeededOrFailed()
       inputs:
         testRunner: VSTest
         testResultsFiles: '$(Agent.TempDirectory)/**/*.trx'
 
-    - task: PublishCodeCoverageResults@2
-      enabled: false
-      displayName: 'publish code coverage'
-      inputs:
-        summaryFileLocation: '$(Agent.TempDirectory)/**/*.coverage'
-        pathToSources: '$(System.DefaultWorkingDirectory)/src/'
+    #- task: PublishCodeCoverageResults@2
+    #  enabled: false
+    #  displayName: 'publish code coverage'
+    #  inputs:
+    #    summaryFileLocation: '$(Agent.TempDirectory)/**/*.coverage'
+    #    pathToSources: '$(System.DefaultWorkingDirectory)/src/'
         
     - task: DotNetCoreCLI@2
       displayName: 'dotnet pack'
