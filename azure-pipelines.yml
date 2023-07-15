@@ -18,6 +18,8 @@ variables:
   value: 'Release'
 - name: artifact-name
   value: drop
+- name: publish-feed-credentials
+  value: 'nuget.org BrandUp'
 
 name: $(version-major).$(version-minor).$(version-patch).$(rev:r)
 
@@ -115,3 +117,23 @@ stages:
       
     - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
       - template: deploy/templates/set-tag.template.yml
+  
+- stage: Production
+  displayName: Deploy stage
+#  dependsOn: Build
+  jobs:
+  - deployment: Production
+#    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/pull/')))
+    displayName: Production
+    pool:
+      vmImage: $(vmImageName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: $(publish-feed-credentials)
