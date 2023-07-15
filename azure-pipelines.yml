@@ -131,7 +131,7 @@ stages:
       displayName: 'npm update'
       inputs:
         command: custom
-        customCommand: update
+        customCommand: update --save
         workingDir: 'src/brandup-ui-website'
 
     - task: Npm@1

@@ -18,8 +18,6 @@ export class AuthMiddleware extends Middleware<ApplicationModel> {
         console.log(`visitor id: ${this.app.model.visitorId}`);
 
         next();
-
-        //console.log(context.items["nav"]);
     }
 
     loaded(context: LoadContext, next) {
