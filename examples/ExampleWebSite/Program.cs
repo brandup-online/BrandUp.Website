@@ -132,7 +132,7 @@ namespace ExampleWebSite
             });
 
             app.UseRequestLocalization();
-            app.UseWebsite();
+            //app.UseWebsite();
             app.UseResponseCompression();
             app.UseResponseCaching();
             app.UseStaticFiles();

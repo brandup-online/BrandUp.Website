@@ -90,6 +90,8 @@ namespace BrandUp.Website.Pages
                 HttpContext.SetMinifyHtml();
 
             var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
+            if (websiteFeature == null)
+                throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
             WebsiteContext = websiteFeature.Context;
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
             Link = new Uri(HttpContext.Request.GetDisplayUrl());

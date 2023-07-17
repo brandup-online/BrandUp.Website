@@ -14,6 +14,8 @@ namespace BrandUp.Website.Pages
     {
         public IActionResult Result { get; set; }
 
+        public bool HasResult => Result != null;
+
         public PageRequestContext(AppPageModel pageModel) : base(pageModel) { }
     }
 
