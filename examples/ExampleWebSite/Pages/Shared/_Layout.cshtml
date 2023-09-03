@@ -5,28 +5,31 @@
     <meta content="en" http-equiv="content-language">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta content="width=device-width, initial-scale=1, maximum-scale=2" name="viewport">
+    <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
 </head>
 <body>
-    <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
+    <script type="text/javascript" src="~/dist/app.js" asp-append-version="true" async></script>
 
     <div class="app">
         <nav class="app-nav" role="navigation">
             <div class="content-width">
-                <a asp-area="" asp-page="/Index" class="logo applink">BrandUp.Website</a>
-                <div class="city"><a href="" data-command="toggle-city">@Model.WebsiteContext.Website.Title</a></div>
+                <a asp-area="" asp-page="/Index" class="logo applink">BrandUp Website</a>
                 <ul class="menu">
+                    <li><a asp-page="/Examples/Index">Examples</a></li>
                     <li><a nav-url="@Url.Page("/About")">About</a></li>
                     <li><a asp-page="/Payment" nav-replace>Payment</a></li>
                     <li><a asp-page="/Delivery">Delivery</a></li>
                     <li><a asp-page="/Contacts" nav-replace>Contacts</a></li>
+                    
+                </ul>
+                <ul class="user">
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <li><a href="#" rel="nofollow" data-command="signout">Sign out</a></li>
+                        <li><a href="#" rel="nofollow" data-command="signout" class="button">Sign out</a></li>
                     }
                     else
                     {
-
-                        <li><a asp-page="/SignIn">Sign in</a></li>
+                        <li><a asp-page="/SignIn" class="button">Sign in</a></li>
                     }
                 </ul>
             </div>
@@ -35,7 +38,5 @@
             @RenderBody()
         </main>
     </div>
-
-    <script type="text/javascript" src="~/dist/app.js" asp-append-version="true" async></script>
 </body>
 </html>

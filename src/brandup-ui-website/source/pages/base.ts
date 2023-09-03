@@ -39,6 +39,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     protected onChangedHash(newHash: string, oldHash: string) {
         return;
     }
+    protected onCallbackHandler(data: any) { }
 
     render(hash: string) {
         if (this.__isRendered)
@@ -50,6 +51,9 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         this.onRenderContent();
     }
+    callbackHandler(data: any) {
+        this.onCallbackHandler(data);
+    }
     changedHash(newHash: string, oldHash: string) {
         this.__hash = newHash;
 
@@ -58,11 +62,10 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     submit(form?: HTMLFormElement) {
         if (!form)
             form = DOM.queryElement(this.element, "form") as HTMLFormElement;
-
         if (!form)
             throw `Not found form by submit.`;
 
-        this.website.app.submit({ form });
+        this.website.app.submit({ form, button: null });
     }
     buildUrl(queryParams: { [key: string]: string }): string {
         const params: { [key: string]: string } = {};

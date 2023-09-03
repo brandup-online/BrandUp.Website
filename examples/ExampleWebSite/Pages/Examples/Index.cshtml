@@ -1,0 +1,13 @@
+﻿@page
+@model ExampleWebSite.Pages.Examples.IndexModel
+@{ await Model.RenderPageAsync(this); }
+
+<header class="page-header">
+    <h1>@Model.Header</h1>
+</header>
+
+<section>
+    <ul>
+        <li><a nav-url="@Url.Page("PageHandlers/Index")">Page handlers</a></li>
+    </ul>
+</section>

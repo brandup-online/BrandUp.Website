@@ -1,5 +1,5 @@
 import { AJAXMethod, AjaxQueue, ajaxRequest, AjaxRequest, AjaxResponse } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, NavigatingContext, SubmitContext, InvokeContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, SubmitContext, InvokeContext } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
 import { NavigationModel, AntiforgeryOptions } from "../common";
 import { Page, Website } from "../pages/base";
@@ -47,7 +47,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
 
-        this.setNavigation(nav, location.hash ? location.hash.substr(1) : null, false);
+        this.setNavigation(nav, location.hash ? location.hash.substring(1) : null, false);
     }
 
     start(context: StartContext, next: () => void) {
@@ -97,23 +97,17 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.__hideNavigationProgress();
     }
-    navigating(context: NavigatingContext, next) {
-        context.items["website"] = this;
-        context.items["nav"] = this.__navigation;
-        context.items["page"] = this.__page;
-
-        this.__showNavigationProgress();
-
-        next();
-    }
     navigate(context: NavigateContext, next: () => void, end: () => void) {
         if (!allowHistory) {
-            location.href = context.fullUrl ? context.fullUrl : location.href;
+            location.href = context.url ? context.url : location.href;
             return;
         }
 
         context.items["website"] = this;
         context.items["prevNav"] = this.__navigation;
+        context.items["page"] = this.__page;
+
+        this.__showNavigationProgress();
 
         this.__loadingPage = true;
         const navSequence = this.__incNavSequence();
@@ -149,9 +143,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                     }
                     default: {
                         if (context.replace)
-                            location.replace(context.fullUrl);
+                            location.replace(context.url);
                         else
-                            location.assign(context.fullUrl);
+                            location.assign(context.url);
                         break;
                     }
                 }
@@ -159,29 +153,30 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         });
     }
     submit(context: SubmitContext, next: () => void, end: () => void) {
-        const { form } = context;
-        const url = form.action;
-        const method = form.method ? (form.method.toUpperCase() as AJAXMethod) : "POST";
+        const { url, form } = context;
+        const method = (context.method.toUpperCase() as AJAXMethod);
 
         context.items["website"] = this;
         context.items["nav"] = this.__navigation;
         context.items["page"] = this.__page;
 
-        const submitButton = DOM.queryElement(form, "[type=submit]");
-        if (submitButton)
-            submitButton.classList.add("loading");
-        form.classList.add("loading");
-
         const navSequence = this.__incNavSequence();
         const submitCallback = (response: AjaxResponse) => {
             if (!this.__isNavOutdated(navSequence)) {
-                console.log(`form submitted: ${method} ${url} ${response.status}`);
+                console.log(`form submited: ${method} ${url} ${response.status}`);
 
                 switch (response.status) {
                     case 200:
                     case 201: {
-                        if (!this.__precessPageResponse(response, end))
-                            this.updateHtml(response.data);
+                        if (!this.__precessPageResponse(response, end)) {
+                            const contentType = response.xhr.getResponseHeader("content-type");
+                            if (contentType.startsWith("text/html")) {
+                                this.updateHtml(response.data);
+                            }
+                            else {
+                                this.__page.callbackHandler(response.data);
+                            }
+                        }
 
                         break;
                     }
@@ -190,28 +185,21 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                     }
                 }
 
-                if (submitButton)
-                    submitButton.classList.remove("loading");
-                form.classList.remove("loading");
+                next();
             }
-
-            next();
+            else {
+                end();
+            }
 
             this.__hideNavigationProgress();
         };
 
         this.__showNavigationProgress();
 
-        console.log(`form submitting: ${method} ${url}`);
-
-        const handler = form.getAttribute("data-form-handler");
-
         var urlParams: { [key: string]: string; } = {};
         for (var key in this.__navigation.query)
             urlParams[key] = this.__navigation.query[key];
-
         urlParams["_content"] = "";
-        urlParams["handler"] = handler;
 
         this.queue.reset(true);
         this.queue.push({
@@ -219,7 +207,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             urlParams,
             method,
             data: new FormData(form),
-            success: submitButton ? minWait(submitCallback) : submitCallback
+            success: minWait(submitCallback)
         });
     }
     stop(context: StopContext, next) {
@@ -499,8 +487,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         const hashIndex = url.lastIndexOf("#");
         if (hashIndex > 0)
             return {
-                url: url.substr(0, hashIndex),
-                hash: url.substr(hashIndex + 1)
+                url: url.substring(0, hashIndex),
+                hash: url.substring(hashIndex + 1)
             };
         return { url, hash: null };
     }

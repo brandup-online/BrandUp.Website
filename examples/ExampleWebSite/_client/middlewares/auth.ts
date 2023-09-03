@@ -1,5 +1,5 @@
 ﻿import { ajaxRequest } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext } from "brandup-ui-app";
 
 export class AuthMiddleware extends Middleware<ApplicationModel> {
     start(context: StartContext, next) {
@@ -22,18 +22,9 @@ export class AuthMiddleware extends Middleware<ApplicationModel> {
 
     loaded(context: LoadContext, next) {
         next();
-
-        console.log(context.items);
-    }
-
-    navigating(context: NavigatingContext, next) {
-        console.log(context);
-        next();
     }
 
     navigate(context: NavigateContext, next) {
         next();
-
-        console.log(context.items);
     }
 }

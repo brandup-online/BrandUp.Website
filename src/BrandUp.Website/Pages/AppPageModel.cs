@@ -89,9 +89,7 @@ namespace BrandUp.Website.Pages
             if (RequestMode == AppPageRequestMode.Content || RequestMode == AppPageRequestMode.Start)
                 HttpContext.SetMinifyHtml();
 
-            var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
-            if (websiteFeature == null)
-                throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
+            var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
             WebsiteContext = websiteFeature.Context;
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
             Link = new Uri(HttpContext.Request.GetDisplayUrl());
@@ -138,26 +136,14 @@ namespace BrandUp.Website.Pages
                                 {
                                     foreach (var kv in requestState)
                                     {
-                                        object val;
-                                        switch (kv.Value.ValueKind)
+                                        object val = kv.Value.ValueKind switch
                                         {
-                                            case JsonValueKind.String:
-                                                val = kv.Value.GetString();
-                                                break;
-                                            case JsonValueKind.False:
-                                            case JsonValueKind.True:
-                                                val = kv.Value.GetBoolean();
-                                                break;
-                                            case JsonValueKind.Null:
-                                                val = null;
-                                                break;
-                                            case JsonValueKind.Number:
-                                                val = kv.Value.GetInt64();
-                                                break;
-                                            default:
-                                                throw new InvalidOperationException();
-                                        }
-
+                                            JsonValueKind.String => kv.Value.GetString(),
+                                            JsonValueKind.False or JsonValueKind.True => kv.Value.GetBoolean(),
+                                            JsonValueKind.Null => null,
+                                            JsonValueKind.Number => kv.Value.GetInt64(),
+                                            _ => throw new InvalidOperationException(),
+                                        };
                                         NavigationState.Add(kv.Key, val);
                                     }
 

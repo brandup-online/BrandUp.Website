@@ -23,7 +23,7 @@ module.exports = (env) => {
             chunkFilename: isDevBuild ? '[name].js' : '[name].[contenthash].js',
             iife: true,
             clean: true,
-            publicPath: 'dist/'
+            publicPath: '/dist/'
         },
         module: {
             rules: [

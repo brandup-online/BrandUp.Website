@@ -1,0 +1,98 @@
+﻿@import "../vars.less";
+
+.page-block-form {
+    & form {
+        display: block;
+    }
+
+    & button {
+        padding: 0 20px;
+        min-height: 40px;
+        box-sizing: border-box;
+        margin: 0;
+        position: relative;
+
+        &.loading {
+            &:after {
+                content: '';
+                display: block;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255,255,255,0.2);
+                border-top-color: @Text-Color;
+                animation: spin 0.5s infinite steps(100);
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                margin-left: -10px;
+                margin-top: -10px;
+            }
+        }
+    }
+
+    & .control {
+        &.textbox {
+            display: flex;
+            flex-flow: row nowrap;
+
+            & input {
+                flex: 1 1 auto;
+                height: 36px;
+                box-sizing: border-box;
+                padding: 0 10px;
+                margin: 0;
+            }
+
+            & button {
+                flex: 0 0 auto;
+                min-height: 36px;
+                margin-left: 10px;
+            }
+        }
+    }
+
+    & .rows {
+        & .row {
+            padding: 10px 0;
+
+            &:first-child {
+                padding: 0;
+            }
+
+            &:last-child {
+                padding: 0;
+            }
+
+            &.fields {
+                display: flex;
+                flex-flow: row wrap;
+                gap: 20px;
+
+                & .field {
+                    flex: 0 0 33.33%;
+                }
+            }
+        }
+    }
+
+    & .validation-summary-valid {
+        display: none;
+    }
+
+    & .validation-summary-errors {
+        display: block;
+        color: red;
+        padding: 20px 0 0;
+
+        & ul {
+            margin: 0;
+        }
+    }
+
+    & .actions {
+        padding: 25px 0 0;
+        display: flex;
+        flex-flow: row nowrap;
+    }
+}

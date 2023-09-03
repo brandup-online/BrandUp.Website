@@ -1,0 +1,31 @@
+﻿@page
+@model ExampleWebSite.Pages.Examples.PageHandlers.IndexModel
+@{ await Model.RenderPageAsync(this); }
+
+<header class="page-header">
+    <h1>@Model.Header</h1>
+</header>
+
+<section class="page-block page-block-form">
+    <form method="post">
+        <div class="rows">
+            <div class="row fields">
+                <div class="field">
+                    <div class="control textbox">
+                        <input type="text" asp-for="Key" placeholder="Key" required />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control textbox">
+                        <input type="text" asp-for="Value" placeholder="Value" />
+                        <button asp-page-handler="Generate" formnovalidate>Generate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div asp-validation-summary="All"></div>
+        <div class="actions">
+            <button type="submit">Save</button>
+        </div>
+    </form>
+</section>

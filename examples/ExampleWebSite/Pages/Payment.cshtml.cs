@@ -13,6 +13,8 @@ namespace ExampleWebSite.Pages
 
         [FromQuery]
         public string ReturnUrl { get; set; }
+        [BindProperty]
+        public string Value { get; set; }
 
         public IActionResult OnPostRedirect()
         {
@@ -20,6 +22,13 @@ namespace ExampleWebSite.Pages
                 ReturnUrl = Url.Page("/Contacts");
 
             return PageRedirect(ReturnUrl);
+        }
+
+        public IActionResult OnPostPaste()
+        {
+            Value = "100";
+
+            return Page();
         }
     }
 }

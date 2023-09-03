@@ -1,4 +1,4 @@
-export const minWait = (func: (...args) => void, time = 700): () => void => {
+export const minWait = (func: (...args) => void, time = 500): () => void => {
     const n = Date.now();
 
     const ret = (...args) => {

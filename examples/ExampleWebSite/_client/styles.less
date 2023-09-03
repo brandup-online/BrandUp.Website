@@ -30,19 +30,13 @@ input, textarea, button {
     font-size: @Font-Size;
     font-family: @Font-Family;
 
+    &.invalid {
+        border-color: red;
+    }
+
     @media all and (max-width: @Adaptive-1-Width) {
         font-size: 14px;
     }
-}
-
-.lazyload,
-.lazyloading {
-    opacity: 0;
-}
-
-.lazyloaded {
-    opacity: 1;
-    transition: opacity 300ms;
 }
 
 .content-width {
@@ -81,7 +75,7 @@ input, textarea, button {
 }
 
 .app-nav {
-    background: #000;
+    background: #3F8CFF;
     color: #fff;
 
     & .content-width {
@@ -99,75 +93,58 @@ input, textarea, button {
         text-decoration: none;
     }
 
-    & .city {
-        margin: 0 0 0 @Content-Padding;
-        position: relative;
-
-        & a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        & .cities {
-            background: #fff;
-            box-shadow: 0 0 12px rgba(0,0,0,.12);
-            position: absolute;
-            top: 130%;
-            left: -25px;
-            width: 180px;
-            max-height: 300px;
-            overflow: auto;
-            display: none;
-
-            & ul {
-                list-style: none;
-                padding: 10px 0;
-                margin: 0;
-
-                & li {
-                    padding: 3px 25px;
-                    margin: 0;
-                }
-            }
-
-            & a {
-                color: @Text-Color;
-                text-decoration: none;
-
-                &:hover {
-                    text-decoration: underline;
-                }
-            }
-        }
-
-        &.expanded {
-            & .cities {
-                display: block;
-            }
-        }
-    }
-
-    & ul.menu {
-        flex: 1 1 auto;
+    & ul {
         list-style: none;
         padding: 0;
-        margin: 0 0 0 @Content-Padding;
+        margin: 0;
         display: flex;
         flex-flow: row nowrap;
-        justify-content: flex-end;
 
         & li {
             padding: 0;
             margin: 0 0 0 @Content-Padding / 1.5;
+
+            &:first-child {
+                margin: 0;
+            }
         }
 
         & a {
             color: #fff;
             text-decoration: none;
+            display: block;
 
             &:hover {
                 text-decoration: underline;
             }
+
+            &.button {
+                background: #3878DD;
+                white-space: nowrap;
+                border-radius: 3px;
+                padding: 7px 20px;
+                text-decoration: none;
+                text-transform: uppercase;
+                font-weight: 500;
+                outline: none;
+
+                &:hover,
+                &:focus {
+                    background: #326ece;
+                }
+
+                &:active {
+                    background: #2d67c3;
+                }
+            }
+        }
+
+        &.menu {
+            flex: 1 1 auto;
+            margin: 0 0 0 @Content-Padding;
+        }
+
+        &.user {
         }
     }
 }
@@ -192,6 +169,10 @@ input, textarea, button {
         padding: 0;
         margin: 0;
     }
+}
+
+.page-block {
+
 }
 
 .app-footer {
@@ -229,3 +210,5 @@ input, textarea, button {
     background: #fff;
     box-shadow: 0px 1px 49px -5px rgba(0,0,0,0.75);
 }
+
+@import "animations.less";

@@ -8,8 +8,9 @@
 
 <section>
     <form method="get" asp-page="/about">
-        <input type="text" name="test" required />
+        <input type="text" asp-for="Value" required />
         <button type="submit">test</button>
+        <button asp-page-handler="Paste">paste</button>
     </form>
 </section>
 
