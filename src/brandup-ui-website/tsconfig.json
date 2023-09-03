@@ -21,7 +21,7 @@
     ".vs",
     ".vscode"
   ],
-  "compileOnSave": false,
+  "compileOnSave": true,
   "typeAcquisition": {
     "enable": true
   }
