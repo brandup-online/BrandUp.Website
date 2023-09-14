@@ -170,7 +170,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                     case 201: {
                         if (!this.__precessPageResponse(response, end)) {
                             const contentType = response.xhr.getResponseHeader("content-type");
-                            if (contentType.startsWith("text/html")) {
+                            if (contentType && contentType.startsWith("text/html")) {
                                 this.updateHtml(response.data);
                             }
                             else {
