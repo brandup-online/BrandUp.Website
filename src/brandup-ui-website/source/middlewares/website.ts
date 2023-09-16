@@ -2,7 +2,7 @@ import { AJAXMethod, AjaxQueue, ajaxRequest, AjaxRequest, AjaxResponse } from "b
 import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, SubmitContext, InvokeContext } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
 import { NavigationModel, AntiforgeryOptions } from "../common";
-import { Page, Website } from "../pages/base";
+import { Page, WebsiteContext } from "../pages/base";
 import { minWait } from "../utilities/wait";
 
 const allowHistory = !!window.history && !!window.history.pushState;
@@ -11,7 +11,7 @@ const pageActionHeader = "Page-Action";
 const pageLocationHeader = "Page-Location";
 const pageReplaceHeader = "Page-Replace";
 
-export class WebsiteMiddleware extends Middleware<ApplicationModel> implements Website {
+export class WebsiteMiddleware extends Middleware<ApplicationModel> implements WebsiteContext {
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
     private __contentBodyElem: HTMLElement;
@@ -95,7 +95,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         next();
 
-        this.__hideNavigationProgress();
+        //this.__hideNavigationProgress();
     }
     navigate(context: NavigateContext, next: () => void, end: () => void) {
         if (!allowHistory) {

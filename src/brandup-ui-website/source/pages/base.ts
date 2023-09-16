@@ -5,7 +5,7 @@ import { AjaxQueue, AjaxRequest } from "brandup-ui-ajax";
 import { DOM } from "brandup-ui-dom";
 
 export class Page<TModel extends PageModel = { type: string }> extends UIElement {
-    readonly website: Website;
+    readonly website: WebsiteContext;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
     private __destroyCallbacks: Array<() => void> = [];
@@ -13,7 +13,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     private __isRendered = false;
     private __hash: string = null;
 
-    constructor(website: Website, nav: NavigationModel, element: HTMLElement) {
+    constructor(website: WebsiteContext, nav: NavigationModel, element: HTMLElement) {
         super();
 
         this.setElement(element);
@@ -126,7 +126,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     }
 }
 
-export interface Website {
+export interface WebsiteContext {
     readonly app: Application;
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;

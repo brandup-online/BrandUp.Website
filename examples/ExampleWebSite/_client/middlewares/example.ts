@@ -1,6 +1,6 @@
 ﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext } from "brandup-ui-app";
 
-export class WebsiteMiddleware extends Middleware<ApplicationModel> {
+export class ExampleMiddleware extends Middleware<ApplicationModel> {
     start(context: StartContext, next) {
         next();
     }
