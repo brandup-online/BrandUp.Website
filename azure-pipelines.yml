@@ -44,10 +44,10 @@ stages:
       persistCredentials: true
 
     - task: UseDotNet@2
-      displayName: 'use dotnet 7.x'
+      displayName: 'use dotnet 8.x'
       inputs:
         packageType: 'sdk'
-        version: '7.x'
+        version: '8.x'
         
     #- task: Npm@1
     #  displayName: 'npm install brandup-ui-website'
