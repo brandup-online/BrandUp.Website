@@ -3,23 +3,17 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace BrandUp.Website.Pages.Results
 {
-    public class PageActionResult : ActionResult, IActionResult, IKeepTempDataResult
+    public class PageActionResult(AppPageModel currentPage, PageActionType type) : ActionResult, IActionResult, IKeepTempDataResult
     {
-        public AppPageModel CurrentPage { get; }
-        public PageActionType Type { get; }
-
-        public PageActionResult(AppPageModel currentPage, PageActionType type)
-        {
-            CurrentPage = currentPage ?? throw new ArgumentNullException(nameof(currentPage));
-            Type = type;
-        }
+        public AppPageModel CurrentPage { get; } = currentPage ?? throw new ArgumentNullException(nameof(currentPage));
+        public PageActionType Type { get; } = type;
 
         public override Task ExecuteResultAsync(ActionContext context)
         {
             var response = context.HttpContext.Response;
 
             response.StatusCode = 200;
-            response.Headers["Page-Action"] = Type.ToString().ToLower();
+            response.Headers[PageConstants.HttpHeaderPageAction] = Type.ToString().ToLower();
 
             return Task.CompletedTask;
         }

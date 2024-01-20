@@ -11,15 +11,15 @@ namespace BrandUp.Website.Pages
 {
     public abstract class AppPageModel : PageModel, IPageModel
     {
-        private IPageEvents pageEvents;
-        private IWebsiteEvents websiteEvents;
         readonly static DateTime StartDate = DateTime.UtcNow;
+        IPageEvents pageEvents;
+        IWebsiteEvents websiteEvents;
 
         #region Properties
 
         public WebsiteContext WebsiteContext { get; private set; }
         public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Start;
-        public Dictionary<string, object> NavigationState { get; } = new Dictionary<string, object>();
+        public Dictionary<string, object> NavigationState { get; } = [];
         public CancellationToken CancellationToken => HttpContext.RequestAborted;
         public IServiceProvider Services => HttpContext.RequestServices;
 
@@ -95,7 +95,7 @@ namespace BrandUp.Website.Pages
             Link = new Uri(HttpContext.Request.GetDisplayUrl());
 
             var request = Request;
-            var isGetRequest = request.Method == "GET";
+            var isGetRequest = request.Method.Equals("GET", StringComparison.InvariantCultureIgnoreCase);
             var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
             var webSiteHost = webSiteOptions.Value.Host;
             var cookiesPrefix = webSiteOptions.Value.CookiesPrefix;
@@ -117,7 +117,7 @@ namespace BrandUp.Website.Pages
                     }
                 case AppPageRequestMode.Navigation:
                     {
-                        if (Request.Method != "POST" || isBot)
+                        if (!Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase) || isBot)
                         {
                             context.Result = BadRequest();
                             return;
@@ -165,7 +165,7 @@ namespace BrandUp.Website.Pages
                             }
                             catch
                             {
-                                HttpContext.Response.Headers["Page-Reload"] = "true";
+                                HttpContext.Response.Headers[PageConstants.HttpHeaderPageReload] = "true";
                             }
                         }
 
@@ -357,8 +357,6 @@ namespace BrandUp.Website.Pages
 
         #endregion
 
-        #region Result methods
-
         public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replaceUrl = false)
         {
             if (pageUrl == null)
@@ -366,11 +364,10 @@ namespace BrandUp.Website.Pages
 
             return new Results.PageRedirectResult(this, pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
         }
+
         public Results.PageActionResult PageAction(PageActionType actionType)
         {
             return new Results.PageActionResult(this, actionType);
         }
-
-        #endregion
     }
 }
