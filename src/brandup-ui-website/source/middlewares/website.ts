@@ -70,15 +70,16 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         bodyElem.addEventListener("invalid", (event: Event) => {
             event.preventDefault();
 
-            const elem = event.target as HTMLInputElement;
+            const elem = event.target as HTMLElement;
             elem.classList.add("invalid");
 
             if (elem.hasAttribute("data-val-required")) {
                 elem.classList.add("invalid-required");
             }
         }, true);
+
         bodyElem.addEventListener("change", (event: Event) => {
-            const elem = event.target as HTMLInputElement;
+            const elem = event.target as HTMLElement;
             elem.classList.remove("invalid");
 
             if (elem.hasAttribute("data-val-required")) {

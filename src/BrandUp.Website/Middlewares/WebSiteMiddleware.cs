@@ -38,7 +38,7 @@ namespace BrandUp.Website.Middlewares
                 var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: new HostString(webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                 context.Response.StatusCode = 301;
-                context.Response.Headers.Add("Location", redirectUrl);
+                context.Response.Headers.Location = redirectUrl;
                 return;
             }
 
@@ -62,7 +62,7 @@ namespace BrandUp.Website.Middlewares
                             var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: new HostString(webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                             context.Response.StatusCode = 301;
-                            context.Response.Headers.Add("Location", redirectUrl);
+                            context.Response.Headers.Location = redirectUrl;
                             return;
                         }
                     }
@@ -100,7 +100,7 @@ namespace BrandUp.Website.Middlewares
                         var redirectUrl = UriHelper.BuildAbsolute(scheme: scheme, host: redirectHost, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                         context.Response.StatusCode = 301;
-                        context.Response.Headers.Add("Location", redirectUrl);
+                        context.Response.Headers.Location = redirectUrl;
                         return;
                     }
                 }
@@ -111,7 +111,7 @@ namespace BrandUp.Website.Middlewares
                 var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: request.Host, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                 context.Response.StatusCode = 301;
-                context.Response.Headers.Add("Location", redirectUrl);
+                context.Response.Headers.Location = redirectUrl;
                 return;
             }
 

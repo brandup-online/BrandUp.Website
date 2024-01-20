@@ -1,7 +1,7 @@
 ﻿import { ajaxRequest, AjaxResponse } from "brandup-ui-ajax";
 import { Middleware, NavigateContext, StartContext, LoadContext, SubmitContext } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
-import { Website } from "brandup-ui-website";
+import { WebsiteContext } from "brandup-ui-website";
 
 const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: string, on: () => void, off?: () => void) => {
     const scopeElem = clickElem.closest(scopeSelector);
@@ -78,7 +78,7 @@ export class CityMiddleware extends Middleware {
     }
 
     navigate(context: NavigateContext, next) {
-        const website = context.items["website"] as Website;
+        const website = context.items["website"] as WebsiteContext;
 
         //console.log(website.validationToken);
 

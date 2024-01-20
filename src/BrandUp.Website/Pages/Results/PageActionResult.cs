@@ -19,7 +19,7 @@ namespace BrandUp.Website.Pages.Results
             var response = context.HttpContext.Response;
 
             response.StatusCode = 200;
-            response.Headers.Add("Page-Action", Type.ToString().ToLower());
+            response.Headers["Page-Action"] = Type.ToString().ToLower();
 
             return Task.CompletedTask;
         }

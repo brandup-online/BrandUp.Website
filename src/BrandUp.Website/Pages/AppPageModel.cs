@@ -165,7 +165,7 @@ namespace BrandUp.Website.Pages
                             }
                             catch
                             {
-                                HttpContext.Response.Headers.Add("Page-Reload", "true");
+                                HttpContext.Response.Headers["Page-Reload"] = "true";
                             }
                         }
 

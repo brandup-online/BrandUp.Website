@@ -27,16 +27,14 @@ namespace BrandUp.Website.Pages.Results
             if (CurrentPage.RequestMode == AppPageRequestMode.Start)
             {
                 response.StatusCode = (int)(IsPermament ? HttpStatusCode.PermanentRedirect : HttpStatusCode.Redirect);
-                if (response.Headers.ContainsKey("Location"))
-                    response.Headers.Remove("Location");
-                response.Headers.Add("Location", PageUrl);
+                response.Headers.Location = PageUrl;
             }
             else
             {
                 response.StatusCode = 200;
-                response.Headers.Add("Page-Location", PageUrl);
+                response.Headers["Page-Location"] = PageUrl;
                 if (ReplaceUrl)
-                    response.Headers.Add("Page-Replace", "true");
+                    response.Headers["Page-Replace"] = "true";
             }
 
             return Task.CompletedTask;
