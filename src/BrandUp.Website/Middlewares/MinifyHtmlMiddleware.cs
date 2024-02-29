@@ -68,7 +68,7 @@ namespace BrandUp.Website.Middlewares
                     }
 
                     using var streamReader = new StreamReader(tempBody);
-                    var html = await streamReader.ReadToEndAsync();
+                    var html = await streamReader.ReadToEndAsync(context.RequestAborted);
 
                     html = Regex1.Replace(html, string.Empty);
                     html = Regex2.Replace(html, string.Empty);
