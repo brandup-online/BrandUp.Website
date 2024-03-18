@@ -9,10 +9,12 @@ namespace BrandUp.Website.Middlewares
     public class WebsiteMiddleware
     {
         public const string HttpContextDomainIsAliasKey = "BRANDUP-WEBSITE-ISALIAS";
+        const string Localhost = "localhost";
 
-        private readonly RequestDelegate next;
-        private readonly IOptions<WebsiteOptions> webSiteOptions;
-        private readonly string webSiteHost;
+        readonly RequestDelegate next;
+        readonly IOptions<WebsiteOptions> webSiteOptions;
+        readonly string webSiteHost;
+        readonly bool isLocalhost;
 
         public WebsiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions)
         {
@@ -20,6 +22,7 @@ namespace BrandUp.Website.Middlewares
             this.webSiteOptions = webSiteOptions ?? throw new ArgumentNullException(nameof(webSiteOptions));
 
             webSiteHost = this.webSiteOptions.Value.Host.ToLower();
+            isLocalhost = webSiteHost.Equals(Localhost, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -27,15 +30,17 @@ namespace BrandUp.Website.Middlewares
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            var request = context.Request;
-            var requestHost = request.Host.Host.ToLower();
             var websiteStore = context.RequestServices.GetRequiredService<IWebsiteStore>();
             var websiteProvider = context.RequestServices.GetRequiredService<IUrlMapProvider>();
 
+            var request = context.Request;
+            var requestHost = request.Host.Host.ToLower();
+            var isLocalIp = isLocalhost && request.Host.Host.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase);
+
             // Redirect by www subdomain.
-            if (requestHost.StartsWith("www", StringComparison.InvariantCultureIgnoreCase))
+            if (!isLocalIp && requestHost.StartsWith("www", StringComparison.InvariantCultureIgnoreCase))
             {
-                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: new HostString(webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                 context.Response.StatusCode = 301;
                 context.Response.Headers.Location = redirectUrl;
@@ -43,13 +48,13 @@ namespace BrandUp.Website.Middlewares
             }
 
             // Redirect by aliases.
-            if (!requestHost.EndsWith(webSiteHost, StringComparison.InvariantCultureIgnoreCase))
+            if (!isLocalIp && !requestHost.EndsWith(webSiteHost, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (webSiteOptions.Value.Aliases != null)
                 {
                     foreach (var aliasHost in webSiteOptions.Value.Aliases)
                     {
-                        if (aliasHost.ToLower() == requestHost)
+                        if (aliasHost.Equals(requestHost, StringComparison.CurrentCultureIgnoreCase))
                         {
                             context.Items[HttpContextDomainIsAliasKey] = true;
 
@@ -59,7 +64,7 @@ namespace BrandUp.Website.Middlewares
                                 return;
                             }
 
-                            var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: new HostString(webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                            var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                             context.Response.StatusCode = 301;
                             context.Response.Headers.Location = redirectUrl;
@@ -74,8 +79,14 @@ namespace BrandUp.Website.Middlewares
 
             var needRedirectToHttps = request.Scheme == "http";
 
-            var websiteName = websiteProvider.ExtractName(context, requestHost);
-            if (websiteName == null)
+            string websiteName;
+            if (!isLocalIp)
+            {
+                websiteName = websiteProvider.ExtractName(context, requestHost);
+                if (websiteName == null)
+                    websiteName = string.Empty;
+            }
+            else
                 websiteName = string.Empty;
 
             var website = await websiteStore.FindByNameAsync(websiteName);
@@ -96,8 +107,8 @@ namespace BrandUp.Website.Middlewares
                         if (needRedirectToHttps && webSiteOptions.Value.RedirectToHttps)
                             scheme = "https";
 
-                        var redirectHost = new HostString((!string.IsNullOrEmpty(website.Name) ? website.Name + "." : "") + webSiteHost);
-                        var redirectUrl = UriHelper.BuildAbsolute(scheme: scheme, host: redirectHost, pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                        var newHostValue = (!string.IsNullOrEmpty(website.Name) ? website.Name + "." : "") + webSiteHost;
+                        var redirectUrl = UriHelper.BuildAbsolute(scheme: scheme, host: ReplaceHost(request.Host, newHostValue), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                         context.Response.StatusCode = 301;
                         context.Response.Headers.Location = redirectUrl;
@@ -148,7 +159,10 @@ namespace BrandUp.Website.Middlewares
 
             #endregion
 
-            context.Features.Set<IWebsiteFeature>(new WebsiteFeature(webSiteOptions.Value, websiteContext));
+            context.Features.Set<IWebsiteFeature>(new WebsiteFeature(webSiteOptions.Value, websiteContext)
+            {
+                IsLocalIp = isLocalIp
+            });
 
             await next(context);
 
@@ -180,6 +194,14 @@ namespace BrandUp.Website.Middlewares
             //    context.Request.Path = originalPath;
             //    //context.Request.QueryString = originalQueryString;
             //}
+        }
+
+        static HostString ReplaceHost(HostString current, string newHostValue)
+        {
+            if (!current.Port.HasValue || current.Port == 80 || current.Port == 443)
+                return new HostString(newHostValue);
+
+            return new HostString(newHostValue, current.Port.Value);
         }
     }
 }

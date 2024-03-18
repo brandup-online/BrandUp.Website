@@ -97,8 +97,6 @@ namespace BrandUp.Website.Pages
             var request = Request;
             var isGetRequest = request.Method.Equals("GET", StringComparison.InvariantCultureIgnoreCase);
             var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
-            var webSiteHost = webSiteOptions.Value.Host;
-            var cookiesPrefix = webSiteOptions.Value.CookiesPrefix;
             var isBot = request.IsBot();
 
             #region Navigation
@@ -214,8 +212,7 @@ namespace BrandUp.Website.Pages
 
         public async Task RenderPageAsync(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
         {
-            if (page == null)
-                throw new ArgumentNullException(nameof(page));
+            ArgumentNullException.ThrowIfNull(page);
 
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
@@ -240,7 +237,7 @@ namespace BrandUp.Website.Pages
                 Model = new ClientModels.ApplicationModel
                 {
                     WebsiteId = WebsiteContext.Website.Id,
-                    Data = new Dictionary<string, object>()
+                    Data = []
                 }
             };
 
@@ -277,7 +274,7 @@ namespace BrandUp.Website.Pages
                 Url = Link,
                 Path = Link.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
                 Query = new Dictionary<string, object>(),
-                Data = new Dictionary<string, object>(),
+                Data = [],
                 State = protector.Protect(JsonSerializer.Serialize(NavigationState)),
                 Title = Title,
                 CanonicalLink = CanonicalLink,
@@ -322,7 +319,7 @@ namespace BrandUp.Website.Pages
             var model = new ClientModels.PageModel
             {
                 Type = ScriptName,
-                Data = new Dictionary<string, object>()
+                Data = []
             };
 
             Helpers.ClientModelHelper.CopyProperties(this, model.Data);
@@ -359,8 +356,7 @@ namespace BrandUp.Website.Pages
 
         public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replaceUrl = false)
         {
-            if (pageUrl == null)
-                throw new ArgumentNullException(nameof(pageUrl));
+            ArgumentNullException.ThrowIfNull(pageUrl);
 
             return new Results.PageRedirectResult(this, pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
         }

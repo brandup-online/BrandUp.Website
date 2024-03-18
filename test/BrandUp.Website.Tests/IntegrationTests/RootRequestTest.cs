@@ -30,6 +30,43 @@ namespace BrandUp.Website.IntegrationTests
         }
 
         [Theory]
+        [InlineData("http://127.0.0.1/", "/", HttpStatusCode.MovedPermanently, "https://127.0.0.1/")]
+        [InlineData("http://127.0.0.1:80/", "/", HttpStatusCode.MovedPermanently, "https://127.0.0.1/")]
+        [InlineData("http://127.0.0.1:443/", "/", HttpStatusCode.MovedPermanently, "https://127.0.0.1/")]
+        [InlineData("http://127.0.0.1:5555/", "/", HttpStatusCode.MovedPermanently, "https://127.0.0.1:5555/")]
+        public async Task Redirect_127_0_0_1(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
+        {
+            factory.ClientOptions.BaseAddress = new Uri(baseAddress);
+            factory.ClientOptions.AllowAutoRedirect = false;
+
+            using var client = factory.CreateClient();
+            var response = await client.GetAsync(path);
+
+            Assert.Equal(statusCode, response.StatusCode);
+            Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
+        }
+
+        [Theory]
+        [InlineData("http://localhost:80/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        [InlineData("http://localhost:443/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        [InlineData("http://localhost:5555/", "/", HttpStatusCode.MovedPermanently, "https://localhost:5555/")]
+        [InlineData("https://www.localhost:5555/", "/", HttpStatusCode.MovedPermanently, "https://localhost:5555/")]
+        [InlineData("https://alias.ru:5555/", "/", HttpStatusCode.MovedPermanently, "https://localhost:5555/")]
+        [InlineData("http://msk.localhost:5555/", "/", HttpStatusCode.MovedPermanently, "https://localhost:5555/")]
+        [InlineData("https://msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        public async Task Redirect_port(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
+        {
+            factory.ClientOptions.BaseAddress = new Uri(baseAddress);
+            factory.ClientOptions.AllowAutoRedirect = false;
+
+            using var client = factory.CreateClient();
+            var response = await client.GetAsync(path);
+
+            Assert.Equal(statusCode, response.StatusCode);
+            Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
+        }
+
+        [Theory]
         [InlineData("http://localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://www.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://WWW.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
@@ -106,7 +143,9 @@ namespace BrandUp.Website.IntegrationTests
                 {
                     services.Configure<WebsiteOptions>((options) =>
                     {
-                        options.Aliases = new List<string> { "alias.ru" };
+                        options.Host = "localhost";
+                        options.Aliases = ["alias.ru"];
+                        options.RedirectToHttps = true;
                     });
                 });
 

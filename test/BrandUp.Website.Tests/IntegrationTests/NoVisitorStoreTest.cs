@@ -49,7 +49,9 @@ namespace BrandUp.Website.IntegrationTests
                 {
                     services.Configure<WebsiteOptions>((options) =>
                     {
-                        options.Aliases = new List<string> { "alias.ru" };
+                        options.Host = "localhost";
+                        options.Aliases = ["alias.ru"];
+                        options.RedirectToHttps = true;
                     });
                 });
         }
