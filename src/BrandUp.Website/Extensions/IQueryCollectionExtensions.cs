@@ -18,5 +18,20 @@ namespace BrandUp.Website
             value = values[0];
             return true;
         }
+
+        public static bool TryGetValue(this IHeaderDictionary collection, string name, out string value)
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+
+            if (!collection.TryGetValue(name, out Microsoft.Extensions.Primitives.StringValues values))
+            {
+                value = default;
+                return false;
+            }
+
+            value = values[0];
+            return true;
+        }
     }
 }

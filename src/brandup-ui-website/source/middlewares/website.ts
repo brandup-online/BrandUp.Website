@@ -117,10 +117,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         this.queue.push({
             url: context.url,
-            method: "POST",
-            headers: { "Page-Nav": "true" },
-            type: "TEXT",
-            data: this.__navigation.state ? this.__navigation.state : "",
+            method: "GET",
+            headers: { "Page-Nav": this.__navigation.state ? this.__navigation.state : "" },
+            disableCache: true,
             success: (response: AjaxResponse<string>) => {
                 if (this.__isNavOutdated(navSequence))
                     return;
@@ -220,7 +219,10 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         this.queue.push({
             url,
             urlParams,
-            headers: { "Page-Nav": "true" },
+            headers: {
+                "Page-Nav": this.__navigation.state ? this.__navigation.state : "",
+                "Page-Submit": "true"
+            },
             method,
             data: new FormData(form),
             success: minWait(submitCallback)

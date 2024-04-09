@@ -54,12 +54,21 @@ namespace BrandUp.Website.Pages
         {
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
-            var requestQuery = httpRequest.Query;
 
             httpContext.Features.Set<IPageFeature>(new PageFeature { PageModel = this });
 
-            if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out _))
+            if (httpRequest.QueryString.HasValue && httpRequest.Query.ContainsKey("_"))
+            {
+                var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>(httpRequest.Query);
+                newQuery.Remove("_");
+
+                httpRequest.Query = new Microsoft.AspNetCore.Http.QueryCollection(newQuery);
+                httpRequest.QueryString = Microsoft.AspNetCore.Http.QueryString.Create(newQuery);
+            }
+
+            if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out string navigationData))
                 RequestMode = AppPageRequestMode.Content;
+            //var isSubmit = httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageSubmit, out _);
 
             HttpContext.SetMinifyHtml();
 
@@ -77,24 +86,22 @@ namespace BrandUp.Website.Pages
             {
                 case AppPageRequestMode.Content:
                     {
-                        if (!Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase) || request.IsBot())
+                        if (request.IsBot())
                         {
                             context.Result = BadRequest();
                             return;
                         }
 
-                        using var reader = new StreamReader(Request.Body);
-                        var navStateData = await reader.ReadToEndAsync(CancellationToken);
-                        if (navStateData != null)
+                        var needReloadPage = false;
+
+                        if (navigationData != null)
                         {
                             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
                             var protector = protectionProvider.CreateProtector(webSiteOptions.Value.ProtectionPurpose);
 
-                            var needReloadPage = false;
-
                             try
                             {
-                                var requestState = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(protector.Unprotect(navStateData));
+                                var requestState = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(protector.Unprotect(navigationData));
                                 if (requestState != null)
                                 {
                                     foreach (var kv in requestState)
@@ -126,14 +133,16 @@ namespace BrandUp.Website.Pages
                                 }
                             }
                             catch { needReloadPage = true; }
+                        }
+                        else
+                            needReloadPage = true;
 
-                            if (needReloadPage)
-                            {
-                                HttpContext.Response.Headers[PageConstants.HttpHeaderPageReload] = "true";
+                        if (needReloadPage)
+                        {
+                            HttpContext.Response.Headers[PageConstants.HttpHeaderPageReload] = "true";
 
-                                context.Result = new OkResult();
-                                return;
-                            }
+                            context.Result = new OkResult();
+                            return;
                         }
 
                         break;
@@ -183,7 +192,8 @@ namespace BrandUp.Website.Pages
             var pageRenderContext = new PageRenderContext(this, page);
             await OnPageRenderAsync(pageRenderContext);
 
-            await pageEvents?.PageRenderAsync(pageRenderContext);
+            if (pageEvents != null)
+                await pageEvents.PageRenderAsync(pageRenderContext);
 
             var navClientModel = await GetNavigationClientModelAsync();
 
@@ -270,6 +280,8 @@ namespace BrandUp.Website.Pages
                 else if (value.Count > 1)
                     navModel.Query.Add(kv.Key, value.ToArray());
             }
+
+            navModel.Query.Remove("_");
 
             var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
             if (antiforgery != null)

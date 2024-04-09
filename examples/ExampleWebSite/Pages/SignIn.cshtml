@@ -3,17 +3,15 @@
 @{ await Model.RenderPageAsync(this); }
 
 <header class="page-header">
-    <h1>@Model.Title</h1>
+    <h1>@Model.Header</h1>
 </header>
 
 <section class="page-block page-block-form">
-    <form asp-antiforgery="true" enctype="multipart/form-data">
+    <form asp-antiforgery="true">
         <div>
             <input asp-for="Email" required />
         </div>
         <div asp-validation-summary="All"></div>
-        <button>
-            Отправить
-        </button>
+        <button type="submit">Отправить</button>
     </form>
 </section>
