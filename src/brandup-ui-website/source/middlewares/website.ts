@@ -114,13 +114,14 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         const navSequence = this.__incNavSequence();
 
         this.queue.reset(true);
+
         this.queue.push({
             url: context.url,
             method: "POST",
-            urlParams: { _nav: "" },
+            headers: { "Page-Nav": "true" },
             type: "TEXT",
             data: this.__navigation.state ? this.__navigation.state : "",
-            success: (response: AjaxResponse<NavigationModel>) => {
+            success: (response: AjaxResponse<string>) => {
                 if (this.__isNavOutdated(navSequence))
                     return;
 
@@ -129,16 +130,30 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                         if (this.__precessPageResponse(response, end))
                             return;
 
-                        context.items["nav"] = response.data;
+                        if (!response.data) {
+                            location.reload();
+                            return;
+                        }
 
-                        this.setNavigation(response.data, context.hash, context.replace);
+                        const contentFragment = document.createDocumentFragment();
+                        const fixElem = DOM.tag("div");
+                        contentFragment.append(fixElem);
+                        fixElem.insertAdjacentHTML("beforebegin", response.data);
+                        fixElem.remove();
+
+                        const navJsonElem = <HTMLScriptElement>contentFragment.firstElementChild;
+                        const navModel = JSON.parse(navJsonElem.text);
+
+                        context.items["nav"] = navModel;
+
+                        this.setNavigation(navModel, context.hash, context.replace);
 
                         if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
                             location.reload();
                             return;
                         }
 
-                        this.__loadContent(context, navSequence, next, end);
+                        this.__renderPage(context, navSequence, contentFragment, next);
 
                         break;
                     }
@@ -200,12 +215,12 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         var urlParams: { [key: string]: string; } = {};
         for (var key in this.__navigation.query)
             urlParams[key] = this.__navigation.query[key];
-        urlParams["_content"] = "";
 
         this.queue.reset(true);
         this.queue.push({
             url,
             urlParams,
+            headers: { "Page-Nav": "true" },
             method,
             data: new FormData(form),
             success: minWait(submitCallback)
@@ -231,7 +246,13 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     updateHtml(html: string) {
         const navSequence = this.__incNavSequence();
 
-        this.__renderPage({ items: {} }, navSequence, html, () => { return; });
+        const contentFragment = document.createDocumentFragment();
+        const fixElem = DOM.tag("div");
+        contentFragment.append(fixElem);
+        fixElem.insertAdjacentHTML("beforebegin", html);
+        fixElem.remove();
+
+        this.__renderPage({ items: {} }, navSequence, contentFragment, () => { return; });
     }
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
         return this.app.uri(path, queryParams);
@@ -341,40 +362,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             metaTagElem.remove();
     }
 
-    private __loadContent(context: InvokeContext, navSequence: number, next: () => void, end: () => void) {
-        if (this.__isNavOutdated(navSequence))
-            return;
-
-        this.queue.push({
-            url: this.__navigation.url,
-            urlParams: { _content: "" },
-            disableCache: true,
-            success: (response: AjaxResponse) => {
-                if (this.__isNavOutdated(navSequence))
-                    return;
-
-                switch (response.status) {
-                    case 200: {
-                        if (this.__precessPageResponse(response, end))
-                            return;
-
-                        this.__renderPage(context, navSequence, response.data ? response.data : "", next);
-
-                        break;
-                    }
-                    case 404:
-                    case 500:
-                    case 401: {
-                        location.reload();
-                        break;
-                    }
-                    default:
-                        throw new Error();
-                }
-            }
-        });
-    }
-    private __renderPage(context: InvokeContext, navSequence: number, contentHtml: string, next: () => void) {
+    private __renderPage(context: InvokeContext, navSequence: number, contentHtml: DocumentFragment, next: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
@@ -395,7 +383,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             this.__createPage(context, navSequence, Page, contentHtml, next);
         }
     }
-    private __createPage(context: InvokeContext, navSequence: number, pageType: new (...p) => Page, contentHtml: string, next: () => void) {
+    private __createPage(context: InvokeContext, navSequence: number, pageType: new (...p) => Page, contentHtml: DocumentFragment, next: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
@@ -406,7 +394,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         if (contentHtml !== null) {
             DOM.empty(this.__contentBodyElem);
-            this.__contentBodyElem.insertAdjacentHTML("afterbegin", contentHtml);
+            this.__contentBodyElem.appendChild(contentHtml);
             WebsiteMiddleware.nodeScriptReplace(this.__contentBodyElem);
         }
 

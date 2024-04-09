@@ -77,7 +77,6 @@ namespace ExampleWebSite
 
             #endregion
 
-
             #region Authentication
 
             services

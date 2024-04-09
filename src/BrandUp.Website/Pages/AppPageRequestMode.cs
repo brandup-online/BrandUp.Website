@@ -5,11 +5,7 @@
         /// <summary>
         /// Full page request
         /// </summary>
-        Start,
-        /// <summary>
-        /// Page navigation request
-        /// </summary>
-        Navigation,
+        Full,
         /// <summary>
         /// Page content request
         /// </summary>

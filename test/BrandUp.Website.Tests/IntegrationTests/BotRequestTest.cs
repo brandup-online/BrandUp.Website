@@ -20,7 +20,7 @@ namespace BrandUp.Website.IntegrationTests
 
             using var client = factory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-            var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/");
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
@@ -37,24 +37,8 @@ namespace BrandUp.Website.IntegrationTests
 
             using var client = factory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-            var response = await client.PostAsync("/?_nav", new System.Net.Http.StringContent(string.Empty));
-
-            Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
-
-            var responseHtml = await response.Content.ReadAsStringAsync();
-            Assert.Empty(responseHtml);
-        }
-
-        [Theory]
-        [InlineData("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)")]
-        public async Task Content(string userAgent)
-        {
-            factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            factory.ClientOptions.AllowAutoRedirect = false;
-
-            using var client = factory.CreateClient();
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-            var response = await client.GetAsync("/?_content");
+            client.DefaultRequestHeaders.Add(Pages.PageConstants.HttpHeaderPageNav, "true");
+            using var response = await client.PostAsync("/", new StringContent(string.Empty));
 
             Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
 

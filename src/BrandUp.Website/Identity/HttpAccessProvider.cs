@@ -3,15 +3,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace BrandUp.Website.Identity
 {
-    public class HttpAccessProvider : IAccessProvider
+    public class HttpAccessProvider(IHttpContextAccessor httpContextAccessor) : IAccessProvider
     {
-        readonly IHttpContextAccessor httpContextAccessor;
-
-        public HttpAccessProvider(IHttpContextAccessor httpContextAccessor)
-        {
-            this.httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-        }
-
         public Task<bool> IsAuthenticatedAsync(CancellationToken cancellationToken = default)
         {
             var httpContext = httpContextAccessor.HttpContext;

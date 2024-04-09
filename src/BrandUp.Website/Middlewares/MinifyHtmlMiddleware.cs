@@ -4,15 +4,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace BrandUp.Website.Middlewares
 {
-    public class MinifyHtmlMiddleware
+    public class MinifyHtmlMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate next;
-
-        public MinifyHtmlMiddleware(RequestDelegate next)
-        {
-            this.next = next ?? throw new ArgumentNullException(nameof(next));
-        }
-
         public async Task InvokeAsync(HttpContext context)
         {
             var feature = new MinifyHtmlFeature(context);
@@ -23,21 +16,15 @@ namespace BrandUp.Website.Middlewares
             await feature.ProcessAsync();
         }
 
-        class MinifyHtmlFeature : IMinifyHtmlFeature
+        class MinifyHtmlFeature(HttpContext context) : IMinifyHtmlFeature
         {
-            readonly HttpContext context;
-            private Stream responseBody;
-            private Stream tempBody;
+            Stream responseBody;
+            Stream tempBody;
 
             // Replace all spaces between tags skipping PRE tags
             private readonly static Regex Regex1 = new Regex(@"(?<=\s)\s+(?![^<>]*</pre>)", RegexOptions.Compiled);
             // Replace all new lines between tags skipping PRE tags
             private readonly static Regex Regex2 = new Regex("\n(?![^<]*</pre>)", RegexOptions.Compiled);
-
-            public MinifyHtmlFeature(HttpContext context)
-            {
-                this.context = context;
-            }
 
             public bool AllowMinify { get; private set; }
 

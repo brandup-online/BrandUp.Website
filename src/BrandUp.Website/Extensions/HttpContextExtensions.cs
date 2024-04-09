@@ -11,30 +11,23 @@ namespace BrandUp.Website
     {
         public static IWebsiteContext GetWebsiteContext(this HttpContext httpContext)
         {
-            if (httpContext == null)
-                throw new ArgumentNullException(nameof(httpContext));
+            ArgumentNullException.ThrowIfNull(httpContext);
 
-            var feature = httpContext.Features.Get<IWebsiteFeature>();
-            if (feature == null)
-                throw new InvalidOperationException("Http request is not website.");
-
+            var feature = httpContext.Features.Get<IWebsiteFeature>() ?? throw new InvalidOperationException("Http request is not website.");
             return feature.Context;
         }
 
         public static void SetMinifyHtml(this HttpContext httpContext)
         {
-            if (httpContext == null)
-                throw new ArgumentNullException(nameof(httpContext));
+            ArgumentNullException.ThrowIfNull(httpContext);
 
             var minifyHtmlFeature = httpContext.Features.Get<IMinifyHtmlFeature>();
-            if (minifyHtmlFeature != null)
-                minifyHtmlFeature.SetMinify();
+            minifyHtmlFeature?.SetMinify();
         }
 
         public static bool IsBot(this HttpRequest request)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            ArgumentNullException.ThrowIfNull(request);
 
             if (!request.Headers.TryGetValue("User-agent", out StringValues userAgent))
                 return false;
@@ -50,13 +43,11 @@ namespace BrandUp.Website
 
         public static void RedirectPage(this HttpResponse response, string pageLocation, bool isPermament = false, bool replaceUrl = false)
         {
-            if (response == null)
-                throw new ArgumentNullException(nameof(response));
-            if (pageLocation == null)
-                throw new ArgumentNullException(nameof(pageLocation));
+            ArgumentNullException.ThrowIfNull(response);
+            ArgumentNullException.ThrowIfNull(pageLocation);
 
             var pageFeature = response.HttpContext.Features.Get<IPageFeature>();
-            if (pageFeature == null || pageFeature.PageModel == null || pageFeature.PageModel.RequestMode == AppPageRequestMode.Start)
+            if (pageFeature == null || pageFeature.PageModel == null || pageFeature.PageModel.RequestMode == AppPageRequestMode.Full)
             {
                 response.StatusCode = (int)(isPermament ? HttpStatusCode.PermanentRedirect : HttpStatusCode.Redirect);
                 response.Headers.Location = pageLocation;

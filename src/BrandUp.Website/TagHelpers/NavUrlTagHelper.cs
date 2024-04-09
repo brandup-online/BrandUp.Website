@@ -16,7 +16,7 @@ namespace BrandUp.Website.TagHelpers
         {
             if (NavUrl != null)
             {
-                if (string.Equals(output.TagName, "a", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(output.TagName, "a", StringComparison.InvariantCultureIgnoreCase))
                     output.Attributes.SetAttribute("href", NavUrl);
                 else
                     output.Attributes.SetAttribute("data-nav-url", NavUrl);

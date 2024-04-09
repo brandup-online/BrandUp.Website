@@ -12,6 +12,8 @@ namespace BrandUp.Website.TagHelpers
         [ViewContext]
         public ViewContext ViewContext { get; set; }
 
+        public override int Order => 1000;
+
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             if (ViewContext.ViewData.Model is AppPageModel appPageModel && ViewContext.View is RazorView razorView)

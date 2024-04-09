@@ -28,49 +28,30 @@ namespace BrandUp.Website
         Task RenderBodyTag(OnRenderTagContext context);
     }
 
-    public class StartWebsiteContext : WebsiteEventContext
+    public class StartWebsiteContext(AppPageModel pageModel, IDictionary<string, object> clientData) : WebsiteEventContext(pageModel)
     {
-        public IDictionary<string, object> ClientData { get; }
-
-        public StartWebsiteContext(AppPageModel pageModel, IDictionary<string, object> clientData) : base(pageModel)
-        {
-            ClientData = clientData ?? throw new ArgumentNullException(nameof(clientData));
-        }
+        public IDictionary<string, object> ClientData { get; } = clientData ?? throw new ArgumentNullException(nameof(clientData));
     }
 
-    public class OnRenderTagContext
+    public class OnRenderTagContext(ViewContext viewContext, TagHelperContext tagContext, TagHelperOutput tagOutput)
     {
-        public ViewContext ViewContext { get; }
-        public TagHelperContext TagContext { get; }
-        public TagHelperOutput TagOutput { get; }
-
-        public OnRenderTagContext(ViewContext viewContext, TagHelperContext tagContext, TagHelperOutput tagOutput)
-        {
-            ViewContext = viewContext ?? throw new ArgumentNullException(nameof(viewContext));
-            TagContext = tagContext ?? throw new ArgumentNullException(nameof(tagContext));
-            TagOutput = tagOutput ?? throw new ArgumentNullException(nameof(tagOutput));
-        }
+        public ViewContext ViewContext { get; } = viewContext ?? throw new ArgumentNullException(nameof(viewContext));
+        public TagHelperContext TagContext { get; } = tagContext ?? throw new ArgumentNullException(nameof(tagContext));
+        public TagHelperOutput TagOutput { get; } = tagOutput ?? throw new ArgumentNullException(nameof(tagOutput));
     }
 
-    public class RenderPageTitleContext : WebsiteEventContext
+    public class RenderPageTitleContext(AppPageModel pageModel) : WebsiteEventContext(pageModel)
     {
         public string Title { get; set; }
-
-        public RenderPageTitleContext(AppPageModel pageModel) : base(pageModel) { }
     }
 
-    public class WebsiteEventContext
+    public class WebsiteEventContext(AppPageModel pageModel)
     {
-        public AppPageModel PageModel { get; }
+        public AppPageModel PageModel { get; } = pageModel ?? throw new ArgumentNullException(nameof(pageModel));
         public HttpContext Http => PageModel.HttpContext;
         public CancellationToken CancellationToken => PageModel.CancellationToken;
         public IServiceProvider Services => PageModel.Services;
         public AppPageRequestMode RequestMode => PageModel.RequestMode;
         public WebsiteContext Website => PageModel.WebsiteContext;
-
-        public WebsiteEventContext(AppPageModel pageModel)
-        {
-            PageModel = pageModel ?? throw new ArgumentNullException(nameof(pageModel));
-        }
     }
 }

@@ -2,17 +2,10 @@
 
 namespace BrandUp.Website
 {
-    public class WebsiteContext : IWebsiteContext
+    public class WebsiteContext(HttpContext httpContext, IWebsite website, TimeZoneInfo timeZone) : IWebsiteContext
     {
-        public HttpContext HttpContext { get; }
-        public IWebsite Website { get; }
-        public TimeZoneInfo TimeZone { get; }
-
-        public WebsiteContext(HttpContext httpContext, IWebsite website, TimeZoneInfo timeZone)
-        {
-            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            Website = website ?? throw new ArgumentNullException(nameof(website));
-            TimeZone = timeZone ?? throw new ArgumentNullException(nameof(timeZone));
-        }
+        public HttpContext HttpContext { get; } = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+        public IWebsite Website { get; } = website ?? throw new ArgumentNullException(nameof(website));
+        public TimeZoneInfo TimeZone { get; } = timeZone ?? throw new ArgumentNullException(nameof(timeZone));
     }
 }

@@ -5,14 +5,12 @@ namespace BrandUp.Website.Helpers
 {
     public static class ClientModelHelper
     {
-        readonly static ConcurrentDictionary<Type, List<ClientProperty>> types = new ConcurrentDictionary<Type, List<ClientProperty>>();
+        readonly static ConcurrentDictionary<Type, List<ClientProperty>> types = new();
 
         public static void CopyProperties(object sourceModel, IDictionary<string, object> destinationData)
         {
-            if (sourceModel == null)
-                throw new ArgumentNullException(nameof(sourceModel));
-            if (destinationData == null)
-                throw new ArgumentNullException(nameof(destinationData));
+            ArgumentNullException.ThrowIfNull(sourceModel);
+            ArgumentNullException.ThrowIfNull(destinationData);
 
             var clientProperties = types.GetOrAdd(sourceModel.GetType(), GetClientProperties);
             foreach (var clientProperty in clientProperties)
@@ -24,10 +22,10 @@ namespace BrandUp.Website.Helpers
                 destinationData.Add(clientProperty.ClientName, value);
             }
         }
+
         static List<ClientProperty> GetClientProperties(Type model)
         {
-            if (model == null)
-                throw new ArgumentNullException(nameof(model));
+            ArgumentNullException.ThrowIfNull(model);
 
             var clientProperties = new List<ClientProperty>();
 

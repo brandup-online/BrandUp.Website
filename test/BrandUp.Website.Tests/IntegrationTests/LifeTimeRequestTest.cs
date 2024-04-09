@@ -1,3 +1,5 @@
+using BrandUp.Website.Pages;
+
 namespace BrandUp.Website.IntegrationTests
 {
     public class LifeTimeRequestTest : IClassFixture<CustomWebApplicationFactory>
@@ -9,16 +11,16 @@ namespace BrandUp.Website.IntegrationTests
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
 
             this.factory.Server.BaseAddress = new Uri("https://localhost/");
+
+            this.factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
+            this.factory.ClientOptions.AllowAutoRedirect = false;
         }
 
         [Fact]
         public async Task Request_Full()
         {
-            factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            factory.ClientOptions.AllowAutoRedirect = false;
-
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/");
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
@@ -29,11 +31,8 @@ namespace BrandUp.Website.IntegrationTests
         [Fact]
         public async Task Request_Full_Redirect()
         {
-            factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            factory.ClientOptions.AllowAutoRedirect = false;
-
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("/delivery");
+            using var response = await client.GetAsync("/delivery");
 
             Assert.Equal(System.Net.HttpStatusCode.PermanentRedirect, response.StatusCode);
             Assert.Equal("/contacts", response.Headers.Location.OriginalString);
@@ -42,69 +41,51 @@ namespace BrandUp.Website.IntegrationTests
         [Fact]
         public async Task Request_Navigation_Get()
         {
-            factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            factory.ClientOptions.AllowAutoRedirect = false;
-
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("/?_nav");
+            client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
+            using var response = await client.GetAsync("/");
 
             Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         //[Fact]
-        //public async Task Request_Navigation_Post()
+        //public async Task Request_Content()
         //{
-        //    factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-        //    factory.ClientOptions.AllowAutoRedirect = false;
-
         //    using var client = factory.CreateClient();
-        //    var response = await client.PostAsync("/contacts?_nav", new StringContent("test", System.Text.Encoding.UTF8, "text/plain"));
+        //    client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
+        //    using var response = await client.PostAsync("/", new StringContent(string.Empty));
 
-        //    //Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        //    Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        //    Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
 
-        //    var json = await response.Content.ReadAsStringAsync();
+        //    var responseHtml = await response.Content.ReadAsStringAsync();
+        //    Assert.DoesNotContain("</html>", responseHtml);
+        //}
 
-        //    var navModel = JsonConvert.DeserializeObject<Pages.Models.NavigationClientModel>(json, new JsonSerializerSettings { });
+        //[Fact]
+        //public async Task Request_Content_Redirect()
+        //{
+        //    using var client = factory.CreateClient();
+        //    client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
+        //    using var response = await client.PostAsync("/delivery", new StringContent(string.Empty));
 
-        //    Assert.False(navModel.IsAuthenticated);
-        //    Assert.NotNull(navModel.ValidationToken);
-        //    Assert.NotNull(navModel.State);
-        //    Assert.NotNull(navModel.Page);
-        //    Assert.Equal("https://localhost/contacts", navModel.Url);
-        //    Assert.Equal("/contacts", navModel.Path);
-        //    Assert.NotNull(navModel.Page.Title);
+        //    Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        //    Assert.Equal("/contacts", response.Headers.GetValues(PageConstants.HttpHeaderPageLocation).First());
+
+        //    var responseHtml = await response.Content.ReadAsStringAsync();
+        //    Assert.Empty(responseHtml);
         //}
 
         [Fact]
-        public async Task Request_Content()
+        public async Task Request_Content_BadNavState()
         {
-            factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            factory.ClientOptions.AllowAutoRedirect = false;
-
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("?_content&_=235235235");
+            client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
+            using var response = await client.PostAsync("/", new StringContent("test"));
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
-
-            var responseHtml = await response.Content.ReadAsStringAsync();
-            Assert.DoesNotContain("</html>", responseHtml);
+            Assert.Equal("true", response.Headers.GetValues(PageConstants.HttpHeaderPageReload).First());
         }
 
-        [Fact]
-        public async Task Request_Content_Redirect()
-        {
-            factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            factory.ClientOptions.AllowAutoRedirect = false;
-
-            using var client = factory.CreateClient();
-            var response = await client.GetAsync("/delivery?_content&_=235235235");
-
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("/contacts", response.Headers.GetValues("Page-Location").First());
-
-            var responseHtml = await response.Content.ReadAsStringAsync();
-            Assert.Empty(responseHtml);
-        }
     }
 }

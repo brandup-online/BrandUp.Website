@@ -1,10 +1,13 @@
-﻿using System.Text.Json;
+﻿using System.Text.Encodings.Web;
+using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BrandUp.Website.Pages
@@ -19,7 +22,7 @@ namespace BrandUp.Website.Pages
         #region Properties
 
         public WebsiteContext WebsiteContext { get; private set; }
-        public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Start;
+        public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Full;
         public Dictionary<string, object> NavigationState { get; } = [];
         public CancellationToken CancellationToken => HttpContext.RequestAborted;
         public IServiceProvider Services => HttpContext.RequestServices;
@@ -55,37 +58,10 @@ namespace BrandUp.Website.Pages
 
             httpContext.Features.Set<IPageFeature>(new PageFeature { PageModel = this });
 
-            if (httpRequest.QueryString.HasValue)
-            {
-                var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>();
-                foreach (var qv in requestQuery)
-                {
-                    var name = qv.Key;
-                    if (name[0] == '_')
-                    {
-                        switch (name)
-                        {
-                            case "_nav":
-                                RequestMode = AppPageRequestMode.Navigation;
-                                break;
-                            case "_content":
-                                RequestMode = AppPageRequestMode.Content;
-                                break;
-                            default:
-                                break;
-                        }
+            if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out _))
+                RequestMode = AppPageRequestMode.Content;
 
-                        continue;
-                    }
-
-                    newQuery.Add(name, qv.Value);
-                }
-
-                httpRequest.QueryString = Microsoft.AspNetCore.Http.QueryString.Create(newQuery);
-            }
-
-            if (RequestMode == AppPageRequestMode.Content || RequestMode == AppPageRequestMode.Start)
-                HttpContext.SetMinifyHtml();
+            HttpContext.SetMinifyHtml();
 
             var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
             WebsiteContext = websiteFeature.Context;
@@ -93,9 +69,7 @@ namespace BrandUp.Website.Pages
             Link = new Uri(HttpContext.Request.GetDisplayUrl());
 
             var request = Request;
-            var isGetRequest = request.Method.Equals("GET", StringComparison.InvariantCultureIgnoreCase);
             var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
-            var isBot = request.IsBot();
 
             #region Navigation
 
@@ -103,28 +77,21 @@ namespace BrandUp.Website.Pages
             {
                 case AppPageRequestMode.Content:
                     {
-                        if (isBot)
-                        {
-                            context.Result = BadRequest();
-                            return;
-                        }
-
-                        break;
-                    }
-                case AppPageRequestMode.Navigation:
-                    {
-                        if (!Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase) || isBot)
+                        if (!Request.Method.Equals("POST", StringComparison.InvariantCultureIgnoreCase) || request.IsBot())
                         {
                             context.Result = BadRequest();
                             return;
                         }
 
                         using var reader = new StreamReader(Request.Body);
-                        var navStateData = await reader.ReadToEndAsync();
+                        var navStateData = await reader.ReadToEndAsync(CancellationToken);
                         if (navStateData != null)
                         {
                             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
                             var protector = protectionProvider.CreateProtector(webSiteOptions.Value.ProtectionPurpose);
+
+                            var needReloadPage = false;
+
                             try
                             {
                                 var requestState = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(protector.Unprotect(navStateData));
@@ -132,36 +99,40 @@ namespace BrandUp.Website.Pages
                                 {
                                     foreach (var kv in requestState)
                                     {
-                                        object val = kv.Value.ValueKind switch
+                                        object value = kv.Value.ValueKind switch
                                         {
                                             JsonValueKind.String => kv.Value.GetString(),
                                             JsonValueKind.False or JsonValueKind.True => kv.Value.GetBoolean(),
                                             JsonValueKind.Null => null,
                                             JsonValueKind.Number => kv.Value.GetInt64(),
-                                            _ => throw new InvalidOperationException(),
+                                            _ => throw new InvalidOperationException("Unknown nav state value type."),
                                         };
-                                        NavigationState.Add(kv.Key, val);
+                                        NavigationState.Add(kv.Key, value);
                                     }
 
-                                    if (NavigationState.TryGetValue("_start", out object startValue))
+                                    if (NavigationState.TryGetValue("_start", out object startValue) && (long)startValue != StartDate.Ticks)
+                                        needReloadPage = true;
+
+                                    if (!needReloadPage)
                                     {
-                                        if ((long)startValue != StartDate.Ticks)
-                                            throw new Exception("Reset application.");
+                                        string navAreaName = null;
+                                        if (NavigationState.TryGetValue("_area", out object areaNameValue))
+                                            navAreaName = (string)areaNameValue;
+
+                                        RouteData.TryGetAreaName(out string curAreaName);
+                                        if (navAreaName == null || !string.Equals(navAreaName, curAreaName, StringComparison.InvariantCultureIgnoreCase))
+                                            needReloadPage = true; // Если изменилась area, то перезагружаем страницу
                                     }
-
-                                    string navAreaName = null;
-                                    if (NavigationState.TryGetValue("_area", out object areaNameValue))
-                                        navAreaName = (string)areaNameValue;
-
-                                    RouteData.TryGetAreaName(out string curAreaName);
-
-                                    if (navAreaName == null || !string.Equals(navAreaName, curAreaName, StringComparison.InvariantCultureIgnoreCase))
-                                        throw new InvalidOperationException("Change area by navigating.");
                                 }
                             }
-                            catch
+                            catch { needReloadPage = true; }
+
+                            if (needReloadPage)
                             {
                                 HttpContext.Response.Headers[PageConstants.HttpHeaderPageReload] = "true";
+
+                                context.Result = new OkResult();
+                                return;
                             }
                         }
 
@@ -172,9 +143,7 @@ namespace BrandUp.Website.Pages
                         NavigationState.Add("_start", StartDate.Ticks);
 
                         RouteData.TryGetAreaName(out string areaName);
-                        areaName ??= string.Empty;
-
-                        NavigationState.Add("_area", areaName.ToLower());
+                        NavigationState.Add("_area", areaName?.ToLower() ?? string.Empty);
 
                         break;
                     }
@@ -192,14 +161,6 @@ namespace BrandUp.Website.Pages
             if (pageRequestContext.Result != null)
             {
                 context.Result = pageRequestContext.Result;
-                return;
-            }
-
-            if (RequestMode == AppPageRequestMode.Navigation)
-            {
-                var navModel = await GetNavigationClientModelAsync();
-
-                context.Result = new OkObjectResult(navModel);
                 return;
             }
 
@@ -223,6 +184,20 @@ namespace BrandUp.Website.Pages
             await OnPageRenderAsync(pageRenderContext);
 
             await pageEvents?.PageRenderAsync(pageRenderContext);
+
+            var navClientModel = await GetNavigationClientModelAsync();
+
+            var pageModelScriptTag = new TagBuilder("script");
+            pageModelScriptTag.Attributes.Add("id", "test");
+            pageModelScriptTag.Attributes.Add("type", "application/json");
+
+            var jsonHelper = Services.GetRequiredService<IJsonHelper>();
+            var json = jsonHelper.Serialize(navClientModel);
+            pageModelScriptTag.InnerHtml.SetHtmlContent(json);
+
+            var htmlEncoder = Services.GetRequiredService<HtmlEncoder>();
+            pageModelScriptTag.WriteTo(page.ViewContext.Writer, htmlEncoder);
+
         }
 
         internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync()
@@ -295,10 +270,6 @@ namespace BrandUp.Website.Pages
                 else if (value.Count > 1)
                     navModel.Query.Add(kv.Key, value.ToArray());
             }
-
-            navModel.Query.Remove("_nav");
-            navModel.Query.Remove("_content");
-            navModel.Query.Remove("_");
 
             var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
             if (antiforgery != null)

@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -147,6 +148,8 @@ namespace BrandUp.Website.IntegrationTests
                         options.Aliases = ["alias.ru"];
                         options.RedirectToHttps = true;
                     });
+
+                    services.AddSingleton<IAntiforgery, Fakes.FakeAntiforgery>();
                 });
 
             builder.UseEnvironment("Development");

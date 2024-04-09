@@ -83,8 +83,7 @@ namespace BrandUp.Website.Middlewares
             if (!isLocalIp)
             {
                 websiteName = websiteProvider.ExtractName(context, requestHost);
-                if (websiteName == null)
-                    websiteName = string.Empty;
+                websiteName ??= string.Empty;
             }
             else
                 websiteName = string.Empty;
