@@ -45,7 +45,8 @@ namespace BrandUp.Website.IntegrationTests
             client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
             using var response = await client.GetAsync("/");
 
-            Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("true", response.Headers.GetValues(PageConstants.HttpHeaderPageReload).First());
         }
 
         //[Fact]
