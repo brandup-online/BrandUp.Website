@@ -1,9 +1,12 @@
+using System.IO.Compression;
 using BrandUp.Website;
 using ExampleWebSite.Infrastructure.HealthChecks;
 using ExampleWebSite.Repositories;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using WebMarkupMin.AspNet.Common.Compressors;
+using WebMarkupMin.AspNetCore8;
 
 namespace ExampleWebSite
 {
@@ -18,6 +21,30 @@ namespace ExampleWebSite
             #region Configure
 
             var websiteOptions = builder.Configuration.GetSection("WebSite").Get<WebsiteOptions>();
+
+            services
+                .AddWebMarkupMin(options =>
+                {
+                    options.AllowMinificationInDevelopmentEnvironment = true;
+                    options.AllowCompressionInDevelopmentEnvironment = true;
+                    options.DefaultEncoding = System.Text.Encoding.UTF8;
+                })
+                .AddHtmlMinification(options =>
+                {
+                    var settings = options.MinificationSettings;
+                    settings.RemoveRedundantAttributes = true;
+                    settings.RemoveHttpProtocolFromAttributes = true;
+                    settings.RemoveHttpsProtocolFromAttributes = true;
+                })
+                .AddHttpCompression(options =>
+                {
+                    options.CompressorFactories =
+                    [
+                        new BuiltInBrotliCompressorFactory(new BuiltInBrotliCompressionSettings { Level = CompressionLevel.Fastest }),
+                        new DeflateCompressorFactory(new DeflateCompressionSettings { Level = CompressionLevel.Fastest }),
+                        new GZipCompressorFactory(new GZipCompressionSettings { Level = CompressionLevel.Fastest })
+                    ];
+                });
 
             services.AddHttpContextAccessor();
             services.AddRazorPages();
@@ -141,7 +168,8 @@ namespace ExampleWebSite
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseMinifyHtml();
+            app.UseWebMarkupMin();
+            //app.UseMinifyHtml();
 
             app.MapRazorPages();
             app.MapControllers();

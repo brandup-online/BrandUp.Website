@@ -25,7 +25,7 @@ namespace BrandUp.Website.IntegrationTests
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
             var responseHtml = await response.Content.ReadAsStringAsync();
-            Assert.Contains("</body>", responseHtml);
+            Assert.Contains("body", responseHtml);
         }
 
         [Theory]

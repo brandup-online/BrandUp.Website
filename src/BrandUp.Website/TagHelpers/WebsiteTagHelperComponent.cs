@@ -54,8 +54,7 @@ namespace BrandUp.Website.TagHelpers
 
                 var startupModel = await appPageModel.GetStartupClientModelAsync();
 
-                //outputContent.AppendHtml($"    <script>window.dataLayer = window.dataLayer || [];</script>{Environment.NewLine}");
-                outputContent.AppendHtml($"    <script>var appStartup = {jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
+                outputContent.AppendHtml($"    <script id=\"app-data\" type=\"application/json\">{jsonHelper.Serialize(startupModel)}</script>{Environment.NewLine}");
 
                 await websiteEvents.RenderHeadTag(new OnRenderTagContext(ViewContext, context, output));
             }

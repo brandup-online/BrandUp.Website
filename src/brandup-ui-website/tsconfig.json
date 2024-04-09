@@ -12,7 +12,8 @@
     "baseUrl": "./source",
     "declaration": false,
     "declarationMap": false,
-    "removeComments": false
+    "removeComments": false,
+    "outDir": "./out"
   },
   "include": [ "source" ],
   "exclude": [

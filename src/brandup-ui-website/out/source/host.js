@@ -1,44 +1,34 @@
-import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel } from "brandup-ui-app";
-import { WebsiteMiddleware, WebsiteOptions } from "./middlewares/website";
-import { NavigationModel, AntiforgeryOptions } from "./common";
-
-class WebsiteHost {
-    private static app: Application;
-
-    start<TModel extends ApplicationModel>(options: WebsiteOptions, configure: (builder: ApplicationBuilder) => void, callback?: (app: Application<TModel>) => void) {
+import { ApplicationBuilder } from "brandup-ui-app";
+import { WebsiteMiddleware } from "./middlewares/website";
+var WebsiteHost = /** @class */ (function () {
+    function WebsiteHost() {
+    }
+    WebsiteHost.prototype.start = function (options, configure, callback) {
         if (WebsiteHost.app)
             throw "Application already started.";
-
-        const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
+        var appDataElem = document.getElementById("app-data");
         if (!appDataElem)
             throw "Is not defined application startup configuration.";
-        const appData = <StartupModel>JSON.parse(appDataElem.text);
-
-        const appBuilder = new ApplicationBuilder();
+        var appData = JSON.parse(appDataElem.text);
+        var appBuilder = new ApplicationBuilder();
         appBuilder.useMiddleware(new WebsiteMiddleware(options, appData.nav, appData.antiforgery));
         configure(appBuilder);
-
         WebsiteHost.app = appBuilder.build(appData.env, appData.model);
-
-        let isInitiated = false;
-        const appInitFunc = () => {
+        var isInitiated = false;
+        var appInitFunc = function () {
             if (isInitiated)
                 return;
             isInitiated = true;
-
             WebsiteHost.app.start(callback);
         };
-
-        let isLoaded = false;
-        const appLoadFunc = () => {
+        var isLoaded = false;
+        var appLoadFunc = function () {
             if (isLoaded)
                 return;
             isLoaded = true;
-
             WebsiteHost.app.load();
         };
-
-        document.addEventListener("readystatechange", () => {
+        document.addEventListener("readystatechange", function () {
             switch (document.readyState) {
                 case "loading": {
                     break;
@@ -54,26 +44,16 @@ class WebsiteHost {
                 }
             }
         });
-
-        window.addEventListener("load", () => {
+        window.addEventListener("load", function () {
             appInitFunc();
             appLoadFunc();
         });
-
         if (document.readyState === "complete") {
             appInitFunc();
             appLoadFunc();
         }
-
         return WebsiteHost.app;
-    }
-}
-
-interface StartupModel {
-    env: EnvironmentModel;
-    model: ApplicationModel;
-    nav: NavigationModel;
-    antiforgery: AntiforgeryOptions;
-}
-
-export const host = new WebsiteHost();
+    };
+    return WebsiteHost;
+}());
+export var host = new WebsiteHost();

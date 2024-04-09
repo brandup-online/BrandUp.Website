@@ -51,6 +51,7 @@ namespace BrandUp.Website.Middlewares
                     if (!context.Response.Headers.TryGetValue("Content-type", out Microsoft.Extensions.Primitives.StringValues contentType) || !contentType[0].StartsWith("text/html", StringComparison.InvariantCultureIgnoreCase))
                     {
                         await tempBody.CopyToAsync(responseBody, context.RequestAborted);
+                        tempBody.Dispose();
                         return;
                     }
 
@@ -60,7 +61,9 @@ namespace BrandUp.Website.Middlewares
                     html = Regex1.Replace(html, string.Empty);
                     html = Regex2.Replace(html, string.Empty);
 
-                    await context.Response.WriteAsync(html, context.RequestAborted);
+                    await context.Response.WriteAsync(html, System.Text.Encoding.UTF8, context.RequestAborted);
+
+                    await context.Response.Body.FlushAsync(context.RequestAborted);
                 }
                 catch (OperationCanceledException) { }
             }

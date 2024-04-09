@@ -34,6 +34,11 @@
   "devDependencies": {
     "typescript": "^5.4.2"
   },
+  "files": [
+    "source",
+    "README.md",
+    "tsconfig.json"
+  ],
   "scripts": {
     "build": "tsc"
   }

@@ -198,7 +198,7 @@ namespace BrandUp.Website.Pages
             var navClientModel = await GetNavigationClientModelAsync();
 
             var pageModelScriptTag = new TagBuilder("script");
-            pageModelScriptTag.Attributes.Add("id", "test");
+            pageModelScriptTag.Attributes.Add("id", "nav-data");
             pageModelScriptTag.Attributes.Add("type", "application/json");
 
             var jsonHelper = Services.GetRequiredService<IJsonHelper>();
