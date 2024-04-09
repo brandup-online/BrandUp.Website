@@ -14,8 +14,7 @@ namespace BrandUp.Website.Infrastructure
 
         public SubdomainUrlMapProvider(IOptions<WebsiteOptions> options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             webSiteHost = options.Value.Host.ToLower();
         }
@@ -36,8 +35,7 @@ namespace BrandUp.Website.Infrastructure
     {
         public string ExtractName(HttpContext context, string requestHost)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
 
             string websiteName = null;
             var requestPath = context.Request.Path;
@@ -50,6 +48,7 @@ namespace BrandUp.Website.Infrastructure
                 else
                     websiteName = path;
             }
+
             return websiteName;
         }
     }

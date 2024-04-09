@@ -95,8 +95,6 @@ namespace BrandUp.Website.Pages
             var request = Request;
             var isGetRequest = request.Method.Equals("GET", StringComparison.InvariantCultureIgnoreCase);
             var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
-            var webSiteHost = webSiteOptions.Value.Host;
-            var cookiesPrefix = webSiteOptions.Value.CookiesPrefix;
             var isBot = request.IsBot();
 
             #region Navigation
