@@ -14,6 +14,7 @@ namespace BrandUp.Website.Pages
         readonly static DateTime StartDate = DateTime.UtcNow;
         IPageEvents pageEvents;
         IWebsiteEvents websiteEvents;
+        bool isRendered = false;
 
         #region Properties
 
@@ -48,9 +49,6 @@ namespace BrandUp.Website.Pages
 
         public override async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
             var requestQuery = httpRequest.Query;
@@ -214,8 +212,11 @@ namespace BrandUp.Website.Pages
 
         public async Task RenderPageAsync(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
         {
-            if (page == null)
-                throw new ArgumentNullException(nameof(page));
+            ArgumentNullException.ThrowIfNull(page);
+
+            if (isRendered)
+                throw new InvalidOperationException("Page already rendered.");
+            isRendered = true;
 
             if (RequestMode == AppPageRequestMode.Content)
                 page.Layout = null;
@@ -223,9 +224,9 @@ namespace BrandUp.Website.Pages
             var pageRenderContext = new PageRenderContext(this, page);
             await OnPageRenderAsync(pageRenderContext);
 
-            if (pageEvents != null)
-                await pageEvents.PageRenderAsync(pageRenderContext);
+            await pageEvents?.PageRenderAsync(pageRenderContext);
         }
+
         internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync()
         {
             var httpContext = HttpContext;
@@ -240,7 +241,7 @@ namespace BrandUp.Website.Pages
                 Model = new ClientModels.ApplicationModel
                 {
                     WebsiteId = WebsiteContext.Website.Id,
-                    Data = new Dictionary<string, object>()
+                    Data = []
                 }
             };
 
@@ -263,6 +264,7 @@ namespace BrandUp.Website.Pages
 
             return startupModel;
         }
+
         internal async Task<ClientModels.NavigationModel> GetNavigationClientModelAsync()
         {
             var httpContext = HttpContext;
@@ -277,7 +279,7 @@ namespace BrandUp.Website.Pages
                 Url = Link,
                 Path = Link.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
                 Query = new Dictionary<string, object>(),
-                Data = new Dictionary<string, object>(),
+                Data = [],
                 State = protector.Protect(JsonSerializer.Serialize(NavigationState)),
                 Title = Title,
                 CanonicalLink = CanonicalLink,
@@ -317,12 +319,13 @@ namespace BrandUp.Website.Pages
 
             return navModel;
         }
+
         async Task<ClientModels.PageModel> GetPageClientModelAsync()
         {
             var model = new ClientModels.PageModel
             {
                 Type = ScriptName,
-                Data = new Dictionary<string, object>()
+                Data = []
             };
 
             Helpers.ClientModelHelper.CopyProperties(this, model.Data);
@@ -359,8 +362,7 @@ namespace BrandUp.Website.Pages
 
         public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replaceUrl = false)
         {
-            if (pageUrl == null)
-                throw new ArgumentNullException(nameof(pageUrl));
+            ArgumentNullException.ThrowIfNull(pageUrl);
 
             return new Results.PageRedirectResult(this, pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
         }

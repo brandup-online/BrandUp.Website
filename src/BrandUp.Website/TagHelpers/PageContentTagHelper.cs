@@ -7,8 +7,7 @@ namespace BrandUp.Website.TagHelpers
     {
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (output == null)
-                throw new ArgumentNullException(nameof(output));
+            ArgumentNullException.ThrowIfNull(output);
 
             output.Attributes.SetAttribute(new TagHelperAttribute("id", "page-content"));
 

@@ -10,42 +10,25 @@ namespace BrandUp.Website.Pages
         Task PageRenderAsync(PageRenderContext context);
     }
 
-    public class PageRequestContext : WebsiteEventContext
+    public class PageRequestContext(AppPageModel pageModel) : WebsiteEventContext(pageModel)
     {
         public IActionResult Result { get; set; }
 
         public bool HasResult => Result != null;
-
-        public PageRequestContext(AppPageModel pageModel) : base(pageModel) { }
     }
 
-    public class PageClientNavidationContext : WebsiteEventContext
+    public class PageClientNavidationContext(AppPageModel pageModel, IDictionary<string, object> clientData) : WebsiteEventContext(pageModel)
     {
-        public IDictionary<string, object> ClientData { get; }
-
-        public PageClientNavidationContext(AppPageModel pageModel, IDictionary<string, object> clientData) : base(pageModel)
-        {
-            ClientData = clientData ?? throw new ArgumentNullException(nameof(clientData));
-        }
+        public IDictionary<string, object> ClientData { get; } = clientData ?? throw new ArgumentNullException(nameof(clientData));
     }
 
-    public class PageClientBuildContext : WebsiteEventContext
+    public class PageClientBuildContext(AppPageModel pageModel, IDictionary<string, object> clientData) : WebsiteEventContext(pageModel)
     {
-        public IDictionary<string, object> ClientData { get; }
-
-        public PageClientBuildContext(AppPageModel pageModel, IDictionary<string, object> clientData) : base(pageModel)
-        {
-            ClientData = clientData ?? throw new ArgumentNullException(nameof(clientData));
-        }
+        public IDictionary<string, object> ClientData { get; } = clientData ?? throw new ArgumentNullException(nameof(clientData));
     }
 
-    public class PageRenderContext : WebsiteEventContext
+    public class PageRenderContext(AppPageModel pageModel, Microsoft.AspNetCore.Mvc.Razor.IRazorPage page) : WebsiteEventContext(pageModel)
     {
-        public PageRenderContext(AppPageModel pageModel, Microsoft.AspNetCore.Mvc.Razor.IRazorPage page) : base(pageModel)
-        {
-            Page = page ?? throw new ArgumentNullException(nameof(page));
-        }
-
-        public Microsoft.AspNetCore.Mvc.Razor.IRazorPage Page { get; }
+        public Microsoft.AspNetCore.Mvc.Razor.IRazorPage Page { get; } = page ?? throw new ArgumentNullException(nameof(page));
     }
 }
