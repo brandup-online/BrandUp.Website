@@ -85,7 +85,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         const scriptElements = DOM.queryElements(this.element, "[data-content-script]");
         for (let i = 0; i < scriptElements.length; i++) {
             const elem = scriptElements.item(i);
-            if (elem.hasAttribute("brandup-ui-element"))
+            if (UIElement.hasElement(elem))
                 continue;
 
             const scriptName = elem.getAttribute("data-content-script");
