@@ -1,15 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<TargetFramework>net8.0</TargetFramework>
-	  <Company>BrandUp.online</Company>
-	  <Authors>Dmitry Kovyazin</Authors>
-	  <Product>BrandUp.Website</Product>
-	  <RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
-	  <PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
-	  <Nullable>disable</Nullable>
-	  <RootNamespace>BrandUp.Website</RootNamespace>
-	  <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Company>BrandUp.online</Company>
+		<Authors>Dmitry Kovyazin</Authors>
+		<Product>BrandUp.Website</Product>
+		<RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
+		<Nullable>disable</Nullable>
+		<RootNamespace>BrandUp.Website</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<PackageIcon>icon.png</PackageIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\icon.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>
