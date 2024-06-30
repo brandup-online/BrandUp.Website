@@ -45,15 +45,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                     options.headers[this.antiforgery.headerName] = this.__navigation.validationToken;
             }
         });
-
-        const navScriptElement = <HTMLScriptElement>document.getElementById("nav-data");
-        if (!navScriptElement)
-            throw 'Not found navigation data.';
-
-        const navModel = JSON.parse(navScriptElement.text);
-        navScriptElement.remove();
-
-        this.setNavigation(navModel, location.hash ? location.hash.substring(1) : null, false);
     }
 
     start(context: StartContext, next: () => void) {
@@ -88,6 +79,15 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                 elem.classList.remove("invalid-required");
             }
         });
+        
+        const navScriptElement = <HTMLScriptElement>document.getElementById("nav-data");
+        if (!navScriptElement)
+            throw 'Not found navigation data.';
+
+        const navModel = JSON.parse(navScriptElement.text);
+        navScriptElement.remove();
+
+        this.setNavigation(navModel, location.hash ? location.hash.substring(1) : null, false);
 
         this.__renderPage(context, this.__navCounter, null, next);
     }

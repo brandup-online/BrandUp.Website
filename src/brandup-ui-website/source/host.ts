@@ -20,11 +20,11 @@ class WebsiteHost {
 
         WebsiteHost.app = appBuilder.build(appData.env, appData.model);
 
-        let isInitiated = false;
-        const appInitFunc = () => {
-            if (isInitiated)
+        let isStarted = false;
+        const appStartFunc = () => {
+            if (isStarted)
                 return;
-            isInitiated = true;
+            isStarted = true;
 
             WebsiteHost.app.start(callback);
         };
@@ -44,11 +44,11 @@ class WebsiteHost {
                     break;
                 }
                 case "interactive": {
-                    appInitFunc();
+                    appStartFunc();
                     break;
                 }
                 case "complete": {
-                    appInitFunc();
+                    appStartFunc();
                     appLoadFunc();
                     break;
                 }
@@ -56,12 +56,12 @@ class WebsiteHost {
         });
 
         window.addEventListener("load", () => {
-            appInitFunc();
+            appStartFunc();
             appLoadFunc();
         });
 
         if (document.readyState === "complete") {
-            appInitFunc();
+            appStartFunc();
             appLoadFunc();
         }
 
