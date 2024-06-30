@@ -60,8 +60,6 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     app.UseStaticFiles();
     app.UseRouting();
 
-    app.UseMinifyHtml();
-
     app.UseEndpoints(endpoints =>
     {
         endpoints.MapRazorPages();
@@ -92,9 +90,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 </head>
 <body>
     <div class="app">
-        <div page-content>
-            @RenderBody()
-        </div>
+        @RenderBody()
     </div>
 </body>
 </html>
@@ -103,22 +99,25 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ### Представление страницы
 
-В представлении страницы необходимо обязательно вызвать метод `Model.RenderPage(this)`.
+В представлении страницы необходимо взять весь контент в тег `<page></page>`.
 
 ```
 @page
 @model IndexModel
-@{ await Model.RenderPageAsync(this); }
 
-<header class="page-header">
-    <h1>@Model.Header</h1>
-</header>
+<page>
 
-<section>
-    <p><a href="#test1">test1</a></p>
-    <p><a href="#test2">test2</a></p>
-    <p><a nav-url="/company">hotfound</a></p>
-</section>
+    <header class="page-header">
+        <h1>@Model.Header</h1>
+    </header>
+
+    <section>
+        <p><a href="#test1">test1</a></p>
+        <p><a href="#test2">test2</a></p>
+        <p><a nav-url="/company">hotfound</a></p>
+    </section>
+
+</page>
 ```
 
 ### Модель страницы
@@ -171,19 +170,21 @@ public class IndexModel : AppPageModel
 
 @page
 @model IndexModel
-@{ Model.RenderPage(this); }
 
-<h1>@Model.Header</h1>
+<page>
 
-<div>
-    @{
-        var webSiteContext = HttpContext.GetWebsiteContext(); 
-    }
-    <p>WebSite Id: @webSiteContext.Website.Id</p>
-    <p>WebSite Name: @webSiteContext.Website.Name</p>
-    <p>WebSite Title: @webSiteContext.Website.Title</p>
-</div>
+    <h1>@Model.Header</h1>
 
+    <div>
+        @{
+            var webSiteContext = HttpContext.GetWebsiteContext(); 
+        }
+        <p>WebSite Id: @webSiteContext.Website.Id</p>
+        <p>WebSite Name: @webSiteContext.Website.Name</p>
+        <p>WebSite Title: @webSiteContext.Website.Title</p>
+    </div>
+
+</page>
 ```
 
 ### Ссылки и навигация
