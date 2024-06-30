@@ -10,12 +10,5 @@ namespace BrandUp.Website
 
             return applicationBuilder;
         }
-
-        public static IApplicationBuilder UseMinifyHtml(this IApplicationBuilder applicationBuilder)
-        {
-            applicationBuilder.UseMiddleware<Middlewares.MinifyHtmlMiddleware>();
-
-            return applicationBuilder;
-        }
     }
 }

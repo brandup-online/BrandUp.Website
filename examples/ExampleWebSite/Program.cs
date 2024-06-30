@@ -169,7 +169,6 @@ namespace ExampleWebSite
             app.UseAuthorization();
 
             app.UseWebMarkupMin();
-            //app.UseMinifyHtml();
 
             app.MapRazorPages();
             app.MapControllers();
