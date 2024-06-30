@@ -49,7 +49,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
     start(context: StartContext, next: () => void) {
         context.items["website"] = this;
-        context.items["nav"] = this.__navigation;
 
         const bodyElem = document.body;
 
@@ -88,6 +87,7 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
         navScriptElement.remove();
 
         this.setNavigation(navModel, location.hash ? location.hash.substring(1) : null, false);
+        context.items["nav"] = this.__navigation;
 
         this.__renderPage(context, this.__navCounter, null, next);
     }
