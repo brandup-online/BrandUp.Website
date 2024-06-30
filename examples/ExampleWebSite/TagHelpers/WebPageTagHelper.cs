@@ -8,7 +8,7 @@ namespace ExampleWebSite.TagHelpers
     [HtmlTargetElement("page")]
     public class WebPageTagHelper : TagHelper
     {
-        [ViewContext]
+        [ViewContext, HtmlAttributeNotBound]
         public ViewContext ViewContext { get; set; }
         [HtmlAttributeName("title")]
         public string Title { get; set; }
@@ -22,8 +22,6 @@ namespace ExampleWebSite.TagHelpers
 
             if (!string.IsNullOrEmpty(Title))
                 webPageModel.SetTitle(Title);
-
-            output.SuppressOutput();
         }
     }
 }

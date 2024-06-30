@@ -5,7 +5,6 @@ namespace BrandUp.Website.ClientModels
     public class ApplicationModel
     {
         public string WebsiteId { get; set; }
-        public string VisitorId { get; set; }
         [JsonExtensionData]
         public Dictionary<string, object> Data { get; set; }
     }

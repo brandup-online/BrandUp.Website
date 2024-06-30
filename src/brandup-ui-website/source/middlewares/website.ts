@@ -15,7 +15,7 @@ const pageReplaceHeader = "Page-Replace";
 export class WebsiteMiddleware extends Middleware<ApplicationModel> implements WebsiteContext {
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
-    private __contentBodyElem: HTMLElement;
+    private __pageElem: HTMLElement;
     private __page: Page = null;
     private __navCounter = 0;
     private __currentUrl: UrlParsed = null;
@@ -23,10 +23,9 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
     readonly queue: AjaxQueue;
 
     get id(): string { return this.app.model.websiteId; }
-    get visitorId(): string { return this.app.model.visitorId; }
     get validationToken(): string { return this.__navigation ? this.__navigation.validationToken : null; }
 
-    constructor(options: WebsiteOptions, nav: NavigationModel, antiforgery: AntiforgeryOptions) {
+    constructor(options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
 
         this.options = options;
@@ -47,7 +46,14 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             }
         });
 
-        this.setNavigation(nav, location.hash ? location.hash.substring(1) : null, false);
+        const navScriptElement = <HTMLScriptElement>document.getElementById("nav-data");
+        if (!navScriptElement)
+            throw 'Not found navigation data.';
+
+        const navModel = JSON.parse(navScriptElement.text);
+        navScriptElement.remove();
+
+        this.setNavigation(navModel, location.hash ? location.hash.substring(1) : null, false);
     }
 
     start(context: StartContext, next: () => void) {
@@ -58,10 +64,6 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
 
         bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
         this.__showNavigationProgress();
-
-        this.__contentBodyElem = document.getElementById("page-content");
-        if (!this.__contentBodyElem)
-            throw "Not found page content element.";
 
         if (allowHistory) {
             window.addEventListener("popstate", (e:PopStateEvent) => this.__onPopState(e));
@@ -138,8 +140,8 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
                         contentFragment.append(fixElem);
                         fixElem.insertAdjacentHTML("beforebegin", response.data);
                         fixElem.remove();
-
-                        const navJsonElem = <HTMLScriptElement>contentFragment.firstElementChild;
+                        
+                        const navJsonElem = <HTMLScriptElement>contentFragment.getElementById("nav-data");
                         const navModel = JSON.parse(navJsonElem.text);
                         navJsonElem.remove();
 
@@ -393,14 +395,24 @@ export class WebsiteMiddleware extends Middleware<ApplicationModel> implements W
             this.__page.destroy();
             this.__page = null;
         }
-
+        
         if (contentHtml !== null) {
-            DOM.empty(this.__contentBodyElem);
-            this.__contentBodyElem.appendChild(contentHtml);
-            scriptReplace(this.__contentBodyElem);
+            const newPageElem = <HTMLElement>contentHtml.getElementById("page-content");
+            if (!newPageElem)
+                throw "Not found page element.";
+
+            this.__pageElem.replaceWith(newPageElem);
+            this.__pageElem = newPageElem;
+
+            scriptReplace(this.__pageElem);
+        }
+        else {
+            this.__pageElem = document.getElementById("page-content");
+            if (!this.__pageElem)
+                throw "Not found page element.";
         }
 
-        this.__page = new pageType(this, this.__navigation, this.__contentBodyElem);
+        this.__page = new pageType(this, this.__navigation, this.__pageElem);
         this.__page.render(this.__currentUrl.hash);
 
         context.items["page"] = this.__page;

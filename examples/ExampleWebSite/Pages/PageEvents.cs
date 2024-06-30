@@ -1,4 +1,5 @@
-﻿using BrandUp.Website.Pages;
+﻿using BrandUp.Website;
+using BrandUp.Website.Pages;
 
 namespace ExampleWebSite.Pages
 {
@@ -19,9 +20,17 @@ namespace ExampleWebSite.Pages
             return Task.CompletedTask;
         }
 
-        public Task PageRenderAsync(PageRenderContext context)
+        public async Task PageRenderAsync(PageRenderContext context)
         {
-            return Task.CompletedTask;
+            context.TagName = "main";
+
+            context.Attributes.Add("role", "main");
+
+            context.Attributes
+                .AddCssClass("app-content")
+                .AddCssClass("content-width");
+
+            await Task.CompletedTask;
         }
     }
 }

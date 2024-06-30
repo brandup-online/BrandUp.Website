@@ -1,11 +1,14 @@
 ﻿@page
 @model IndexModel
-@{ await Model.RenderPageAsync(this); }
 
-<header class="page-header">
-    <h1>@Model.Title</h1>
-</header>
+<page>
 
-<section>
-    Admin
-</section>
+    <header class="page-header">
+        <h1>@Model.Title</h1>
+    </header>
+
+    <section>
+        Admin
+    </section>
+
+</page>

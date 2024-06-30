@@ -131,7 +131,6 @@ export interface WebsiteContext {
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;
     readonly id: string;
-    readonly visitorId: string;
     readonly validationToken: string;
     updateHtml(html: string);
     request(options: AjaxRequest, includeAntiforgery?: boolean);

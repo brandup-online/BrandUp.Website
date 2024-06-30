@@ -195,12 +195,5 @@ namespace ExampleWebSite
         {
             return Task.CompletedTask;
         }
-
-        public Task RenderPageTitle(RenderPageTitleContext context)
-        {
-            context.Title = context.PageModel.Title + " – BrandUp.Website";
-
-            return Task.CompletedTask;
-        }
     }
 }

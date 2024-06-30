@@ -1,13 +1,10 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BrandUp.Website.Pages
@@ -15,9 +12,8 @@ namespace BrandUp.Website.Pages
     public abstract class AppPageModel : PageModel, IPageModel
     {
         readonly static DateTime StartDate = DateTime.UtcNow;
-        IPageEvents pageEvents;
         IWebsiteEvents websiteEvents;
-        bool isRendered = false;
+        IPageEvents pageEvents;
 
         #region Properties
 
@@ -72,6 +68,7 @@ namespace BrandUp.Website.Pages
             var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
             WebsiteContext = websiteFeature.Context;
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
+            pageEvents = HttpContext.RequestServices.GetService<IPageEvents>();
             Link = new Uri(HttpContext.Request.GetDisplayUrl());
 
             var request = Request;
@@ -160,7 +157,6 @@ namespace BrandUp.Website.Pages
             var pageRequestContext = new PageRequestContext(this);
             await OnPageRequestAsync(pageRequestContext);
 
-            pageEvents = HttpContext.RequestServices.GetService<IPageEvents>();
             if (pageEvents != null)
                 await pageEvents.PageRequestAsync(pageRequestContext);
 
@@ -175,36 +171,12 @@ namespace BrandUp.Website.Pages
 
         #endregion
 
-        public async Task RenderPageAsync(Microsoft.AspNetCore.Mvc.Razor.IRazorPage page)
+        internal async Task RaiseRenderPageAsync(PageRenderContext renderContext)
         {
-            ArgumentNullException.ThrowIfNull(page);
-
-            if (isRendered)
-                throw new InvalidOperationException("Page already rendered.");
-            isRendered = true;
-
-            if (RequestMode == AppPageRequestMode.Content)
-                page.Layout = null;
-
-            var pageRenderContext = new PageRenderContext(this, page);
-            await OnPageRenderAsync(pageRenderContext);
-
             if (pageEvents != null)
-                await pageEvents.PageRenderAsync(pageRenderContext);
+                await pageEvents.PageRenderAsync(renderContext);
 
-            var navClientModel = await GetNavigationClientModelAsync();
-
-            var pageModelScriptTag = new TagBuilder("script");
-            pageModelScriptTag.Attributes.Add("id", "nav-data");
-            pageModelScriptTag.Attributes.Add("type", "application/json");
-
-            var jsonHelper = Services.GetRequiredService<IJsonHelper>();
-            var json = jsonHelper.Serialize(navClientModel);
-            pageModelScriptTag.InnerHtml.SetHtmlContent(json);
-
-            var htmlEncoder = Services.GetRequiredService<HtmlEncoder>();
-            pageModelScriptTag.WriteTo(page.ViewContext.Writer, htmlEncoder);
-
+            await OnPageRenderAsync(renderContext);
         }
 
         internal async Task<ClientModels.StartupModel> GetStartupClientModelAsync()
@@ -239,8 +211,6 @@ namespace BrandUp.Website.Pages
 
             var startContext = new StartWebsiteContext(this, startupModel.Model.Data);
             await websiteEvents.StartAsync(startContext).ConfigureAwait(false);
-
-            startupModel.Nav = await GetNavigationClientModelAsync();
 
             return startupModel;
         }

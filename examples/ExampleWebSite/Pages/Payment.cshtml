@@ -1,22 +1,23 @@
 ﻿@page
 @model PaymentModel
-@{ await Model.RenderPageAsync(this); }
 
-<header class="page-header">
-    <h1>@Model.Title</h1>
-</header>
+<page title="Payment">
+    <header class="page-header">
+        <h1>@Model.Title</h1>
+    </header>
 
-<section>
-    <form method="get" asp-page="/about">
-        <input type="text" asp-for="Value" required />
-        <button type="submit">test</button>
-        <button asp-page-handler="Paste">paste</button>
-    </form>
-</section>
+    <section>
+        <form method="get" asp-page="/about">
+            <input type="text" asp-for="Value" required />
+            <button type="submit">test</button>
+            <button asp-page-handler="Paste">paste</button>
+        </form>
+    </section>
 
-<section>
-    <a nav-url="@Url.Page(string.Empty, new { ReturnUrl = Url.Page("SignIn") })">set redirect</a>
-    <form asp-antiforgery="true" asp-page-handler="Redirect">
-        <button type="submit">Redirect</button>
-    </form>
-</section>
+    <section>
+        <a nav-url="@Url.Page(string.Empty, new { ReturnUrl = Url.Page("SignIn") })">set redirect</a>
+        <form asp-antiforgery="true" asp-page-handler="Redirect">
+            <button type="submit">Redirect</button>
+        </form>
+    </section>
+</page>

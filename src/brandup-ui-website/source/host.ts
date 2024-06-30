@@ -1,6 +1,6 @@
 import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel } from "brandup-ui-app";
 import { WebsiteMiddleware, WebsiteOptions } from "./middlewares/website";
-import { NavigationModel, AntiforgeryOptions } from "./common";
+import { AntiforgeryOptions } from "./common";
 
 class WebsiteHost {
     private static app: Application;
@@ -15,7 +15,7 @@ class WebsiteHost {
         const appData = <StartupModel>JSON.parse(appDataElem.text);
 
         const appBuilder = new ApplicationBuilder();
-        appBuilder.useMiddleware(new WebsiteMiddleware(options, appData.nav, appData.antiforgery));
+        appBuilder.useMiddleware(new WebsiteMiddleware(options, appData.antiforgery));
         configure(appBuilder);
 
         WebsiteHost.app = appBuilder.build(appData.env, appData.model);
@@ -72,7 +72,6 @@ class WebsiteHost {
 interface StartupModel {
     env: EnvironmentModel;
     model: ApplicationModel;
-    nav: NavigationModel;
     antiforgery: AntiforgeryOptions;
 }
 

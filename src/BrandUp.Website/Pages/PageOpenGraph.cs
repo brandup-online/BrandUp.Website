@@ -23,8 +23,7 @@
 
         public TValue Get<TValue>(string name)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             if (items.TryGetValue(NormalizeName(name), out object content))
                 return (TValue)content;
@@ -32,8 +31,7 @@
         }
         public bool TryGet<TValue>(string name, out TValue value)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             if (items.TryGetValue(NormalizeName(name), out object content))
             {
@@ -46,22 +44,19 @@
         }
         public bool Contains(string name)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             return items.ContainsKey(NormalizeName(name));
         }
         public void Set<TValue>(string name, TValue content)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             items[NormalizeName(name)] = content;
         }
         public bool Remove(string name)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             return items.Remove(NormalizeName(name));
         }

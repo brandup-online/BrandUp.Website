@@ -9,8 +9,8 @@ namespace BrandUp.Website.TagHelpers
     {
         const string LoadingClass = "bp-state-loading";
 
-        private readonly IJsonHelper jsonHelper = jsonHelper ?? throw new ArgumentNullException(nameof(jsonHelper));
-        private readonly IWebsiteEvents websiteEvents = websiteEvents ?? throw new ArgumentNullException(nameof(websiteEvents));
+        readonly IJsonHelper jsonHelper = jsonHelper ?? throw new ArgumentNullException(nameof(jsonHelper));
+        readonly IWebsiteEvents websiteEvents = websiteEvents ?? throw new ArgumentNullException(nameof(websiteEvents));
 
         [HtmlAttributeNotBound, ViewContext]
         public ViewContext ViewContext { get; set; }

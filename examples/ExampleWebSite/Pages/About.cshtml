@@ -1,12 +1,12 @@
 ﻿@page
 @model WebPageModel
 
-<page title="About" />
+<page title="About">
+    <header class="page-header">
+        <h1>@Model.Header</h1>
+    </header>
 
-<header class="page-header">
-    <h1>@Model.Header</h1>
-</header>
-
-<section>
-    <div data-content-script="test"></div>
-</section>
+    <section>
+        <div data-content-script="test"></div>
+    </section>
+</page>
