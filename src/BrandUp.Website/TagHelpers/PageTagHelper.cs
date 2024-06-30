@@ -18,7 +18,7 @@ namespace BrandUp.Website.TagHelpers
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             if (ViewContext.ViewData.Model is not AppPageModel appPageModel || ViewContext.View is not RazorView razorView)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Tag helper ${typeof(PageTagHelper).FullName} require page model {typeof(AppPageModel).FullName}.");
 
             if (appPageModel.RequestMode == AppPageRequestMode.Content)
                 razorView.RazorPage.Layout = null;
