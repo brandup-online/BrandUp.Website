@@ -17,14 +17,6 @@ namespace BrandUp.Website
             return feature.Context;
         }
 
-        public static void SetMinifyHtml(this HttpContext httpContext)
-        {
-            ArgumentNullException.ThrowIfNull(httpContext);
-
-            var minifyHtmlFeature = httpContext.Features.Get<IMinifyHtmlFeature>();
-            minifyHtmlFeature?.SetMinify();
-        }
-
         public static bool IsBot(this HttpRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);

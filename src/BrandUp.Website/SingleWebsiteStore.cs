@@ -32,16 +32,11 @@
             return Task.FromResult(TimeZoneInfo.Local);
         }
 
-        class SingleWebsite : IWebsite
+        class SingleWebsite(string title) : IWebsite
         {
             public string Id { get; } = "website";
             public string Name { get; } = string.Empty;
-            public string Title { get; }
-
-            public SingleWebsite(string title)
-            {
-                Title = title ?? throw new ArgumentNullException(nameof(title));
-            }
+            public string Title { get; } = title ?? throw new ArgumentNullException(nameof(title));
         }
     }
 }

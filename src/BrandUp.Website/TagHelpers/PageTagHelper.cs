@@ -9,7 +9,7 @@ namespace BrandUp.Website.TagHelpers
     [HtmlTargetElement("page", TagStructure = TagStructure.NormalOrSelfClosing)]
     public class PageTagHelper : TagHelper
     {
-        [ViewContext]
+        [HtmlAttributeNotBound, ViewContext]
         public ViewContext ViewContext { get; set; }
 
         public override int Order => 1000;

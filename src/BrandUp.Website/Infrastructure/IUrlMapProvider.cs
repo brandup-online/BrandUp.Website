@@ -41,7 +41,7 @@ namespace BrandUp.Website.Infrastructure
             var requestPath = context.Request.Path;
             if (requestPath.HasValue)
             {
-                var path = requestPath.Value.ToLower().Trim(new char[] { '/' });
+                var path = requestPath.Value.ToLower().Trim(['/']);
                 var firstShlashIndex = path.IndexOf('/', StringComparison.InvariantCultureIgnoreCase);
                 if (firstShlashIndex > 0)
                     websiteName = path[..firstShlashIndex];

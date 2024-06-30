@@ -12,9 +12,6 @@ namespace BrandUp.Website.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (output == null)
-                throw new ArgumentNullException(nameof(output));
-
             if (NavReplace)
                 output.Attributes.SetAttribute(new TagHelperAttribute(AttributeName, null, HtmlAttributeValueStyle.Minimized));
         }

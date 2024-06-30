@@ -68,9 +68,6 @@ namespace BrandUp.Website.Pages
 
             if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out string navigationData))
                 RequestMode = AppPageRequestMode.Content;
-            //var isSubmit = httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageSubmit, out _);
-
-            HttpContext.SetMinifyHtml();
 
             var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
             WebsiteContext = websiteFeature.Context;
@@ -326,14 +323,17 @@ namespace BrandUp.Website.Pages
         {
             return Task.CompletedTask;
         }
+
         protected virtual Task OnPageRenderAsync(PageRenderContext context)
         {
             return Task.CompletedTask;
         }
+
         protected virtual Task OnPageClientNavigationAsync(PageClientNavidationContext context)
         {
             return Task.CompletedTask;
         }
+
         protected virtual Task OnPageClientBuildAsync(PageClientBuildContext context)
         {
             return Task.CompletedTask;
