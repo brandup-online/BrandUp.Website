@@ -3,9 +3,8 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace BrandUp.Website.Pages.Results
 {
-    public class PageRedirectResult(AppPageModel currentPage, string pageUrl) : ActionResult, IActionResult, IKeepTempDataResult
+    public class PageRedirectResult(string pageUrl) : ActionResult, IActionResult, IKeepTempDataResult
     {
-        public AppPageModel CurrentPage { get; } = currentPage ?? throw new ArgumentNullException(nameof(currentPage));
         public string PageUrl { get; } = pageUrl ?? throw new ArgumentNullException(nameof(pageUrl));
         public bool IsPermament { get; set; }
         public bool ReplaceUrl { get; set; }
