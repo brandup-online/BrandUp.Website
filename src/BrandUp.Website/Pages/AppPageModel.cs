@@ -315,7 +315,7 @@ namespace BrandUp.Website.Pages
         {
             ArgumentNullException.ThrowIfNull(pageUrl);
 
-            return new Results.PageRedirectResult(this, pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
+            return new Results.PageRedirectResult(pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
         }
 
         public Results.PageActionResult PageAction(PageActionType actionType)
