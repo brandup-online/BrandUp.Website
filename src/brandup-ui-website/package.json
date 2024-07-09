@@ -45,7 +45,7 @@
     "typescript": "^5.5.3"
   },
   "files": [
-    "source",
+    "dist",
     "README.md",
     "tsconfig.json"
   ],
