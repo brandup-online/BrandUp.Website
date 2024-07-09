@@ -138,7 +138,7 @@ stages:
       displayName: "packages npm version"
       inputs:
         command: "custom"
-        customCommand: "run npm:version -- $(Build.BuildNumber)"
+        customCommand: "run npm:version $(Build.BuildNumber)"
 
     - task: "Npm@1"
       displayName: "packages npm pack"
