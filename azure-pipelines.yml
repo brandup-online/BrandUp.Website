@@ -5,7 +5,7 @@ resources:
 - repo: self
 
 variables:
-- group: brandup-website
+- group: public-npm
 - group: public-nuget
 - name: vmImageName
   value: 'ubuntu-latest'
@@ -19,6 +19,10 @@ variables:
   value: 'Release'
 - name: envName
   value: 'brandup-website'
+- name: version-major
+  value: "8"
+- name: version-minor
+  value: "1"
 
 name: $(version-major).$(version-minor).$(rev:r)
 
@@ -33,6 +37,8 @@ stages:
     displayName: Build NET
     pool:
       vmImage: $(vmImageName)
+      workspace:
+        clean: all
     steps:
     - script: |
         echo "Hello, world!"
@@ -49,18 +55,6 @@ stages:
         packageType: 'sdk'
         version: '8.x'
         
-    #- task: Npm@1
-    #  displayName: 'npm install brandup-ui-website'
-    #  inputs:
-    #    command: 'install'
-    #    workingDir: 'src/brandup-ui-website'
-
-    #- task: Npm@1
-    #  displayName: 'npm install ExampleWebSite'
-    #  inputs:
-    #    command: 'install'
-    #    workingDir: 'examples/ExampleWebSite'
-
     - task: DotNetCoreCLI@2
       displayName: 'dotnet restore'
       inputs:
@@ -126,14 +120,7 @@ stages:
       inputs:
         command: 'install'
         workingDir: 'src/brandup-ui-website'
-
-    - task: Npm@1
-      displayName: 'npm update'
-      inputs:
-        command: custom
-        customCommand: update --save
-        workingDir: 'src/brandup-ui-website'
-
+        
     - task: Npm@1
       displayName: 'npm build'
       inputs:
@@ -148,16 +135,12 @@ stages:
         customCommand: 'version "$(Build.BuildNumber)" --no-git-tag-version'
         workingDir: 'src/brandup-ui-website'
 
-    - task: CopyFiles@2
-      displayName: 'npm copy to artifact'
+    - task: "Npm@1"
+      displayName: "npm pack"
       inputs:
-        SourceFolder: 'src/brandup-ui-website'
-        Contents: |
-         source/**
-         package.json
-         README.md
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/brandup-ui-website/'
-
+        command: custom
+        customCommand: "pack --pack-destination $(Build.ArtifactStagingDirectory)"
+        
     - publish: $(build.artifactstagingdirectory)
       displayName: publish artifact
       condition: succeededOrFailed()
@@ -194,11 +177,19 @@ stages:
         deploy:
           steps:
           
+          - task: ExtractFiles@1
+            displayName: "unzip brandup-ui-website"
+            inputs:
+            archiveFilePatterns: "$(Pipeline.Workspace)/npm/brandup-ui-website-$(Build.BuildNumber).tgz"
+            destinationFolder: "$(Pipeline.Workspace)/npm/brandup-ui-website"
+            cleanDestinationFolder: true
+            overwriteExistingFiles: true
+
           - task: Npm@1
-            displayName: 'publish npm'
+            displayName: 'publish npm brandup-ui-website'
             inputs:
               command: publish
-              workingDir: '$(Pipeline.Workspace)/npm/brandup-ui-website/'
+              workingDir: '$(Pipeline.Workspace)/npm/brandup-ui-website/package'
               publishEndpoint: '$(publish-npm-credentials)'
 
           - task: DotNetCoreCLI@2
