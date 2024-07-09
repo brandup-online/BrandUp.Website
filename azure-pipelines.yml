@@ -105,6 +105,8 @@ stages:
     dependsOn: [ BuildNet ]
     pool:
       vmImage: $(vmImageName)
+      workspace:
+        clean: all
     steps:
     - script: |
         echo "Hello, world!"
