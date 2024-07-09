@@ -46,8 +46,8 @@ stages:
       displayName: 'print variables'
 
     - checkout: self
-      clean: true
-      persistCredentials: true
+      clean: "true"
+      persistCredentials: "true"
 
     - task: UseDotNet@2
       displayName: 'use dotnet 8.x'
@@ -80,7 +80,7 @@ stages:
         testRunTitle: "solution tests"
 
     - task: PublishTestResults@2
-      enabled: false
+      enabled: "false"
       displayName: 'publish test/coverage results'
       condition: succeededOrFailed()
       inputs:
@@ -112,8 +112,8 @@ stages:
       displayName: 'print variables'
 
     - checkout: self
-      clean: true
-      persistCredentials: true
+      clean: "true"
+      persistCredentials: "true"
 
     - task: Npm@1
       displayName: 'npm install'
@@ -152,8 +152,8 @@ stages:
     condition: succeeded()
     steps:
     - checkout: self
-      clean: true
-      persistCredentials: true
+      clean: "true"
+      persistCredentials: "true"
 
     - pwsh: |
           git config --global user.name "AzureDevOps Agent"
@@ -180,10 +180,10 @@ stages:
           - task: ExtractFiles@1
             displayName: "unzip brandup-ui-website"
             inputs:
-            archiveFilePatterns: "$(Pipeline.Workspace)/npm/brandup-ui-website-$(Build.BuildNumber).tgz"
-            destinationFolder: "$(Pipeline.Workspace)/npm/brandup-ui-website"
-            cleanDestinationFolder: true
-            overwriteExistingFiles: true
+              archiveFilePatterns: "$(Pipeline.Workspace)/npm/brandup-ui-website-$(Build.BuildNumber).tgz"
+              destinationFolder: "$(Pipeline.Workspace)/npm/brandup-ui-website"
+              cleanDestinationFolder: true
+              overwriteExistingFiles: true
 
           - task: Npm@1
             displayName: 'publish npm brandup-ui-website'
