@@ -117,32 +117,35 @@ stages:
       clean: "true"
       persistCredentials: "true"
 
-    - task: Npm@1
-      displayName: 'npm install'
+    - task: "Npm@1"
+      displayName: "root npm install"
       inputs:
-        command: 'install'
-        workingDir: 'src/brandup-ui-website'
-        
-    - task: Npm@1
-      displayName: 'npm build'
-      inputs:
-        command: custom
-        customCommand: 'run build'
-        workingDir: 'src/brandup-ui-website'
-
-    - task: Npm@1
-      displayName: 'npm set version'
-      inputs:
-        command: custom
-        customCommand: 'version "$(Build.BuildNumber)" --no-git-tag-version'
-        workingDir: 'src/brandup-ui-website'
+        command: "install"
 
     - task: "Npm@1"
-      displayName: "npm pack"
+      displayName: "packages npm install"
+      inputs:
+        command: "custom"
+        customCommand: "run npm:install"
+
+    - task: "Npm@1"
+      displayName: "packages npm build"
+      inputs:
+        command: "custom"
+        customCommand: "run npm:build"
+
+    - task: "Npm@1"
+      displayName: "packages npm version"
+      inputs:
+        command: "custom"
+        customCommand: "run npm:version -- $(Build.BuildNumber)"
+
+    - task: "Npm@1"
+      displayName: "packages npm pack"
       inputs:
         command: custom
-        customCommand: "pack --pack-destination $(Build.ArtifactStagingDirectory)"
-        
+        customCommand: "run npm:pack --pack-destination $(Build.ArtifactStagingDirectory)"
+
     - publish: $(build.artifactstagingdirectory)
       displayName: publish artifact
       condition: succeededOrFailed()

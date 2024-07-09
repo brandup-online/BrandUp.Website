@@ -349,18 +349,17 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+package-lock.json
+
 /examples/ExampleWebSite/wwwroot/dist
 /examples/ExampleWebSite/_client/**/*.js
 /examples/ExampleWebSite/_client/**/*.js.map
-/examples/ExampleWebSite/package-lock.json
 /examples/ExampleWebSite/_data/temp
 
-/src/brandup-ui-website/coverage
-/src/brandup-ui-website/package-lock.json
-/src/brandup-ui-website/dist
-/src/brandup-ui-website/test/**/*.js
-/src/brandup-ui-website/out/**/*.js
-/src/brandup-ui-website/source/**/*.js
-/src/brandup-ui-website/.rpt2_cache
-/src/brandup-ui-website/source/**/*.d.ts
-/src/brandup-ui-website/source/**/*.js.map
+/npm/*/coverage
+/npm/*/dist
+/npm/*/test/**/*.js
+/npm/*/out/**/*.js
+/npm/*/source/**/*.js
+/npm/*/source/**/*.d.ts
+/npm/*/source/**/*.js.map

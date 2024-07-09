@@ -7,7 +7,7 @@
     "brandup-ui-ajax": "^2.2.4",
     "brandup-ui-app": "^2.2.4",
     "brandup-ui-dom": "^2.2.4",
-    "brandup-ui-website": "file:../../src/brandup-ui-website"
+    "brandup-ui-website": "file:../../npm/brandup-ui-website"
   },
   "devDependencies": {
     "css-loader": "^6.11.0",
