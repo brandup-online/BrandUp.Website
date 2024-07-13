@@ -13,8 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleWebSite", "examples\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_solution", "_solution", "{F1785BFF-4D74-4DFE-B6B3-EAAA864B4037}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
 		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
+		package.json = package.json
 		README.md = README.md
 	EndProjectSection
 EndProject
