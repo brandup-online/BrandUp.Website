@@ -28,10 +28,10 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "brandup-ui": "^2.2.7",
-    "brandup-ui-ajax": "^2.2.7",
-    "brandup-ui-app": "^2.2.7",
-    "brandup-ui-dom": "^2.2.7"
+    "brandup-ui": "^2.3.2",
+    "brandup-ui-ajax": "^2.3.2",
+    "brandup-ui-app": "^2.3.2",
+    "brandup-ui-dom": "^2.3.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.8",
@@ -49,6 +49,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rollup -c --bundleConfigAsCjs"
+    "build": "rollup -c --bundleConfigAsCjs",
+    "watch": "rollup -c -w --bundleConfigAsCjs"
   }
 }

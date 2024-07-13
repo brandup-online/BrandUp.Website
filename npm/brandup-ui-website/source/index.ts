@@ -1,4 +1,7 @@
+import { WebApp } from "./webapp"
+
 export * from "./common"
-export * from "./host"
-export * from "./pages/base"
+export * from "./page"
 export * from "./utilities/wait"
+
+export default WebApp;

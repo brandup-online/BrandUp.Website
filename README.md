@@ -1,23 +1,19 @@
 # BrandUp.Website
 
-Базовый инфраструктурный фреймворк для Web-сайтов.
+Базовый инфраструктурный фреймворк для Web-сайтов на ASP.NET Razor Pages.
+
+[![Build Status](https://dev.azure.com/brandup/BrandUp%20Core/_apis/build/status%2FBrandUp%2Fbrandup-website?branchName=master)](https://dev.azure.com/brandup/BrandUp%20Core/_build/latest?definitionId=58&branchName=master)
 
 ## Installation
 
-NuGet-package: [https://www.nuget.org/packages/BrandUp.Website/](https://www.nuget.org/packages/BrandUp.Website/)
+Install NuGet package: [https://www.nuget.org/packages/BrandUp.Website/](https://www.nuget.org/packages/BrandUp.Website/)
 
+Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-ui-website).
 
 ## Конфигурация
 
 ```
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information"
-    }
-  },
   "AllowedHosts": "*",
   "Website": {
     "Host": "localhost",
@@ -41,7 +37,7 @@ NuGet-package: [https://www.nuget.org/packages/BrandUp.Website/](https://www.nug
 var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>()
 ```
 
-### Запуск
+Регистрация сервисов:
 
 ```
 
@@ -70,11 +66,17 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ### Контекст сайта
 
-Контекст сайта **IWebsiteContext** создаётся для каждого входящего запроса. Он доступен через IServiceProvider.
+Контекст сайта `IWebsiteContext` создаётся для каждого входящего запроса. Доступен через `IServiceProvider`.
+
+Получение контекста сайта для текущего `HttpContext`:
+
+```
+var webSiteContext = HttpContext.GetWebsiteContext(); 
+```
 
 ## Представления и модели
 
-### Представление _Layout
+### _Layout
 
 ```
 
@@ -97,7 +99,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ```
 
-### Представление страницы
+### Page view
 
 В представлении страницы необходимо взять весь контент в тег `<page></page>`.
 
@@ -120,12 +122,11 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 </page>
 ```
 
-### Модель страницы
+### Page model
 
-Базовым классом модели страницы является класс AppPageModel.
+Базовым классом модели страницы является класс `AppPageModel`.
 
 ```
-
 public class IndexModel : AppPageModel
 {
     public override string Title => "Main";
@@ -187,7 +188,7 @@ public class IndexModel : AppPageModel
 </page>
 ```
 
-### Ссылки и навигация
+### Links and navigation
 
 Чтобы навигация между страницами была без перезагрузки страницы, ссылка должна иметь класс `applink`.
 
@@ -213,6 +214,10 @@ public class IndexModel : AppPageModel
 ```
 
 ## Клиентское приложение
+
+Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-ui-website).
+
+Read [documentation](/npm/brandup-ui-website/README.md).
 
 ```
 

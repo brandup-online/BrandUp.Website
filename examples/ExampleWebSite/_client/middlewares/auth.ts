@@ -1,7 +1,7 @@
 ﻿import { ajaxRequest } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, Application } from "brandup-ui-app";
 
-export class AuthMiddleware extends Middleware<ApplicationModel> {
+export class AuthMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
     start(context: StartContext, next) {
         this.app.registerCommand("signout", () => {
             ajaxRequest({

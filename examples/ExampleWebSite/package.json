@@ -3,10 +3,10 @@
   "name": "example-web-site",
   "private": true,
   "dependencies": {
-    "brandup-ui": "^2.2.7",
-    "brandup-ui-ajax": "^2.2.7",
-    "brandup-ui-app": "^2.2.7",
-    "brandup-ui-dom": "^2.2.7",
+    "brandup-ui": "^2.3.2",
+    "brandup-ui-ajax": "^2.3.2",
+    "brandup-ui-app": "^2.3.2",
+    "brandup-ui-dom": "^2.3.2",
     "brandup-ui-website": "file:../../npm/brandup-ui-website"
   },
   "devDependencies": {
@@ -20,7 +20,7 @@
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.3",
     "url-loader": "^4.1.1",
-    "webpack": "^5.92.1",
+    "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4"
   },
   "scripts": {

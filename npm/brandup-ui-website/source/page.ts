@@ -1,6 +1,5 @@
-import { PageModel, NavigationModel, AntiforgeryOptions } from "../common";
-import { NavigationOptions, Application } from "brandup-ui-app";
-import { AjaxQueue, AjaxRequest } from "brandup-ui-ajax";
+import { PageModel, NavigationModel, WebsiteContext } from "./common";
+import { AjaxQueue } from "brandup-ui-ajax";
 import { UIElement } from "brandup-ui";
 import { DOM } from "brandup-ui-dom";
 
@@ -124,17 +123,4 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         super.destroy();
     }
-}
-
-export interface WebsiteContext {
-    readonly app: Application;
-    readonly antiforgery: AntiforgeryOptions;
-    readonly queue: AjaxQueue;
-    readonly id: string;
-    readonly validationToken: string;
-    updateHtml(html: string);
-    request(options: AjaxRequest, includeAntiforgery?: boolean);
-    buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
-    nav(options: NavigationOptions);
-    getScript(name: string): Promise<{ default: any }>;
 }

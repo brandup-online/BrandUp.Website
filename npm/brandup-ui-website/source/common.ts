@@ -1,3 +1,6 @@
+import { AjaxQueue, AjaxRequest } from "brandup-ui-ajax";
+import { Application, NavigationOptions } from "brandup-ui-app";
+
 export interface AntiforgeryOptions {
     headerName: string;
     formFieldName: string;
@@ -32,4 +35,17 @@ export interface PageOpenGraph {
 export interface PageModel {
     type: string;
     [key: string]: any;
+}
+
+export interface WebsiteContext {
+    readonly app: Application;
+    readonly antiforgery: AntiforgeryOptions;
+    readonly queue: AjaxQueue;
+    readonly id: string;
+    readonly validationToken: string;
+    updateHtml(html: string);
+    request(options: AjaxRequest, includeAntiforgery?: boolean);
+    buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
+    nav(options: NavigationOptions);
+    getScript(name: string): Promise<{ default: any }>;
 }

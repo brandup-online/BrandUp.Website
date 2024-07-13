@@ -1,5 +1,5 @@
 ﻿import { ajaxRequest, AjaxResponse } from "brandup-ui-ajax";
-import { Middleware, NavigateContext, StartContext, LoadContext, SubmitContext } from "brandup-ui-app";
+import { Middleware, NavigateContext, StartContext, LoadContext, SubmitContext, ApplicationModel, Application } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
 import { WebsiteContext } from "brandup-ui-website";
 
@@ -33,7 +33,7 @@ const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: strin
     }
 };
 
-export class CityMiddleware extends Middleware {
+export class CityMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
     start(_context: StartContext, next) {
         next();
 

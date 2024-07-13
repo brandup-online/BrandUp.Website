@@ -1,10 +1,10 @@
 import { AJAXMethod, AjaxQueue, ajaxRequest, AjaxRequest, AjaxResponse } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, SubmitContext, InvokeContext } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, SubmitContext, InvokeContext, Application } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
-import { NavigationModel, AntiforgeryOptions } from "../common";
-import { Page, WebsiteContext } from "../pages/base";
-import { minWait } from "../utilities/wait";
-import { scriptReplace } from "../utilities/script";
+import { NavigationModel, AntiforgeryOptions, WebsiteContext } from "./common";
+import { Page } from "./page";
+import { minWait } from "./utilities/wait";
+import { scriptReplace } from "./utilities/script";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 const pageReloadHeader = "Page-Reload";
@@ -12,7 +12,7 @@ const pageActionHeader = "Page-Action";
 const pageLocationHeader = "Page-Location";
 const pageReplaceHeader = "Page-Replace";
 
-export class WebsiteMiddleware extends Middleware<ApplicationModel> implements WebsiteContext {
+export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> implements WebsiteContext {
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
     private __pageElem: HTMLElement;
