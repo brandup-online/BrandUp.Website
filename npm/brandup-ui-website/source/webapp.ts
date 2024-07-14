@@ -2,7 +2,7 @@ import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel } f
 import { WebsiteMiddleware, WebsiteOptions } from "./middleware";
 import { AntiforgeryOptions } from "./common";
 
-let current: Application<ApplicationModel> = null;
+let current: Application<ApplicationModel> | null = null;
 
 const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, callback?: (app: Application<ApplicationModel>) => void) => {
     if (current)
@@ -27,7 +27,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
             return;
         isStarted = true;
 
-        current.start(callback);
+        current?.start(callback);
     };
 
     let isLoaded = false;
@@ -36,7 +36,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
             return;
         isLoaded = true;
 
-        current.load();
+        current?.load();
     };
 
     document.addEventListener("readystatechange", () => {
@@ -76,7 +76,7 @@ interface StartupModel {
 }
 
 interface WebAppImlp {
-    readonly current: Application<ApplicationModel>;
+    readonly current: Application<ApplicationModel> | null;
     run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, callback?: (app: Application<ApplicationModel>) => void);
 }
 

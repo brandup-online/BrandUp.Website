@@ -8,7 +8,7 @@ const scriptReplace = (node: Node) => {
         script.text = source.innerHTML;
         for (let i = source.attributes.length - 1; i >= 0; i--)
             script.setAttribute(source.attributes[i].name, source.attributes[i].value);
-        node.parentNode.replaceChild(script, node);
+        node.parentNode?.replaceChild(script, node);
     }
     else {
         let i = 0;

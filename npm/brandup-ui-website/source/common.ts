@@ -42,10 +42,10 @@ export interface WebsiteContext {
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;
     readonly id: string;
-    readonly validationToken: string;
+    readonly validationToken: string | null;
     updateHtml(html: string);
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
     nav(options: NavigationOptions);
-    getScript(name: string): Promise<{ default: any }>;
+    getScript(name: string): Promise<{ default: any }> | null;
 }

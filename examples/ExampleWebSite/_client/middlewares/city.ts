@@ -9,7 +9,8 @@ const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: strin
     const clickFunc = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
         if (!target.closest(scopeSelector)) {
-            scopeElem.classList.remove(cssClass);
+            scopeElem?.classList.remove(cssClass);
+            if(off)
             off();
 
             document.body.removeEventListener("click", clickElem["___clickRet"], { capture: false });
@@ -28,7 +29,8 @@ const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: strin
         document.body.addEventListener("click", clickFunc, { capture: false });
     }
     else {
-        off();
+        if (off)
+            off();
         document.body.removeEventListener("click", clickElem["___clickRet"], { capture: false });
     }
 };
@@ -62,7 +64,7 @@ export class CityMiddleware extends Middleware<Application<ApplicationModel>, Ap
                     request.abort();
                 };
             }, () => {
-                    context.target.nextElementSibling.remove();
+                    context.target.nextElementSibling?.remove();
                     context.complate();
                 });
         });

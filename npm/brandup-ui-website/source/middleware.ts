@@ -15,15 +15,15 @@ const pageReplaceHeader = "Page-Replace";
 export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> implements WebsiteContext {
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
-    private __pageElem: HTMLElement;
-    private __page: Page = null;
+    private __pageElem: HTMLElement | null = null;
+    private __page: Page | null = null;
     private __navCounter = 0;
-    private __currentUrl: UrlParsed = null;
-    private __navigation: NavigationModel;
+    private __currentUrl: UrlParsed | null = null;
+    private __navigation: NavigationModel | null = null;
     readonly queue: AjaxQueue;
 
     get id(): string { return this.app.model.websiteId; }
-    get validationToken(): string { return this.__navigation ? this.__navigation.validationToken : null; }
+    get validationToken(): string | null { return this.__navigation ? this.__navigation.validationToken : null; }
 
     constructor(options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
@@ -41,7 +41,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 if (!options.headers)
                     options.headers = {};
 
-                if (this.antiforgery && options.method !== "GET" && options.method)
+                if (this.antiforgery && options.method !== "GET" && options.method && this.__navigation)
                     options.headers[this.antiforgery.headerName] = this.__navigation.validationToken;
             }
         });
@@ -55,9 +55,8 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
         this.__showNavigationProgress();
 
-        if (allowHistory) {
+        if (allowHistory)
             window.addEventListener("popstate", (e:PopStateEvent) => this.__onPopState(e));
-        }
 
         bodyElem.addEventListener("invalid", (event: Event) => {
             event.preventDefault();
@@ -83,7 +82,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (!navScriptElement)
             throw 'Not found navigation data.';
 
-        const navModel = JSON.parse(navScriptElement.text);
+        const navModel: NavigationModel = JSON.parse(navScriptElement.text);
         navScriptElement.remove();
 
         this.setNavigation(navModel, location.hash ? location.hash.substring(1) : null, false);
@@ -119,7 +118,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         this.queue.push({
             url: context.url,
             method: "GET",
-            headers: { "Page-Nav": this.__navigation.state ? this.__navigation.state : "" },
+            headers: { "Page-Nav": this.__navigation?.state ? this.__navigation.state : "" },
             disableCache: true,
             success: (response: AjaxResponse<string>) => {
                 if (this.__isNavOutdated(navSequence))
@@ -127,6 +126,11 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
                 switch (response.status) {
                     case 200: {
+                        if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
+                            location.href = context.url;
+                            return;
+                        }
+
                         if (this.__precessPageResponse(response, end))
                             return;
 
@@ -148,11 +152,6 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                         context.items["nav"] = navModel;
 
                         this.setNavigation(navModel, context.hash, context.replace);
-
-                        if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
-                            location.reload();
-                            return;
-                        }
 
                         this.__renderPage(context, navSequence, contentFragment, next);
 
@@ -191,7 +190,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                                 this.updateHtml(response.data);
                             }
                             else {
-                                this.__page.callbackHandler(response.data);
+                                this.__page?.callbackHandler(response.data);
                             }
                         }
 
@@ -214,7 +213,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         this.__showNavigationProgress();
 
         var urlParams: { [key: string]: string; } = {};
-        for (var key in this.__navigation.query)
+        for (var key in this.__navigation?.query)
             urlParams[key] = this.__navigation.query[key];
 
         this.queue.reset(true);
@@ -222,7 +221,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             url,
             urlParams,
             headers: {
-                "Page-Nav": this.__navigation.state ? this.__navigation.state : "",
+                "Page-Nav": this.__navigation?.state ? this.__navigation.state : "",
                 "Page-Submit": "true"
             },
             method,
@@ -242,10 +241,10 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (!options.headers)
             options.headers = {};
 
-        if (includeAntiforgery && this.antiforgery && options.method !== "GET")
+        if (includeAntiforgery && this.antiforgery && options.method !== "GET" && this.__navigation)
             options.headers[this.antiforgery.headerName] = this.__navigation.validationToken;
 
-        ajaxRequest(options);
+        this.queue.push(options);
     }
     updateHtml(html: string) {
         const navSequence = this.__incNavSequence();
@@ -256,7 +255,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         fixElem.insertAdjacentHTML("beforebegin", html);
         fixElem.remove();
 
-        this.__renderPage({ items: {} }, navSequence, contentFragment, () => { return; });
+        this.__renderPage({ items: {} }, navSequence, contentFragment, () => { });
     }
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
         return this.app.uri(path, queryParams);
@@ -264,14 +263,16 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     nav(options: NavigationOptions) {
         this.app.nav(options);
     }
-    getScript(name: string): Promise<{ default: any }> {
+    getScript(name: string): Promise<{ default: any }> | null {
+        if (!this.options.scripts)
+            return null;
         const scriptFunc = this.options.scripts[name];
         if (!scriptFunc)
-            return;
+            return null;
         return scriptFunc();
     }
 
-    private setNavigation(data: NavigationModel, hash: string, replace: boolean) {
+    private setNavigation(data: NavigationModel, hash: string | null, replace: boolean) {
         let navUrl = data.url;
         if (hash)
             navUrl += "#" + hash;
@@ -353,7 +354,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (!replace)
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
     }
-    private __setOpenGraphProperty(name: string, value: string) {
+    private __setOpenGraphProperty(name: string, value: string | null) {
         let metaTagElem = document.getElementById(`og-${name}`);
         if (value) {
             if (!metaTagElem) {
@@ -366,28 +367,29 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             metaTagElem.remove();
     }
 
-    private __renderPage(context: InvokeContext, navSequence: number, contentHtml: DocumentFragment, next: () => void) {
+    private __renderPage(context: InvokeContext, navSequence: number, contentHtml: DocumentFragment | null, next: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
-        let pageTypeName = this.__navigation.page.type;
+        let pageTypeName: string | null | undefined = this.__navigation?.page.type;
         if (!pageTypeName)
             pageTypeName = this.options.defaultType;
 
         if (pageTypeName) {
-            const pageTypeFactory = this.options.pageTypes[pageTypeName];
+            const pageTypeFactory = this.options && this.options.pageTypes ? this.options.pageTypes[pageTypeName] : null;
             if (!pageTypeFactory)
                 throw `Not found page type "${pageTypeName}".`;
 
             pageTypeFactory()
-                .then((pageType) => { this.__createPage(context, navSequence, pageType.default, contentHtml, next); })
+                .then((pageType) => { 
+                    this.__createPage(context, navSequence, pageType.default, contentHtml, next); 
+                })
                 .catch(() => { throw `Error loading page type "${pageTypeName}".`; });
         }
-        else {
+        else
             this.__createPage(context, navSequence, Page, contentHtml, next);
-        }
     }
-    private __createPage(context: InvokeContext, navSequence: number, pageType: new (...p) => Page, contentHtml: DocumentFragment, next: () => void) {
+    private __createPage(context: InvokeContext, navSequence: number, pageType: typeof Page, contentHtml: DocumentFragment | null, next: () => void) {
         if (this.__isNavOutdated(navSequence))
             return;
 
@@ -401,7 +403,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             if (!newPageElem)
                 throw "Not found page element.";
 
-            this.__pageElem.replaceWith(newPageElem);
+            this.__pageElem?.replaceWith(newPageElem);
             this.__pageElem = newPageElem;
 
             scriptReplace(this.__pageElem);
@@ -412,8 +414,11 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 throw "Not found page element.";
         }
 
+        if (!this.__navigation)
+            throw "Not exist navigation for page.";
+
         this.__page = new pageType(this, this.__navigation, this.__pageElem);
-        this.__page.render(this.__currentUrl.hash);
+        this.__page.render(this.__currentUrl ? this.__currentUrl.hash : null);
 
         context.items["page"] = this.__page;
 
@@ -455,24 +460,25 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
         const url = location.href;
         const oldUrl = this.__currentUrl;
-        const newUrl = this.__extractHashFromUrl(url);
+        const newUrl = this.__currentUrl = this.__extractHashFromUrl(url);
 
-        if (oldUrl.hash && !newUrl.hash) {
-            console.log(`remove hash: ${oldUrl.hash}`);
-        }
-        else if (!oldUrl.hash && newUrl.hash) {
-            console.log(`add hash: ${newUrl.hash}`);
-        }
-        else if (oldUrl.hash && newUrl.hash) {
-            console.log(`change hash: ${newUrl.hash}`);
+        if (oldUrl) {
+            if (oldUrl.hash && !newUrl.hash) {
+                console.log(`remove hash: ${oldUrl.hash}`);
+            }
+            else if (!oldUrl.hash && newUrl.hash) {
+                console.log(`add hash: ${newUrl.hash}`);
+            }
+            else if (oldUrl.hash && newUrl.hash) {
+                console.log(`change hash: ${newUrl.hash}`);
+            }
+
+            if ((oldUrl.hash || newUrl.hash) && oldUrl.url.toLowerCase() === newUrl.url.toLowerCase()) {
+                this.__page?.changedHash(newUrl.hash, oldUrl.hash);
+                return;
+            }
         }
 
-        this.__currentUrl = newUrl;
-
-        if ((oldUrl.hash || newUrl.hash) && oldUrl.url.toLowerCase() === newUrl.url.toLowerCase()) {
-            this.__page.changedHash(newUrl.hash, oldUrl.hash);
-            return;
-        }
 
         console.log("PopState: " + url);
 
@@ -502,23 +508,32 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         return navSequence !== this.__navCounter;
     }
 
-    private __loaderElem: HTMLElement;
-    private __progressInterval: number;
-    private __progressTimeout: number;
-    private __progressStart: number;
+    private __loaderElem: HTMLElement | null = null;
+    private __progressInterval: number = 0;
+    private __progressTimeout: number = 0;
+    private __progressStart: number = 0;
     private __showNavigationProgress() {
         window.clearTimeout(this.__progressTimeout);
         window.clearTimeout(this.__progressInterval);
+
+        if (!this.__loaderElem)
+            return;
 
         this.__loaderElem.classList.remove("show", "show2", "finish");
         this.__loaderElem.style.width = "0%";
 
         window.setTimeout(() => {
+            if (!this.__loaderElem)
+                return;
+
             this.__loaderElem.classList.add("show");
             this.__loaderElem.style.width = "70%";
         }, 10);
 
         this.__progressTimeout = window.setTimeout(() => {
+            if (!this.__loaderElem)
+                return;
+
             this.__loaderElem.classList.add("show");
             this.__loaderElem.style.width = "100%";
         }, 1700);
@@ -534,10 +549,16 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         this.__progressTimeout = window.setTimeout(() => {
             window.clearTimeout(this.__progressInterval);
 
+            if (!this.__loaderElem)
+                return;
+
             this.__loaderElem.classList.add("finish");
             this.__loaderElem.style.width = "100%";
 
             this.__progressInterval = window.setTimeout(() => {
+                if (!this.__loaderElem)
+                    return;
+
                 this.__loaderElem.classList.remove("show", "finish");
                 this.__loaderElem.style.width = "0%";
             }, 180);
@@ -547,11 +568,11 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
 interface UrlParsed {
     url: string;
-    hash: string;
+    hash: string | null;
 }
 
 export interface WebsiteOptions {
-    defaultType?: string;
-    pageTypes?: { [key: string]: () => Promise<any> };
-    scripts?: { [key: string]: () => Promise<any> };
+    defaultType?: string | null;
+    pageTypes?: { [key: string]: () => Promise<{ default: typeof Page } | any> } | null;
+    scripts?: { [key: string]: () => Promise<any> } | null;
 }

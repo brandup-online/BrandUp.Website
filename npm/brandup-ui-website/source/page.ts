@@ -7,10 +7,10 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     readonly website: WebsiteContext;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
-    private __destroyCallbacks: Array<() => void> = [];
-    private __scripts: Array<UIElement> = [];
+    private __destroyCallbacks: Array<() => void> | null = [];
+    private __scripts: Array<UIElement> | null = [];
     private __isRendered = false;
-    private __hash: string = null;
+    private __hash: string | null = null;
 
     constructor(website: WebsiteContext, nav: NavigationModel, element: HTMLElement) {
         super();
@@ -32,15 +32,13 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
     get typeName(): string { return "BrandUp.Page"; }
     get model(): TModel { return this.nav.page as TModel; }
-    get hash(): string { return this.__hash; }
+    get hash(): string | null { return this.__hash; }
 
-    protected onRenderContent() { return; }
-    protected onChangedHash(newHash: string, oldHash: string) {
-        return;
-    }
+    protected onRenderContent() { }
+    protected onChangedHash(newHash: string | null, oldHash: string | null) { }
     protected onCallbackHandler(data: any) { }
 
-    render(hash: string) {
+    render(hash: string | null) {
         if (this.__isRendered)
             return;
         this.__isRendered = true;
@@ -53,12 +51,15 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     callbackHandler(data: any) {
         this.onCallbackHandler(data);
     }
-    changedHash(newHash: string, oldHash: string) {
+    changedHash(newHash: string | null, oldHash: string | null) {
         this.__hash = newHash;
 
         this.onChangedHash(newHash, oldHash);
     }
     submit(form?: HTMLFormElement) {
+        if (!this.element)
+            throw 'Not set page element.';
+
         if (!form)
             form = DOM.queryElement(this.element, "form") as HTMLFormElement;
         if (!form)
@@ -81,6 +82,9 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         return this.website.app.uri(this.nav.path, params);
     }
     refreshScripts() {
+        if (!this.element)
+            return;
+
         const scriptElements = DOM.queryElements(this.element, "[data-content-script]");
         for (let i = 0; i < scriptElements.length; i++) {
             const elem = scriptElements.item(i);
@@ -88,6 +92,9 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                 continue;
 
             const scriptName = elem.getAttribute("data-content-script");
+            if (!scriptName)
+                continue;
+
             const script = this.website.getScript(scriptName);
             if (script) {
                 script.then((t) => {
@@ -102,10 +109,14 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     }
 
     attachDestroyFunc(f: () => void) {
-        this.__destroyCallbacks.push(f);
+        if (!this.__destroyCallbacks)
+            throw "Page is destroyed.";
+
+        this.__destroyCallbacks?.push(f);
     }
+
     attachDestroyElement(elem: UIElement) {
-        this.__destroyCallbacks.push(() => { elem.destroy(); });
+        this.attachDestroyFunc(() => { elem.destroy(); });
     }
 
     destroy() {

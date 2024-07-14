@@ -1,4 +1,4 @@
-﻿import WebApp from "brandup-ui-website";
+﻿import { WebApp } from "brandup-ui-website";
 import { ExampleMiddleware } from "./middlewares/example";
 import { AuthMiddleware } from "./middlewares/auth";
 import { CityMiddleware } from "./middlewares/city";
