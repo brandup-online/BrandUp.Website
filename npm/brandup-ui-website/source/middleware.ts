@@ -11,6 +11,8 @@ const pageReloadHeader = "Page-Reload";
 const pageActionHeader = "Page-Action";
 const pageLocationHeader = "Page-Location";
 const pageReplaceHeader = "Page-Replace";
+const navDataElemId = "nav-data";
+const pageElemId = "page-content";
 
 export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> implements WebsiteContext {
     readonly options: WebsiteOptions;
@@ -50,7 +52,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     // Middleware members
 
     start(context: StartContext, next: () => void, end: () => void) {
-        context.items["website"] = this;
+        context["website"] = this;
 
         const bodyElem = document.body;
 
@@ -84,19 +86,28 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     }
 
     loaded(context: LoadContext, next: () => void, end: () => void) {
-        context.items["website"] = this;
+        context["website"] = this;
 
         super.loaded(context, next, end);
     }
 
     navigate(context: NavigateContext, next: () => void, end: () => void) {
+        if (context.external) {
+            const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
+			linkElem.click();
+			linkElem.remove();
+
+			end();
+			return;
+        }
+
         if (!allowHistory) {
             this.__forceNav(context);
             end();
             return;
         }
 
-        context.items["website"] = this;
+        context["website"] = this;
 
         this.__showNavigationProgress();
         this.queue.reset(true);
@@ -106,7 +117,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (!this.__navigation) {
             // first navigation
 
-            const navScriptElement = <HTMLScriptElement>document.getElementById("nav-data");
+            const navScriptElement = <HTMLScriptElement>document.getElementById(navDataElemId);
             if (!navScriptElement)
                 throw 'Not found first navigation data.';
 
@@ -150,7 +161,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                             fixElem.insertAdjacentHTML("beforebegin", response.data);
                             fixElem.remove();
 
-                            const navJsonElem = <HTMLScriptElement>contentFragment.getElementById("nav-data");
+                            const navJsonElem = <HTMLScriptElement>contentFragment.getElementById(navDataElemId);
                             const navModel = JSON.parse(navJsonElem.text);
                             navJsonElem.remove();
 
@@ -175,7 +186,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (!this.__navigation || !this.__page)
             throw 'Unable to submit.';
 
-        context.items["website"] = this;
+        context["website"] = this;
 
         this.queue.reset(true);
         this.__showNavigationProgress();
@@ -232,9 +243,9 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     }
 
     stop(context: StopContext, next) {
-        context.items["website"] = this;
-        context.items["nav"] = this.__navigation;
-        context.items["page"] = this.__page;
+        context["website"] = this;
+        context["nav"] = this.__navigation;
+        context["page"] = this.__page;
 
         next();
     }
@@ -282,7 +293,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         fixElem.insertAdjacentHTML("beforebegin", html);
         fixElem.remove();
 
-        context.items["submit"] = true;
+        context["submit"] = true;
 
         this.__renderPage(<any>context, this.__navigation, navSequence, contentFragment, next, end);
     }
@@ -293,11 +304,11 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             return;
         }
 
-        const isSubmit = !!context.items["submit"];
+        const isSubmit = !!context["submit"];
         const prevNav = this.__navigation;
 
-        context.items["prevNav"] = prevNav;
-        context.items["prevPage"] = this.__page;
+        context["prevNav"] = prevNav;
+        context["prevPage"] = this.__page;
 
         let pageTypeName: string | null = nav.page.type;
         if (!pageTypeName && this.options.defaultType)
@@ -333,8 +344,8 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
                 this.__page = page;
 
-                context.items["nav"] = nav;
-                context.items["page"] = this.__page;
+                context["nav"] = nav;
+                context["page"] = this.__page;
 
                 next();
 
@@ -353,12 +364,12 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     private __createPage(pageType: typeof Page, nav: NavigationModel, newContent: DocumentFragment | null): Promise<Page> {
         return new Promise<Page>(resolve => {
-            let pageElem = document.getElementById("page-content");
+            let pageElem = document.getElementById(pageElemId);
             if (!pageElem)
                 throw "Not found page element.";
 
             if (newContent !== null) {
-                const newPageElem = <HTMLElement>newContent.getElementById("page-content");
+                const newPageElem = <HTMLElement>newContent.getElementById(pageElemId);
                 if (!newPageElem)
                     throw "Not found page element.";
 
@@ -526,7 +537,6 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 return;
             }
         }
-
 
         console.log("PopState: " + url);
 

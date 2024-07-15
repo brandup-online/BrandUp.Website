@@ -80,7 +80,7 @@ export class CityMiddleware extends Middleware<Application<ApplicationModel>, Ap
     }
 
     navigate(context: NavigateContext, next) {
-        const website = context.items["website"] as WebsiteContext;
+        const website = context["website"] as WebsiteContext;
 
         //console.log(website.validationToken);
 
