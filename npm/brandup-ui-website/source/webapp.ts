@@ -27,7 +27,12 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
             return;
         isStarted = true;
 
-        current?.start(callback);
+        current?.start();
+        current?.load();
+        current?.nav({ url: null, callback: () => { 
+            if (callback && current)
+                callback(current);
+        }});
     };
 
     let isLoaded = false;
@@ -35,8 +40,6 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
         if (isLoaded)
             return;
         isLoaded = true;
-
-        current?.load();
     };
 
     document.addEventListener("readystatechange", () => {

@@ -28,10 +28,10 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "brandup-ui": "^2.3.3",
-    "brandup-ui-ajax": "^2.3.3",
-    "brandup-ui-app": "^2.3.3",
-    "brandup-ui-dom": "^2.3.3"
+    "brandup-ui": "^2.3.7",
+    "brandup-ui-ajax": "^2.3.7",
+    "brandup-ui-app": "^2.3.7",
+    "brandup-ui-dom": "^2.3.7"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.8",

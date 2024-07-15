@@ -43,7 +43,6 @@ export interface WebsiteContext {
     readonly queue: AjaxQueue;
     readonly id: string;
     readonly validationToken: string | null;
-    updateHtml(html: string);
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
     nav(options: NavigationOptions);

@@ -40,7 +40,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
     render(hash: string | null) {
         if (this.__isRendered)
-            return;
+            throw "Page already rendered.";
+
         this.__isRendered = true;
         this.__hash = hash;
 
