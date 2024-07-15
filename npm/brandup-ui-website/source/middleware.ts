@@ -17,7 +17,6 @@ const pageElemId = "page-content";
 export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> implements WebsiteContext {
     readonly options: WebsiteOptions;
     readonly antiforgery: AntiforgeryOptions;
-    private __pageElem: HTMLElement | null = null;
     private __page: Page | null = null;
     private __navCounter = 0;
     private __currentUrl: UrlParsed | null = null;
@@ -343,9 +342,10 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                     this.__setNavigation(nav, context.hash, context.replace);
 
                 this.__page = page;
+                page.render(this.__currentUrl ? this.__currentUrl.hash : null);
 
                 context["nav"] = nav;
-                context["page"] = this.__page;
+                context["page"] = page;
 
                 next();
 
@@ -382,8 +382,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             }
 
             const page = new pageType(this, nav, pageElem);
-            page.render(this.__currentUrl ? this.__currentUrl.hash : null);
-
+            
             resolve(page);
         });
     }
