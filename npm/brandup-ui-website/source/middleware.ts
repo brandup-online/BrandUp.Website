@@ -95,9 +95,10 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             if (context.context["source"] == "submit")
                 this.__forceNav(context);
             else {
-                const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
-                linkElem.click();
-                linkElem.remove();
+                this.__forceNav(context);
+                //const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
+                //linkElem.click();
+                //linkElem.remove();
             }
             
             end();
