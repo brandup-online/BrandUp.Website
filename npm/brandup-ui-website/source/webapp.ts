@@ -1,61 +1,71 @@
-import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel } from "brandup-ui-app";
+import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel, ContextData } from "brandup-ui-app";
 import { WebsiteMiddleware, WebsiteOptions } from "./middleware";
 import { AntiforgeryOptions } from "./common";
 
-let current: Application<ApplicationModel> | null = null;
+let current: Application | null = null;
 
-const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, callback?: (app: Application<ApplicationModel>) => void) => {
+const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, context?: ContextData): Promise<Application> => {
     if (current)
-        throw "Application already started.";
+        Promise.reject("Application already started.");
 
-    const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
-    if (!appDataElem)
-        throw "Is not defined application startup configuration.";
-    const appData = <StartupModel>JSON.parse(appDataElem.text);
+    if(!context)
+        context = {};
 
-    const appBuilder = new ApplicationBuilder();
-    appBuilder
-        .useMiddleware(new WebsiteMiddleware(options, appData.antiforgery));
+    context["start"] = true;
 
-    configure(appBuilder);
+    return new Promise<Application>((resolve, reject) => {
+        const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
+        if (!appDataElem)
+            throw "Is not defined application startup configuration.";
+        const appData = <StartupModel>JSON.parse(appDataElem.text);
 
-    const app = current = appBuilder.build(appData.env, appData.model);
+        const appBuilder = new ApplicationBuilder();
+        appBuilder
+            .useMiddleware(new WebsiteMiddleware(options, appData.antiforgery));
 
-    let isStarted = false;
-    const appStartFunc = () => {
-        if (isStarted)
-            return;
-        isStarted = true;
+        configure(appBuilder);
 
-        app.run({ start: true })
-            .then(() => console.log("website started"))
-            .catch(reason => console.error(`website run error: ${reason}`));
-    };
+        const app = current = appBuilder.build(appData.env, appData.model);
 
-    document.addEventListener("readystatechange", () => {
-        switch (document.readyState) {
-            case "loading": {
-                break;
+        let isStarted = false;
+        const appStartFunc = () => {
+            if (isStarted)
+                return;
+            isStarted = true;
+
+            app.run(context)
+                .then(() => {
+                    console.log("website started");
+                    resolve(app);
+                })
+                .catch(reason => {
+                    console.error(`website run error: ${reason}`);
+                    reject(reason);
+                });
+        };
+
+        document.addEventListener("readystatechange", () => {
+            switch (document.readyState) {
+                case "loading":
+                    break;
+                case "interactive":
+                    appStartFunc();
+                    break;
+                case "complete":
+                    appStartFunc();
+                    break;
             }
-            case "interactive": {
-                appStartFunc();
-                break;
-            }
-            case "complete": {
-                appStartFunc();
-                break;
-            }
-        }
+        });
+
+        window.addEventListener("load", () => {
+            appStartFunc();
+        });
+
+        if (document.readyState === "complete")
+            appStartFunc();
+
+        return current;
     });
-
-    window.addEventListener("load", () => {
-        appStartFunc();
-    });
-
-    if (document.readyState === "complete")
-        appStartFunc();
-
-    return current;
 };
 
 interface StartupModel {
@@ -64,14 +74,23 @@ interface StartupModel {
     antiforgery: AntiforgeryOptions;
 }
 
-interface WebAppImlp {
-    readonly current: Application<ApplicationModel> | null;
-    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, callback?: (app: Application<ApplicationModel>) => void): void;
+interface IWebsiteInstance {
+    /** Current runned website application. */
+    readonly current: Application | null;
+    /**
+     * Run website application.
+     * @param options Website options.
+     * @param configure Configuration website application callback.
+     * @param context Custom run application context.
+     * @returns Application instance.
+     */
+    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, context?: ContextData): Promise<Application>;
 }
 
-const WebApp: WebAppImlp = {
+/** Website instance singleton point. */
+const WEBSITE: IWebsiteInstance = {
     current: current,
     run: run
 };
 
-export { WebApp };
+export { WEBSITE };

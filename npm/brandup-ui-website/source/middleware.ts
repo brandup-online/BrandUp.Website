@@ -644,7 +644,7 @@ interface UrlParsed {
 }
 
 export interface WebsiteOptions {
-    defaultType?: string | null;
-    pageTypes?: { [key: string]: () => Promise<{ default: typeof Page } | any> } | null;
-    scripts?: { [key: string]: () => Promise<any> } | null;
+    defaultType?: string;
+    pageTypes?: { [key: string]: () => Promise<{ default: typeof Page } | any> };
+    scripts?: { [key: string]: () => Promise<{ default: typeof Page } | any> };
 }
