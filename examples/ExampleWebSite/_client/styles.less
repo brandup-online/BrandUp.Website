@@ -153,6 +153,9 @@ input, textarea, button {
     flex: 1 1 auto;
     box-sizing: border-box;
     padding-bottom: @Content-Padding;
+    display: flex;
+    flex-flow: column nowrap;
+    row-gap: 40px;
 
     @media all and (max-width: @Adaptive-3-Width) {
         padding-bottom: 30px;

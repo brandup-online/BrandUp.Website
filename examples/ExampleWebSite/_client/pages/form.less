@@ -1,8 +1,15 @@
 ﻿@import "../vars.less";
 
 .page-block-form {
+    & h2 {
+        padding: 0 0 20px;
+        margin: 0;
+    }
+
     & form {
-        display: block;
+        display: flex;
+        flex-flow: column nowrap;
+        row-gap: 20px;
     }
 
     & button {
@@ -91,7 +98,6 @@
     }
 
     & .actions {
-        padding: 25px 0 0;
         display: flex;
         flex-flow: row nowrap;
     }

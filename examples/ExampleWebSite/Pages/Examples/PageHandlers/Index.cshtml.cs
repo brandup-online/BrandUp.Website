@@ -29,6 +29,17 @@ namespace ExampleWebSite.Pages.Examples.PageHandlers
 
         public void OnPostSave()
         {
+            Key = "saved";
+        }
+
+        public IActionResult OnPostInternalRedirect()
+        {
+            return PageRedirect(Url.Page("/Index"));
+        }
+
+        public IActionResult OnPostExtenalRedirect()
+        {
+            return PageRedirect("https://yandex.ru");
         }
     }
 }

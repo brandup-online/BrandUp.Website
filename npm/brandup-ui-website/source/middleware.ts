@@ -92,16 +92,21 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     navigate(context: NavigateContext, next: () => void, end: () => void) {
         if (context.external) {
-            const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
-			linkElem.click();
-			linkElem.remove();
-
-			end();
-			return;
+            if (context.context["source"] == "submit")
+                this.__forceNav(context);
+            else {
+                const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
+                linkElem.click();
+                linkElem.remove();
+            }
+            
+            end();
+            return;
         }
 
         if (!allowHistory) {
             this.__forceNav(context);
+
             end();
             return;
         }
@@ -143,14 +148,19 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                         case 200: {
                             if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
                                 this.__forceNav(context);
+                                end();
                                 return;
                             }
 
-                            if (this.__precessPageResponse(response, end))
+                            if (this.__precessPageResponse("nav", response, end))
+                            {
+                                end();
                                 return;
+                            }
 
                             if (!response.data) {
                                 this.__forceNav(context);
+                                end();
                                 return;
                             }
 
@@ -170,6 +180,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                         }
                         default: {
                             this.__forceNav(context);
+                            end();
                             break;
                         }
                     }
@@ -205,13 +216,16 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             switch (response.status) {
                 case 200:
                 case 201: {
-                    if (!this.__precessPageResponse(response, end)) {
-                        const contentType = response.xhr.getResponseHeader("content-type");
-                        if (contentType && contentType.startsWith("text/html"))
-                            this.__updateHtml(context, response.data, next, end);
-                        else
-                            currentPage.callbackHandler(response.data);
+                    if (this.__precessPageResponse("submit", response, end)) {
+                        end();
+                        break;
                     }
+
+                    const contentType = response.xhr.getResponseHeader("content-type");
+                    if (contentType && contentType.startsWith("text/html"))
+                        this.__updateHtml(context, response.data, next, end);
+                    else
+                        currentPage.callbackHandler(response.data);
 
                     break;
                 }
@@ -388,7 +402,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     }
 
     private __forceNav(context: NavigateContext) {
-        if (context.replace)
+        if (context.replace && !context.external)
             location.replace(context.url);
         else
             location.assign(context.url);
@@ -485,7 +499,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             metaTagElem.remove();
     }
 
-    private __precessPageResponse(response: AjaxResponse, end: () => void): boolean {
+    private __precessPageResponse(source: "nav" | "submit", response: AjaxResponse, end: () => void): boolean {
         const pageAction = response.xhr.getResponseHeader(pageActionHeader);
         if (pageAction) {
             switch (pageAction) {
@@ -505,8 +519,10 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
             this.nav({
                 url: redirectLocation,
-                replace: response.xhr.getResponseHeader(pageReplaceHeader) === "true"
+                replace: response.xhr.getResponseHeader(pageReplaceHeader) === "true",
+                context: { source }
             });
+            
             return true;
         }
 
