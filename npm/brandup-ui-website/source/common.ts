@@ -41,8 +41,8 @@ export interface WebsiteContext {
     readonly app: Application;
     readonly antiforgery: AntiforgeryOptions;
     readonly queue: AjaxQueue;
-    readonly id: string;
-    readonly validationToken: string | null;
+    get id(): string;
+    get validationToken(): string | null;
     request(options: AjaxRequest, includeAntiforgery?: boolean);
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
     nav(options: NavigationOptions);

@@ -19,7 +19,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
 
     configure(appBuilder);
 
-    current = appBuilder.build(appData.env, appData.model);
+    const app = current = appBuilder.build(appData.env, appData.model);
 
     let isStarted = false;
     const appStartFunc = () => {
@@ -27,19 +27,14 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
             return;
         isStarted = true;
 
-        current?.start();
-        current?.load();
-        current?.nav({ url: null, callback: () => { 
-            if (callback && current)
-                callback(current);
-        }});
-    };
-
-    let isLoaded = false;
-    const appLoadFunc = () => {
-        if (isLoaded)
-            return;
-        isLoaded = true;
+        app.start(() => {
+            app.load(() => {
+                app.nav({ url: null, callback: () => { 
+                    if (callback)
+                        callback(app);
+                }});
+            });
+        });
     };
 
     document.addEventListener("readystatechange", () => {
@@ -53,7 +48,6 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
             }
             case "complete": {
                 appStartFunc();
-                appLoadFunc();
                 break;
             }
         }
@@ -61,13 +55,10 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
 
     window.addEventListener("load", () => {
         appStartFunc();
-        appLoadFunc();
     });
 
-    if (document.readyState === "complete") {
+    if (document.readyState === "complete")
         appStartFunc();
-        appLoadFunc();
-    }
 
     return current;
 };

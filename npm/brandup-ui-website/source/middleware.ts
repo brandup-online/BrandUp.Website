@@ -24,7 +24,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     readonly queue: AjaxQueue;
 
     get id(): string { return this.app.model.websiteId; }
-    get validationToken(): string | null { return this.__navigation ? this.__navigation.validationToken : null; }
+    get validationToken(): string | null { return this.__navigation?.validationToken || null; }
 
     constructor(options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
         super();
