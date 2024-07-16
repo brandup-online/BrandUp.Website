@@ -24,6 +24,10 @@
                 </div>
             </div>
             <div asp-validation-summary="All"></div>
+            @if (Model.IsSaved)
+            {
+                <div>Saved success!</div>
+            }
             <div class="actions">
                 <button type="submit">Save</button>
             </div>

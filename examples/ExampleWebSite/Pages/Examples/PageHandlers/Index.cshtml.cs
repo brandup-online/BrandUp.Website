@@ -15,6 +15,8 @@ namespace ExampleWebSite.Pages.Examples.PageHandlers
         [BindProperty]
         public string Value { get; set; }
 
+        public bool IsSaved { get; private set; }
+
         public void OnGet()
         {
             Value = "test";
@@ -27,9 +29,13 @@ namespace ExampleWebSite.Pages.Examples.PageHandlers
             Value = "test2";
         }
 
-        public void OnPostSave()
+        public IActionResult OnPostSave()
         {
+            IsSaved = true;
+
             Key = "saved";
+
+            return Page();
         }
 
         public IActionResult OnPostInternalRedirect()

@@ -2,7 +2,7 @@
 import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, Application } from "brandup-ui-app";
 
 export class AuthMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
-    start(context: StartContext, next) {
+    start(context: StartContext, next: VoidFunction) {
         this.app.registerCommand("signout", () => {
             ajaxRequest({
                 url: this.app.uri("api/auth/signout"),
@@ -19,11 +19,11 @@ export class AuthMiddleware extends Middleware<Application<ApplicationModel>, Ap
         next();
     }
 
-    loaded(context: LoadContext, next) {
+    loaded(context: LoadContext, next: VoidFunction) {
         next();
     }
 
-    navigate(context: NavigateContext, next) {
+    navigate(context: NavigateContext, next: VoidFunction) {
         next();
     }
 }

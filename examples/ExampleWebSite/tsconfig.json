@@ -7,7 +7,7 @@
     "strict": true,
     "lib": [ "ES2020", "DOM" ],
     "baseUrl": "./_client",
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noEmitOnError": true,
     "declarationMap": false
   },

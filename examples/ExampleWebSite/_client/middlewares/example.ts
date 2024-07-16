@@ -1,20 +1,20 @@
-﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, Application } from "brandup-ui-app";
+﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, Application, SubmitContext } from "brandup-ui-app";
 
 export class ExampleMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
-    start(context: StartContext, next, end) {
-        super.start(context, next, end);
+    start(context: StartContext, next: VoidFunction, end: VoidFunction) {
+        next();
     }
 
-    loaded(context: LoadContext, next, end) {
-        super.loaded(context, next, end);
+    loaded(context: LoadContext, next: VoidFunction, end: VoidFunction) {
+        next();
     }
 
-    navigate(context: NavigateContext, next, end) {
-        super.navigate(context, next, end);
+    navigate(context: NavigateContext, next: VoidFunction, end: VoidFunction) {
+        next();
     }
 
-    submit(context, next, end) {
-        super.submit(context, next, end);
+    submit(context: SubmitContext, next: VoidFunction, end: VoidFunction) {
+        next();
 
         console.log(context);
     }

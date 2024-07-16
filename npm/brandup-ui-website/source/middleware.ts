@@ -50,8 +50,8 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     // Middleware members
 
-    start(context: StartContext, next: () => void, end: () => void) {
-        context["website"] = this;
+    start(context: StartContext, next: VoidFunction) {
+        context.data["website"] = this;
 
         const bodyElem = document.body;
 
@@ -67,32 +67,28 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             const elem = event.target as HTMLElement;
             elem.classList.add("invalid");
 
-            if (elem.hasAttribute("data-val-required")) {
+            if (elem.hasAttribute("required"))
                 elem.classList.add("invalid-required");
-            }
         }, true);
 
         bodyElem.addEventListener("change", (event: Event) => {
             const elem = event.target as HTMLElement;
             elem.classList.remove("invalid");
-
-            if (elem.hasAttribute("data-val-required")) {
-                elem.classList.remove("invalid-required");
-            }
+            elem.classList.remove("invalid-required");
         });
 
-        super.start(context, next, end);
+        next();
     }
 
-    loaded(context: LoadContext, next: () => void, end: () => void) {
-        context["website"] = this;
+    loaded(context: LoadContext, next: VoidFunction) {
+        context.data["website"] = this;
 
-        super.loaded(context, next, end);
+        next();
     }
 
-    navigate(context: NavigateContext, next: () => void, end: () => void) {
+    navigate(context: NavigateContext, next: VoidFunction, end: VoidFunction, error: (reason: any) => void) {
         if (context.external) {
-            if (context.context["source"] == "submit")
+            if (context.data["source"] == "submit")
                 this.__forceNav(context);
             else {
                 this.__forceNav(context);
@@ -112,7 +108,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             return;
         }
 
-        context["website"] = this;
+        context.data["website"] = this;
 
         this.__showNavigationProgress();
         this.queue.reset(true);
@@ -129,7 +125,9 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             const navModel: NavigationModel = JSON.parse(navScriptElement.text);
             navScriptElement.remove();
 
-            this.__renderPage(context, navModel, this.__navCounter, null, next, end);
+            this.__renderPage(context, navModel, this.__navCounter, null)
+                .then(() => next())
+                .catch((reason: any) => error(reason));
         }
         else {
             // continue navigation
@@ -141,7 +139,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 disableCache: true,
                 success: (response: AjaxResponse<string>) => {
                     if (this.__isNavOutdated(navSequence)) {
-                        end();
+                        error("Nav request is outdated.");
                         return;
                     }
 
@@ -154,14 +152,11 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                             }
 
                             if (this.__precessPageResponse("nav", response, end))
-                            {
-                                end();
                                 return;
-                            }
 
                             if (!response.data) {
                                 this.__forceNav(context);
-                                end();
+                                error('Nav response is empty.');
                                 return;
                             }
 
@@ -175,29 +170,32 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                             const navModel = JSON.parse(navJsonElem.text);
                             navJsonElem.remove();
 
-                            this.__renderPage(context, navModel, navSequence, contentFragment, next, end);
+                            this.__renderPage(context, navModel, navSequence, contentFragment)
+                                .then(() => next())
+                                .catch((reason: any) => error(reason));
 
                             break;
                         }
                         default: {
                             this.__forceNav(context);
-                            end();
+                            error(`Nav request response status ${response.status}`);
                             break;
                         }
                     }
-                }
+                },
+                abort: () => { error("Nav request is aborted."); }
             });
         }
     }
 
-    submit(context: SubmitContext, next: () => void, end: () => void) {
+    submit(context: SubmitContext, next: VoidFunction, end: VoidFunction, error: (reason: any) => void) {
         const { url, form } = context;
         const method = (context.method.toUpperCase() as AJAXMethod);
 
         if (!this.__navigation || !this.__page)
             throw 'Unable to submit.';
 
-        context["website"] = this;
+        context.data["website"] = this;
 
         this.queue.reset(true);
         this.__showNavigationProgress();
@@ -208,31 +206,37 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
         const submitCallback = (response: AjaxResponse) => {
             if (this.__isNavOutdated(navSequence)) {
-                end();
+                error("Submit request is outdated.");
                 return;
             }
-
-            console.log(`form submited: ${method} ${url} ${response.status}`);
 
             switch (response.status) {
                 case 200:
                 case 201: {
-                    if (this.__precessPageResponse("submit", response, end)) {
-                        end();
+                    if (this.__precessPageResponse("submit", response, end))
                         break;
-                    }
 
                     const contentType = response.xhr.getResponseHeader("content-type");
                     if (contentType && contentType.startsWith("text/html"))
-                        this.__updateHtml(context, response.data, next, end);
-                    else
-                        currentPage.callbackHandler(response.data);
+                    {
+                        this.__updateHtml(context, navSequence, response.data)
+                            .then(() => next())
+                            .catch((reason: any) => error(reason));
+                    }
+                    else {
+                        try {
+                            currentPage.callbackHandler(response.data);
+                            next();
+                        }
+                        catch (reason) {
+                            error(reason);
+                        }
+                    }
 
                     break;
                 }
                 default:
-                    console.warn(`Submit response status ${response.status}`);
-                    next();
+                    error(`Submit request response status ${response.status}`);
                     break;
             }
 
@@ -252,14 +256,15 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             },
             method,
             data: new FormData(form),
-            success: minWait(submitCallback)
+            success: minWait(submitCallback),
+            abort: () => { error("Submit request is aborted."); }
         });
     }
 
-    stop(context: StopContext, next) {
-        context["website"] = this;
-        context["nav"] = this.__navigation;
-        context["page"] = this.__page;
+    stop(context: StopContext, next: VoidFunction) {
+        context.data["website"] = this;
+        context.data["nav"] = this.__navigation;
+        context.data["page"] = this.__page;
 
         next();
     }
@@ -295,11 +300,9 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     // WebsiteMiddleware members
 
-    private __updateHtml(context: SubmitContext, html: string, next: () => void, end: () => void) {
+    private async __updateHtml(context: SubmitContext, navSequence: number, html: string) {
         if (!this.__navigation)
             throw "Can't update page html.";
-
-        const navSequence = this.__incNavSequence();
 
         const contentFragment = document.createDocumentFragment();
         const fixElem = DOM.tag("div");
@@ -307,22 +310,20 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         fixElem.insertAdjacentHTML("beforebegin", html);
         fixElem.remove();
 
-        context["submit"] = true;
+        context.data["submit"] = true;
 
-        this.__renderPage(<any>context, this.__navigation, navSequence, contentFragment, next, end);
+        await this.__renderPage(<any>context, this.__navigation, navSequence, contentFragment);
     }
 
-    private __renderPage(context: NavigateContext, nav: NavigationModel, navSequence: number, newContent: DocumentFragment | null, next: () => void, end: () => void) {
-        if (this.__isNavOutdated(navSequence)) {
-            end();
-            return;
-        }
+    private async __renderPage(context: NavigateContext, nav: NavigationModel, navSequence: number, newContent: DocumentFragment | null) {
+        if (this.__isNavOutdated(navSequence))
+            throw 'Render page is outdated.';
 
-        const isSubmit = !!context["submit"];
+        const isSubmit = !!context.data["submit"];
         const prevNav = this.__navigation;
 
-        context["prevNav"] = prevNav;
-        context["prevPage"] = this.__page;
+        context.data["prevNav"] = prevNav;
+        context.data["prevPage"] = this.__page;
 
         let pageTypeName: string | null = nav.page.type;
         if (!pageTypeName && this.options.defaultType)
@@ -345,36 +346,32 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             this.__page = null;
         }
 
-        pageFactory()
-            .then((pageType: { default: typeof Page }) => {
-                if (this.__isNavOutdated(navSequence))
-                    throw '';
+        try {
+            const pageType = await pageFactory();
 
-                return this.__createPage(pageType.default, nav, newContent);
-            })
-            .then(page => {
-                if (!isSubmit)
-                    this.__setNavigation(nav, context.hash, context.replace);
+            if (this.__isNavOutdated(navSequence))
+                throw 'Render page is outdated.';
 
-                this.__page = page;
-                page.render(this.__currentUrl ? this.__currentUrl.hash : null);
+            const page = await this.__createPage(pageType.default, nav, newContent);
+            if (!isSubmit)
+                this.__setNavigation(nav, context.hash, context.replace);
 
-                context["nav"] = nav;
-                context["page"] = page;
+            this.__page = page;
+            page.render(this.__currentUrl ? this.__currentUrl.hash : null);
 
-                next();
+            context.data["nav"] = nav;
+            context.data["page"] = page;
+        }
+        catch(reason) {
+            console.error(`Error render page ${context.url}: ${reason}`);
 
-                return page;
-            })
-            .catch((reason) => {
-                console.error(`Error page ${context.url}: ${reason}`);
+            if (prevNav && !isSubmit)
+                this.__forceNav(context);
 
-                if (prevNav && !isSubmit)
-                    this.__forceNav(context);
+            throw reason;
+        }
 
-                end();
-            })
-            .finally(() => this.__hideNavigationProgress());
+        this.__hideNavigationProgress()
     }
 
     private __createPage(pageType: typeof Page, nav: NavigationModel, newContent: DocumentFragment | null): Promise<Page> {
@@ -506,6 +503,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             switch (pageAction) {
                 case "reset":
                 case "reload": {
+                    end();
                     location.reload();
                     return true;
                 }

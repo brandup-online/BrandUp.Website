@@ -43,8 +43,8 @@ export interface WebsiteContext {
     readonly queue: AjaxQueue;
     get id(): string;
     get validationToken(): string | null;
-    request(options: AjaxRequest, includeAntiforgery?: boolean);
+    request(options: AjaxRequest, includeAntiforgery?: boolean): void;
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
-    nav(options: NavigationOptions);
+    nav(options: NavigationOptions): void;
     getScript(name: string): Promise<{ default: any }> | null;
 }

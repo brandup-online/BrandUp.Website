@@ -13,7 +13,7 @@ const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: strin
             if(off)
             off();
 
-            document.body.removeEventListener("click", clickElem["___clickRet"], { capture: false });
+            document.body.removeEventListener("click", (<any>clickElem)["___clickRet"], { capture: false });
         }
     };
 
@@ -25,18 +25,18 @@ const clickRet = (clickElem: HTMLElement, scopeSelector: string, cssClass: strin
     if (scopeElem.classList.toggle(cssClass)) {
         on();
 
-        clickElem["___clickRet"] = clickFunc;
+        (<any>clickElem)["___clickRet"] = clickFunc;
         document.body.addEventListener("click", clickFunc, { capture: false });
     }
     else {
         if (off)
             off();
-        document.body.removeEventListener("click", clickElem["___clickRet"], { capture: false });
+        document.body.removeEventListener("click", (<any>clickElem)["___clickRet"], { capture: false });
     }
 };
 
 export class CityMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
-    start(_context: StartContext, next) {
+    start(_context: StartContext, next: VoidFunction) {
         next();
 
         this.app.registerAsyncCommand("toggle-city", (context) => {
@@ -75,14 +75,14 @@ export class CityMiddleware extends Middleware<Application<ApplicationModel>, Ap
         });
     }
 
-    loaded(_context: LoadContext, next) {
+    loaded(_context: LoadContext, next: VoidFunction) {
         next();
     }
 
-    navigate(context: NavigateContext, next) {
-        const website = context["website"] as WebsiteContext;
+    navigate(context: NavigateContext, next: VoidFunction) {
+        const website = context.data["website"] as WebsiteContext;
 
-        //console.log(website.validationToken);
+        console.log(`validate token: ${website.validationToken}`);
 
         next();
     }

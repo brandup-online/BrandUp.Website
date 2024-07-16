@@ -27,14 +27,9 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
             return;
         isStarted = true;
 
-        app.start(() => {
-            app.load(() => {
-                app.nav({ url: null, callback: () => { 
-                    if (callback)
-                        callback(app);
-                }});
-            });
-        });
+        app.run({ start: true })
+            .then(() => console.log("website started"))
+            .catch(reason => console.error(`website run error: ${reason}`));
     };
 
     document.addEventListener("readystatechange", () => {
@@ -71,7 +66,7 @@ interface StartupModel {
 
 interface WebAppImlp {
     readonly current: Application<ApplicationModel> | null;
-    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, callback?: (app: Application<ApplicationModel>) => void);
+    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, callback?: (app: Application<ApplicationModel>) => void): void;
 }
 
 const WebApp: WebAppImlp = {

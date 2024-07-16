@@ -1,7 +1,7 @@
-export const minWait = (func: (...args) => void, time = 500): () => void => {
+export const minWait = (func: (...args: any[]) => void, time = 500): () => void => {
     const n = Date.now();
 
-    const ret = (...args) => {
+    const ret = (...args: any[]) => {
         const n2 = Date.now();
         const w = time - (n2 - n);
 
