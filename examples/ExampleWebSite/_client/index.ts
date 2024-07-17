@@ -7,7 +7,8 @@ import "./styles.less";
 WEBSITE.run({
         pageTypes: {
             "signin": () => import("./pages/signin"),
-            "form": () => import("./pages/form")
+            "form": () => import("./pages/form"),
+            "examples-navigation": () => import("./pages/examples/navigation")
         },
         scripts: {
             "test": () => import("./components/test")
