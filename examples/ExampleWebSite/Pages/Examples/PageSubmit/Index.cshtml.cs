@@ -2,11 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExampleWebSite.Pages.Examples.PageHandlers
+namespace ExampleWebSite.Pages.Examples.PageSubmit
 {
     public class IndexModel : AppPageModel
     {
-        public override string Title => "Page handlers";
+        public override string Title => "Page submit";
         public override string ScriptName => "form";
 
         [BindProperty, Required]
@@ -33,8 +33,6 @@ namespace ExampleWebSite.Pages.Examples.PageHandlers
         {
             IsSaved = true;
 
-            Key = "saved";
-
             return Page();
         }
 
@@ -46,6 +44,18 @@ namespace ExampleWebSite.Pages.Examples.PageHandlers
         public IActionResult OnPostExtenalRedirect()
         {
             return PageRedirect("https://yandex.ru");
+        }
+
+        public IActionResult OnPostError()
+        {
+            return BadRequest();
+        }
+
+        public async Task<IActionResult> OnPostLong()
+        {
+            await Task.Delay(5000, HttpContext.RequestAborted);
+
+            return new OkResult();
         }
     }
 }

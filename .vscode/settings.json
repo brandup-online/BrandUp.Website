@@ -1,0 +1,32 @@
+{
+    "javascript.format.semicolons": "insert",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.linkedEditing": true,
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp"
+    },
+    "less.format.newlineBetweenRules": true,
+    "less.format.newlineBetweenSelectors": false,
+    "less.format.spaceAroundSelectorSeparator": true,
+    "less.format.preserveNewLines": true,
+    "less.format.maxPreserveNewLines": 2,
+    "less.format.braceStyle": "collapse",
+    "less.validate": true,
+    "javascript.format.insertSpaceAfterConstructor": true,
+    "javascript.format.insertSpaceAfterCommaDelimiter": true,
+    "[javascript]": {
+        "editor.defaultFormatter": "ms-vscode.js-debug"
+    },
+    "html.suggest.html5": true,
+    "html.autoClosingTags": true,
+    "html.validate.scripts": true,
+    "html.validate.styles": true,
+    "html.format.indentInnerHtml": false,
+    "html.format.wrapAttributes": "auto",
+    "html.format.wrapLineLength": 0,
+    "html.format.templating": true,
+    "html.format.indentHandlebars": true,
+    "html.format.unformatted": "svg,path",
+    "html.format.contentUnformatted": "svg,path"
+}

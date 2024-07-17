@@ -1,5 +1,5 @@
 ﻿@page
-@model ExampleWebSite.Pages.Examples.PageHandlers.IndexModel
+@model ExampleWebSite.Pages.Examples.PageSubmit.IndexModel
 
 <page title="Page handlers">
     <header class="page-header">
@@ -26,7 +26,7 @@
             <div asp-validation-summary="All"></div>
             @if (Model.IsSaved)
             {
-                <div>Saved success!</div>
+                <div>Saved success: <b>@Model.Key</b></div>
             }
             <div class="actions">
                 <button type="submit">Save</button>
@@ -50,6 +50,26 @@
             <div asp-validation-summary="All"></div>
             <div class="actions">
                 <button type="submit">Redirect</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="page-block page-block-form">
+        <h2>Bad request</h2>
+        <form method="post" asp-page-handler="Error">
+            <div asp-validation-summary="All"></div>
+            <div class="actions">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="page-block page-block-form">
+        <h2>Long request submit</h2>
+        <form method="post" asp-page-handler="Long">
+            <div asp-validation-summary="All"></div>
+            <div class="actions">
+                <button type="submit">Submit</button>
             </div>
         </form>
     </section>

@@ -86,26 +86,24 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         next();
     }
 
-    navigate(context: NavigateContext, next: VoidFunction, end: VoidFunction, error: (reason: any) => void) {
+    async navigate(context: NavigateContext) {
         if (context.external) {
-            if (context.data["source"] == "submit")
-                this.__forceNav(context);
-            else {
-                this.__forceNav(context);
-                //const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
-                //linkElem.click();
-                //linkElem.remove();
-            }
-            
-            end();
-            return;
+            this.__forceNav(context);
+
+            //if (context.data["source"] == "submit")
+            //    this.__forceNav(context);
+            //else {
+            //    const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
+            //    linkElem.click();
+            //    linkElem.remove();
+            //}
+
+            return false;
         }
 
         if (!allowHistory) {
             this.__forceNav(context);
-
-            end();
-            return;
+            return false;
         }
 
         context.data["website"] = this;
@@ -115,150 +113,73 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
         const navSequence = this.__incNavSequence();
 
-        if (!this.__navigation) {
-            // first navigation
+        try {
+            if (context.source === "first") {
+                // first navigation
 
-            const navScriptElement = <HTMLScriptElement>document.getElementById(navDataElemId);
-            if (!navScriptElement)
-                throw 'Not found first navigation data.';
+                const navScriptElement = <HTMLScriptElement>document.getElementById(navDataElemId);
+                if (!navScriptElement)
+                    throw 'Not found first navigation data.';
 
-            const navModel: NavigationModel = JSON.parse(navScriptElement.text);
-            navScriptElement.remove();
+                const navModel: NavigationModel = JSON.parse(navScriptElement.text);
+                navScriptElement.remove();
 
-            this.__renderPage(context, navModel, this.__navCounter, null)
-                .then(() => next())
-                .catch((reason: any) => error(reason));
+                await this.__renderPage(context, navModel, this.__navCounter, null);
+            }
+            else {
+                // continue navigation
+
+                const navContent = await this.__requestNav(context, navSequence, this.__navigation?.state);
+                if (!navContent)
+                    return;
+
+                const navJsonElem = <HTMLScriptElement>navContent.getElementById(navDataElemId);
+                const navModel = JSON.parse(navJsonElem.text);
+                navJsonElem.remove();
+
+                await this.__renderPage(context, navModel, navSequence, navContent);
+            }
         }
-        else {
-            // continue navigation
-
-            this.queue.push({
-                url: context.url,
-                method: "GET",
-                headers: { "Page-Nav": this.__navigation?.state ? this.__navigation.state : "" },
-                disableCache: true,
-                success: (response: AjaxResponse<string>) => {
-                    if (this.__isNavOutdated(navSequence)) {
-                        error("Nav request is outdated.");
-                        return;
-                    }
-
-                    switch (response.status) {
-                        case 200: {
-                            if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
-                                this.__forceNav(context);
-                                end();
-                                return;
-                            }
-
-                            if (this.__precessPageResponse("nav", response, end))
-                                return;
-
-                            if (!response.data) {
-                                this.__forceNav(context);
-                                error('Nav response is empty.');
-                                return;
-                            }
-
-                            const contentFragment = document.createDocumentFragment();
-                            const fixElem = DOM.tag("div");
-                            contentFragment.append(fixElem);
-                            fixElem.insertAdjacentHTML("beforebegin", response.data);
-                            fixElem.remove();
-
-                            const navJsonElem = <HTMLScriptElement>contentFragment.getElementById(navDataElemId);
-                            const navModel = JSON.parse(navJsonElem.text);
-                            navJsonElem.remove();
-
-                            this.__renderPage(context, navModel, navSequence, contentFragment)
-                                .then(() => next())
-                                .catch((reason: any) => error(reason));
-
-                            break;
-                        }
-                        default: {
-                            this.__forceNav(context);
-                            error(`Nav request response status ${response.status}`);
-                            break;
-                        }
-                    }
-                },
-                abort: () => { error("Nav request is aborted."); }
-            });
+        catch (reason) {
+            throw reason;
+        }
+        finally {
+            this.__hideNavigationProgress();
         }
     }
 
-    submit(context: SubmitContext, next: VoidFunction, end: VoidFunction, error: (reason: any) => void) {
-        const { url, form } = context;
-        const method = (context.method.toUpperCase() as AJAXMethod);
-
+    async submit(context: SubmitContext) {
         if (!this.__navigation || !this.__page)
             throw 'Unable to submit.';
 
         context.data["website"] = this;
 
-        this.queue.reset(true);
         this.__showNavigationProgress();
+        this.queue.reset(true);
 
         const navSequence = this.__incNavSequence();
         const currentNav = this.__navigation;
         const currentPage = this.__page;
 
-        const submitCallback = (response: AjaxResponse) => {
-            if (this.__isNavOutdated(navSequence)) {
-                error("Submit request is outdated.");
-                return;
-            }
+        try {
+            const submitResult = await this.__requestSubmit(context, navSequence, currentNav);
+            switch (submitResult.type) {
+                case "ended":
+                    return false;
+                case "html":
+                    if (!submitResult.html)
+                        throw 'Submit response not have html.';
 
-            switch (response.status) {
-                case 200:
-                case 201: {
-                    if (this.__precessPageResponse("submit", response, end))
-                        break;
-
-                    const contentType = response.xhr.getResponseHeader("content-type");
-                    if (contentType && contentType.startsWith("text/html"))
-                    {
-                        this.__updateHtml(context, navSequence, response.data)
-                            .then(() => next())
-                            .catch((reason: any) => error(reason));
-                    }
-                    else {
-                        try {
-                            currentPage.callbackHandler(response.data);
-                            next();
-                        }
-                        catch (reason) {
-                            error(reason);
-                        }
-                    }
-
+                    await this.__updateHtml(context, navSequence, submitResult.html);
                     break;
-                }
-                default:
-                    error(`Submit request response status ${response.status}`);
+                case "object":
+                    currentPage.callbackHandler(submitResult.obj);
                     break;
             }
-
+        }
+        finally {
             this.__hideNavigationProgress();
-        };
-
-        var urlParams: { [key: string]: string; } = {};
-        for (var key in currentNav.query)
-            urlParams[key] = currentNav.query[key];
-
-        this.queue.push({
-            url,
-            urlParams,
-            headers: {
-                "Page-Nav": currentNav.state || "",
-                "Page-Submit": "true"
-            },
-            method,
-            data: new FormData(form),
-            success: minWait(submitCallback),
-            abort: () => { error("Submit request is aborted."); }
-        });
+        }
     }
 
     stop(context: StopContext, next: VoidFunction) {
@@ -300,6 +221,110 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     // WebsiteMiddleware members
 
+    private __requestNav(context: NavigateContext, navSequence: number, state: string | null | undefined) {
+        return new Promise<DocumentFragment | null>((resolve, reject) => {
+            this.queue.push({
+                url: context.url,
+                method: "GET",
+                headers: { "Page-Nav": state || "" },
+                disableCache: true,
+                success: (response: AjaxResponse<string>) => {
+                    if (this.__isNavOutdated(navSequence)) {
+                        reject("Nav request is outdated.");
+                        resolve(null);
+                        return;
+                    }
+
+                    switch (response.status) {
+                        case 0:
+                            break;
+                        case 200: {
+                            if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
+                                this.__forceNav(context);
+                                resolve(null);
+                                return;
+                            }
+
+                            if (this.__precessPageResponse("nav", response, () => resolve(null)))
+                                return;
+
+                            if (!response.data) {
+                                this.__forceNav(context);
+                                reject('Nav response is empty.');
+                                return;
+                            }
+
+                            const contentFragment = document.createDocumentFragment();
+                            const fixElem = DOM.tag("div");
+                            contentFragment.append(fixElem);
+                            fixElem.insertAdjacentHTML("beforebegin", response.data);
+                            fixElem.remove();
+
+                            resolve(contentFragment);
+                            break;
+                        }
+                        default:
+                            this.__forceNav(context);
+                            reject(`Nav request response status ${response.status}`);
+                            break;
+                    }
+                },
+                abort: () => { resolve(null); }
+            });
+        });
+    }
+
+    private __requestSubmit(context: SubmitContext, navSequence: number, currentNav: NavigationModel) {
+        const { url, form } = context;
+        const method = (context.method.toUpperCase() as AJAXMethod);
+
+        return new Promise<{ type: "ended" | "html" | "object", html?: string, obj?: any }>((resolve, reject) => {
+            var urlParams: { [key: string]: string; } = {};
+            for (var key in currentNav.query)
+                urlParams[key] = currentNav.query[key];
+
+            this.queue.push({
+                url,
+                urlParams,
+                headers: {
+                    "Page-Nav": currentNav.state || "",
+                    "Page-Submit": "true"
+                },
+                method,
+                data: new FormData(form),
+                success: minWait((response: AjaxResponse) => {
+                    if (this.__isNavOutdated(navSequence)) {
+                        reject("Submit request is outdated.");
+                        return;
+                    }
+
+                    switch (response.status) {
+                        case 0:
+                            resolve({ type: "ended" });
+                            break;
+                        case 200:
+                        case 201: {
+                            if (this.__precessPageResponse("submit", response, () => { resolve({ type: "ended" }) }))
+                                break;
+
+                            const contentType = response.xhr.getResponseHeader("content-type");
+                            if (contentType && contentType.startsWith("text/html"))
+                                resolve({ type: "html", html: response.data });
+                            else
+                                resolve({ type: "object", obj: response.data });
+
+                            break;
+                        }
+                        default:
+                            reject(`Submit request response status ${response.status}`);
+                            break;
+                    }
+                }),
+                abort: () => { reject("Submit request is aborted."); }
+            });
+        });
+    }
+
     private async __updateHtml(context: SubmitContext, navSequence: number, html: string) {
         if (!this.__navigation)
             throw "Can't update page html.";
@@ -317,7 +342,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     private async __renderPage(context: NavigateContext, nav: NavigationModel, navSequence: number, newContent: DocumentFragment | null) {
         if (this.__isNavOutdated(navSequence))
-            throw 'Render page is outdated.';
+            return false;
 
         const isSubmit = !!context.data["submit"];
         const prevNav = this.__navigation;
@@ -325,32 +350,32 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         context.data["prevNav"] = prevNav;
         context.data["prevPage"] = this.__page;
 
-        let pageTypeName: string | null = nav.page.type;
-        if (!pageTypeName && this.options.defaultType)
-            pageTypeName = this.options.defaultType;
-
-        let pageFactory: (() => Promise<{ default: typeof Page } | any>) | null = null;
-
-        if (pageTypeName) {
-            pageFactory = this.options && this.options.pageTypes ? this.options.pageTypes[pageTypeName] : null;
-            if (!pageFactory)
-                throw `Not found page type "${pageTypeName}".`;
-        }
-        else
-            pageFactory = () => new Promise<{ default: typeof Page } | any>(resolve => { resolve({ default: Page }); });
-
-        if (this.__page) {
-            // destroy current page
-
-            this.__page.destroy();
-            this.__page = null;
-        }
-
         try {
+            let pageTypeName: string | null = nav.page.type;
+            if (!pageTypeName && this.options.defaultType)
+                pageTypeName = this.options.defaultType;
+
+            let pageFactory: (() => Promise<{ default: typeof Page } | any>) | null = null;
+
+            if (pageTypeName) {
+                pageFactory = this.options && this.options.pageTypes ? this.options.pageTypes[pageTypeName] : null;
+                if (!pageFactory)
+                    throw `Not found page type "${pageTypeName}".`;
+            }
+            else
+                pageFactory = () => new Promise<{ default: typeof Page } | any>(resolve => { resolve({ default: Page }); });
+
+            if (this.__page) {
+                // destroy current page
+
+                this.__page.destroy();
+                this.__page = null;
+            }
+
             const pageType = await pageFactory();
 
             if (this.__isNavOutdated(navSequence))
-                throw 'Render page is outdated.';
+                return false;
 
             const page = await this.__createPage(pageType.default, nav, newContent);
             if (!isSubmit)
@@ -361,17 +386,15 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
             context.data["nav"] = nav;
             context.data["page"] = page;
-        }
-        catch(reason) {
-            console.error(`Error render page ${context.url}: ${reason}`);
 
+            return true;
+        }
+        catch (reason) {
             if (prevNav && !isSubmit)
                 this.__forceNav(context);
 
             throw reason;
         }
-
-        this.__hideNavigationProgress()
     }
 
     private __createPage(pageType: typeof Page, nav: NavigationModel, newContent: DocumentFragment | null): Promise<Page> {
@@ -394,7 +417,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             }
 
             const page = new pageType(this, nav, pageElem);
-            
+
             resolve(page);
         });
     }
@@ -521,7 +544,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 replace: response.xhr.getResponseHeader(pageReplaceHeader) === "true",
                 context: { source }
             });
-            
+
             return true;
         }
 
