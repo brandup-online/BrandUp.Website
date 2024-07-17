@@ -44,7 +44,7 @@ namespace ExampleWebSite.Pages
             if (string.IsNullOrEmpty(ReturnUrl))
                 ReturnUrl = Url.Page("/Index");
 
-            return PageRedirect(ReturnUrl, replaceUrl: true);
+            return PageRedirect(ReturnUrl, replace: true);
         }
     }
 }

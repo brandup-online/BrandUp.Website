@@ -311,11 +311,11 @@ namespace BrandUp.Website.Pages
 
         #endregion
 
-        public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replaceUrl = false)
+        public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replace = false, bool reload = false)
         {
             ArgumentNullException.ThrowIfNull(pageUrl);
 
-            return new Results.PageRedirectResult(pageUrl) { IsPermament = isPermament, ReplaceUrl = replaceUrl };
+            return new Results.PageRedirectResult(pageUrl) { IsPermament = isPermament, Replace = replace, Reload = reload };
         }
 
         public Results.PageActionResult PageAction(PageActionType actionType)

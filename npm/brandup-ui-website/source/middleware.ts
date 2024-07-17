@@ -539,11 +539,21 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (redirectLocation) {
             end();
 
-            this.nav({
-                url: redirectLocation,
-                replace: response.xhr.getResponseHeader(pageReplaceHeader) === "true",
-                context: { source }
-            });
+            const replace = response.xhr.getResponseHeader(pageReplaceHeader) === "true";
+
+            if (response.xhr.getResponseHeader(pageReloadHeader)) {
+                if (replace)
+                    location.replace(redirectLocation);
+                else
+                    location.assign(redirectLocation);
+            }
+            else {
+                this.nav({
+                    url: redirectLocation,
+                    replace,
+                    context: { source }
+                });
+            }
 
             return true;
         }

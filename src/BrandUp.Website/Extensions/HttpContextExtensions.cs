@@ -33,7 +33,7 @@ namespace BrandUp.Website
             return false;
         }
 
-        public static void RedirectPage(this HttpResponse response, string pageLocation, bool isPermament = false, bool replaceUrl = false)
+        public static void RedirectPage(this HttpResponse response, string pageLocation, bool isPermament = false, bool replace = false, bool reload = false)
         {
             ArgumentNullException.ThrowIfNull(response);
             ArgumentNullException.ThrowIfNull(pageLocation);
@@ -48,8 +48,10 @@ namespace BrandUp.Website
             {
                 response.StatusCode = 200;
                 response.Headers[PageConstants.HttpHeaderPageLocation] = pageLocation;
-                if (replaceUrl)
+                if (replace)
                     response.Headers[PageConstants.HttpHeaderPageReplace] = "true";
+                if (reload)
+                    response.Headers[PageConstants.HttpHeaderPageReload] = "true";
             }
         }
     }

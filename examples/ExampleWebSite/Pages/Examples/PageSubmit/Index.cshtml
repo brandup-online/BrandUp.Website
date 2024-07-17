@@ -45,6 +45,16 @@
     </section>
 
     <section class="page-block page-block-form">
+        <h2>Internal redirect (reload) from post submit</h2>
+        <form method="post" asp-page-handler="InternalRedirectReload">
+            <div asp-validation-summary="All"></div>
+            <div class="actions">
+                <button type="submit">Redirect and realod</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="page-block page-block-form">
         <h2>External redirect from post submit</h2>
         <form method="post" asp-page-handler="ExtenalRedirect">
             <div asp-validation-summary="All"></div>

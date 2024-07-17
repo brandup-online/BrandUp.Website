@@ -41,6 +41,11 @@ namespace ExampleWebSite.Pages.Examples.PageSubmit
             return PageRedirect(Url.Page("/Index"));
         }
 
+        public IActionResult OnPostInternalRedirectReload()
+        {
+            return PageRedirect(Url.Page("/Index"), reload: true);
+        }
+
         public IActionResult OnPostExtenalRedirect()
         {
             return PageRedirect("https://yandex.ru");
