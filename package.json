@@ -3,7 +3,8 @@
 	"name": "brandup-ui-website-root",
 	"private": true,
 	"devDependencies": {
-		"@brandup/autonpm": "^1.0.14"
+		"@brandup/autonpm": "^1.0.14",
+		"core-js": "^3.37.1"
 	},
 	"scripts": {
 		"npm:install": "autonpm install",

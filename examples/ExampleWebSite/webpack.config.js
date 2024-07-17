@@ -4,6 +4,7 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const bundleOutputDir = './wwwroot/dist';
 
 module.exports = (env) => {
@@ -28,9 +29,11 @@ module.exports = (env) => {
         module: {
             rules: [
                 {
-                    test: /\.tsx?$/,
-                    loader: 'ts-loader',
-                    options: { allowTsInNodeModules: true }
+                    test: /\.(?:ts|js|mjs|cjs)$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader'
+                    }
                 },
                 {
                     test: /\.(le|c)ss$/,
@@ -78,6 +81,9 @@ module.exports = (env) => {
             new MiniCssExtractPlugin({
                 filename: '[name].css',
                 chunkFilename: isDevBuild ? '[id].css' : '[id].[contenthash].css'
+            }),
+            new WebpackManifestPlugin({
+                fileName: 'manifest.json',
             })
         ]
     }];
