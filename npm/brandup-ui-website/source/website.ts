@@ -1,6 +1,7 @@
 import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel, ContextData } from "brandup-ui-app";
 import { WebsiteMiddleware, WebsiteOptions } from "./middleware";
 import { AntiforgeryOptions } from "./common";
+import { WebsiteApplication } from "app";
 
 let current: Application | null = null;
 
@@ -8,7 +9,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
     if (current)
         Promise.reject("Application already started.");
 
-    if(!context)
+    if (!context)
         context = {};
 
     context["start"] = true;
@@ -21,6 +22,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
 
         const appBuilder = new ApplicationBuilder();
         appBuilder
+            .useApp(WebsiteApplication)
             .useMiddleware(new WebsiteMiddleware(options, appData.antiforgery));
 
         configure(appBuilder);

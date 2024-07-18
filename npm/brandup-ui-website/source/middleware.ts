@@ -7,8 +7,6 @@ import { minWait } from "./utilities/wait";
 import { scriptReplace } from "./utilities/script";
 
 const allowHistory = !!window.history && !!window.history.pushState;
-const PageNavHeader = "page-nav";
-const PageSubmitHeader = "page-submit";
 const pageReloadHeader = "page-reload";
 const pageActionHeader = "page-action";
 const pageLocationHeader = "page-location";
@@ -212,7 +210,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             this.queue.push({
                 method: "GET",
                 url: context.url,
-                headers: { PageNavHeader: state || "" },
+                headers: { "page-nav": state || "" },
                 disableCache: true,
                 success: (response: AjaxResponse<string>) => {
                     if (this.__isNavOutdated(navSequence)) {
@@ -274,8 +272,8 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 url,
                 query: urlParams,
                 headers: {
-                    PageNavHeader: currentNav.state || "",
-                    PageSubmitHeader: "true"
+                    "page-nav": currentNav.state || "",
+                    "page-submit": "true"
                 },
                 data: new FormData(form),
                 success: minWait((response: AjaxResponse) => {
