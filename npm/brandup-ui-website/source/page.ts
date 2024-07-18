@@ -1,5 +1,5 @@
 import { PageModel, NavigationModel, WebsiteContext } from "./common";
-import { AjaxQueue } from "brandup-ui-ajax";
+import { AjaxQueue, AjaxResponse } from "brandup-ui-ajax";
 import { UIElement } from "brandup-ui";
 import { DOM } from "brandup-ui-dom";
 
@@ -20,7 +20,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         this.website = website;
         this.nav = nav;
         this.queue = new AjaxQueue({
-            preRequest: (options) => {
+            canRequest: (options) => {
                 if (!options.headers)
                     options.headers = {};
 
@@ -35,8 +35,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     get hash(): string | null { return this.__hash; }
 
     protected onRenderContent() { }
-    protected onChangedHash(newHash: string | null, oldHash: string | null) { }
-    protected onCallbackHandler(data: any) { }
+    protected onChangedHash(_newHash: string | null, _oldHash: string | null) { }
+    protected onSubmitForm(_response: AjaxResponse) { }
 
     render(hash: string | null) {
         if (this.__isRendered)
@@ -49,14 +49,17 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         this.onRenderContent();
     }
-    callbackHandler(data: any) {
-        this.onCallbackHandler(data);
+
+    formSubmitted(response: AjaxResponse) {
+        this.onSubmitForm(response);
     }
+
     changedHash(newHash: string | null, oldHash: string | null) {
         this.__hash = newHash;
 
         this.onChangedHash(newHash, oldHash);
     }
+
     submit(form?: HTMLFormElement) {
         if (!this.element)
             throw 'Not set page element.';
@@ -68,6 +71,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         this.website.app.submit({ form, button: null });
     }
+
     buildUrl(queryParams: { [key: string]: string }): string {
         const params: { [key: string]: string } = {};
         for (const k in this.nav.query) {
@@ -82,19 +86,18 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         return this.website.app.uri(this.nav.path, params);
     }
+
     refreshScripts() {
         if (!this.element)
             return;
 
-        const scriptElements = DOM.queryElements(this.element, "[data-content-script]");
-        for (let i = 0; i < scriptElements.length; i++) {
-            const elem = scriptElements.item(i);
+        DOM.queryElements(this.element, "[data-content-script]").forEach(elem => {
             if (UIElement.hasElement(elem))
-                continue;
+                return;
 
             const scriptName = elem.getAttribute("data-content-script");
             if (!scriptName)
-                continue;
+                return;
 
             const script = this.website.getScript(scriptName);
             if (script) {
@@ -106,7 +109,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                     this.__scripts.push(uiElem);
                 });
             }
-        }
+        });
     }
 
     attachDestroyFunc(f: () => void) {

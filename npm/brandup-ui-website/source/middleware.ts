@@ -1,5 +1,5 @@
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, LoadContext, StopContext, SubmitContext, InvokeContext, Application } from "brandup-ui-app";
+import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, StopContext, SubmitContext, InvokeContext, Application } from "brandup-ui-app";
 import { DOM } from "brandup-ui-dom";
 import { NavigationModel, AntiforgeryOptions, WebsiteContext } from "./common";
 import { Page } from "./page";
@@ -7,10 +7,12 @@ import { minWait } from "./utilities/wait";
 import { scriptReplace } from "./utilities/script";
 
 const allowHistory = !!window.history && !!window.history.pushState;
-const pageReloadHeader = "Page-Reload";
-const pageActionHeader = "Page-Action";
-const pageLocationHeader = "Page-Location";
-const pageReplaceHeader = "Page-Replace";
+const PageNavHeader = "page-nav";
+const PageSubmitHeader = "page-submit";
+const pageReloadHeader = "page-reload";
+const pageActionHeader = "page-action";
+const pageLocationHeader = "page-location";
+const pageReplaceHeader = "page-replace";
 const navDataElemId = "nav-data";
 const pageElemId = "page-content";
 
@@ -38,7 +40,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             this.options.scripts = {};
 
         this.queue = new AjaxQueue({
-            preRequest: (options) => {
+            canRequest: (options) => {
                 if (!options.headers)
                     options.headers = {};
 
@@ -80,40 +82,28 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         next();
     }
 
-    loaded(context: LoadContext, next: VoidFunction) {
+    loaded(context: StartContext, next: VoidFunction) {
         context.data["website"] = this;
 
         next();
     }
 
     async navigate(context: NavigateContext) {
-        if (context.external) {
-            this.__forceNav(context);
-
-            //if (context.data["source"] == "submit")
-            //    this.__forceNav(context);
-            //else {
-            //    const linkElem = <HTMLLinkElement>DOM.tag("a", { href: context.url, target: "_blank" });
-            //    linkElem.click();
-            //    linkElem.remove();
-            //}
-
-            return false;
-        }
-
-        if (!allowHistory) {
-            this.__forceNav(context);
-            return false;
-        }
-
         context.data["website"] = this;
 
         this.__showNavigationProgress();
         this.queue.reset(true);
-
         const navSequence = this.__incNavSequence();
 
+        if (context.external || !allowHistory) {
+            this.__forceNav(context);
+            return false;
+        }
+
         try {
+            let navModel: NavigationModel;
+            let navContent: DocumentFragment | null = null;
+
             if (context.source === "first") {
                 // first navigation
 
@@ -121,27 +111,22 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 if (!navScriptElement)
                     throw 'Not found first navigation data.';
 
-                const navModel: NavigationModel = JSON.parse(navScriptElement.text);
+                navModel = JSON.parse(navScriptElement.text);
                 navScriptElement.remove();
-
-                await this.__renderPage(context, navModel, this.__navCounter, null);
             }
             else {
                 // continue navigation
 
-                const navContent = await this.__requestNav(context, navSequence, this.__navigation?.state);
+                navContent = await this.__requestNav(context, navSequence, this.__navigation?.state);
                 if (!navContent)
                     return;
 
                 const navJsonElem = <HTMLScriptElement>navContent.getElementById(navDataElemId);
-                const navModel = JSON.parse(navJsonElem.text);
+                navModel = JSON.parse(navJsonElem.text);
                 navJsonElem.remove();
-
-                await this.__renderPage(context, navModel, navSequence, navContent);
             }
-        }
-        catch (reason) {
-            throw reason;
+
+            await this.__renderPage(context, navModel, navSequence, navContent);
         }
         finally {
             this.__hideNavigationProgress();
@@ -162,18 +147,19 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         const currentPage = this.__page;
 
         try {
-            const submitResult = await this.__requestSubmit(context, navSequence, currentNav);
-            switch (submitResult.type) {
-                case "ended":
-                    return false;
+            const response = await this.__requestSubmit(context, navSequence, currentNav);
+            if (!response)
+                return false;
+
+            switch (response.type) {
                 case "html":
-                    if (!submitResult.html)
+                    if (!response.data)
                         throw 'Submit response not have html.';
 
-                    await this.__updateHtml(context, navSequence, submitResult.html);
+                    await this.__updateHtml(context, navSequence, response.data);
                     break;
-                case "object":
-                    currentPage.callbackHandler(submitResult.obj);
+                default:
+                    currentPage.formSubmitted(response);
                     break;
             }
         }
@@ -224,9 +210,9 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     private __requestNav(context: NavigateContext, navSequence: number, state: string | null | undefined) {
         return new Promise<DocumentFragment | null>((resolve, reject) => {
             this.queue.push({
-                url: context.url,
                 method: "GET",
-                headers: { "Page-Nav": state || "" },
+                url: context.url,
+                headers: { PageNavHeader: state || "" },
                 disableCache: true,
                 success: (response: AjaxResponse<string>) => {
                     if (this.__isNavOutdated(navSequence)) {
@@ -239,7 +225,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                         case 0:
                             break;
                         case 200: {
-                            if (response.xhr.getResponseHeader(pageReloadHeader) === "true") {
+                            if (response.headers.has(pageReloadHeader)) {
                                 this.__forceNav(context);
                                 resolve(null);
                                 return;
@@ -269,7 +255,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                             break;
                     }
                 },
-                abort: () => { resolve(null); }
+                error: () => { resolve(null); }
             });
         });
     }
@@ -278,19 +264,19 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         const { url, form } = context;
         const method = (context.method.toUpperCase() as AJAXMethod);
 
-        return new Promise<{ type: "ended" | "html" | "object", html?: string, obj?: any }>((resolve, reject) => {
-            var urlParams: { [key: string]: string; } = {};
+        return new Promise<AjaxResponse | null>((resolve, reject) => {
+            var urlParams: { [key: string]: string | string[]; } = {};
             for (var key in currentNav.query)
                 urlParams[key] = currentNav.query[key];
 
             this.queue.push({
-                url,
-                urlParams,
-                headers: {
-                    "Page-Nav": currentNav.state || "",
-                    "Page-Submit": "true"
-                },
                 method,
+                url,
+                query: urlParams,
+                headers: {
+                    PageNavHeader: currentNav.state || "",
+                    PageSubmitHeader: "true"
+                },
                 data: new FormData(form),
                 success: minWait((response: AjaxResponse) => {
                     if (this.__isNavOutdated(navSequence)) {
@@ -299,20 +285,12 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                     }
 
                     switch (response.status) {
-                        case 0:
-                            resolve({ type: "ended" });
-                            break;
                         case 200:
                         case 201: {
-                            if (this.__precessPageResponse("submit", response, () => { resolve({ type: "ended" }) }))
+                            if (this.__precessPageResponse("submit", response, () => { resolve(null) }))
                                 break;
 
-                            const contentType = response.xhr.getResponseHeader("content-type");
-                            if (contentType && contentType.startsWith("text/html"))
-                                resolve({ type: "html", html: response.data });
-                            else
-                                resolve({ type: "object", obj: response.data });
-
+                            resolve(response);
                             break;
                         }
                         default:
@@ -320,7 +298,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                             break;
                     }
                 }),
-                abort: () => { reject("Submit request is aborted."); }
+                error: (reason) => { reject(`Submit request is error: ${reason}`); }
             });
         });
     }
@@ -521,7 +499,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
     }
 
     private __precessPageResponse(source: "nav" | "submit", response: AjaxResponse, end: () => void): boolean {
-        const pageAction = response.xhr.getResponseHeader(pageActionHeader);
+        const pageAction = response.headers.get(pageActionHeader);
         if (pageAction) {
             switch (pageAction) {
                 case "reset":
@@ -535,13 +513,11 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             }
         }
 
-        const redirectLocation = response.xhr.getResponseHeader(pageLocationHeader);
+        const redirectLocation = response.headers.get(pageLocationHeader);
         if (redirectLocation) {
-            end();
+            const replace = response.headers.has(pageReplaceHeader);
 
-            const replace = response.xhr.getResponseHeader(pageReplaceHeader) === "true";
-
-            if (response.xhr.getResponseHeader(pageReloadHeader)) {
+            if (response.headers.has(pageReloadHeader)) {
                 if (replace)
                     location.replace(redirectLocation);
                 else
@@ -551,7 +527,8 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 this.nav({
                     url: redirectLocation,
                     replace,
-                    context: { source }
+                    context: { source },
+                    callback: () => { end(); }
                 });
             }
 
