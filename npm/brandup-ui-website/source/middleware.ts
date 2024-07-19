@@ -152,7 +152,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             switch (response.type) {
                 case "html":
                     if (!response.data)
-                        throw 'Submit response not have html.';
+                        throw new Error('Submit response not have html.');
 
                     await this.__updateHtml(context, navSequence, response.data);
                     break;
@@ -205,100 +205,76 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
     // WebsiteMiddleware members
 
-    private __requestNav(context: NavigateContext, navSequence: number, state: string | null | undefined) {
-        return new Promise<DocumentFragment | null>((resolve, reject) => {
-            this.queue.push({
-                method: "GET",
-                url: context.url,
-                headers: { "page-nav": state || "" },
-                disableCache: true,
-                success: (response: AjaxResponse<string>) => {
-                    if (this.__isNavOutdated(navSequence)) {
-                        reject("Nav request is outdated.");
-                        resolve(null);
-                        return;
-                    }
-
-                    switch (response.status) {
-                        case 0:
-                            break;
-                        case 200: {
-                            if (response.headers.has(pageReloadHeader)) {
-                                this.__forceNav(context);
-                                resolve(null);
-                                return;
-                            }
-
-                            if (this.__precessPageResponse("nav", response, () => resolve(null)))
-                                return;
-
-                            if (!response.data) {
-                                this.__forceNav(context);
-                                reject('Nav response is empty.');
-                                return;
-                            }
-
-                            const contentFragment = document.createDocumentFragment();
-                            const fixElem = DOM.tag("div");
-                            contentFragment.append(fixElem);
-                            fixElem.insertAdjacentHTML("beforebegin", response.data);
-                            fixElem.remove();
-
-                            resolve(contentFragment);
-                            break;
-                        }
-                        default:
-                            this.__forceNav(context);
-                            reject(`Nav request response status ${response.status}`);
-                            break;
-                    }
-                },
-                error: () => { resolve(null); }
-            });
+    private async __requestNav(context: NavigateContext, navSequence: number, state: string | null | undefined) {
+        const response = await this.queue.enque({
+            method: "GET",
+            url: context.url,
+            headers: { "page-nav": state || "" },
+            disableCache: true
         });
+
+        if (this.__isNavOutdated(navSequence))
+            throw new Error("Nav request is outdated.");
+
+        switch (response.status) {
+            case 200: {
+                if (response.headers.has(pageReloadHeader)) {
+                    this.__forceNav(context);
+                    return null;
+                }
+
+                //if (this.__precessPageResponse("nav", response, () => resolve(null)))
+                //    return;
+
+                if (response.type != "html")
+                    throw new Error('Nav response is not html.');
+
+                const contentFragment = document.createDocumentFragment();
+                const fixElem = DOM.tag("div");
+                contentFragment.append(fixElem);
+                fixElem.insertAdjacentHTML("beforebegin", response.data);
+                fixElem.remove();
+
+                return contentFragment;
+            }
+            default:
+                throw new Error(`Nav request response status ${response.status}`);
+        }
     }
 
-    private __requestSubmit(context: SubmitContext, navSequence: number, currentNav: NavigationModel) {
+    private async __requestSubmit(context: SubmitContext, navSequence: number, currentNav: NavigationModel) {
         const { url, form } = context;
         const method = (context.method.toUpperCase() as AJAXMethod);
 
-        return new Promise<AjaxResponse | null>((resolve, reject) => {
-            var urlParams: { [key: string]: string | string[]; } = {};
-            for (var key in currentNav.query)
-                urlParams[key] = currentNav.query[key];
+        var urlParams: { [key: string]: string | string[]; } = {};
+        for (var key in currentNav.query)
+            urlParams[key] = currentNav.query[key];
 
-            this.queue.push({
-                method,
-                url,
-                query: urlParams,
-                headers: {
-                    "page-nav": currentNav.state || "",
-                    "page-submit": "true"
-                },
-                data: new FormData(form),
-                success: minWait((response: AjaxResponse) => {
-                    if (this.__isNavOutdated(navSequence)) {
-                        reject("Submit request is outdated.");
-                        return;
-                    }
-
-                    switch (response.status) {
-                        case 200:
-                        case 201: {
-                            if (this.__precessPageResponse("submit", response, () => { resolve(null) }))
-                                break;
-
-                            resolve(response);
-                            break;
-                        }
-                        default:
-                            reject(`Submit request response status ${response.status}`);
-                            break;
-                    }
-                }),
-                error: (reason) => { reject(`Submit request is error: ${reason}`); }
-            });
+        const response = await this.queue.enque({
+            method,
+            url,
+            query: urlParams,
+            headers: {
+                "page-nav": currentNav.state || "",
+                "page-submit": "true"
+            },
+            data: new FormData(form)
         });
+
+        if (this.__isNavOutdated(navSequence))
+            throw new Error("Nav request is outdated.");
+
+        switch (response.status) {
+            case 200:
+            case 201: {
+                if (this.__precessPageResponse("submit", response, () => { resolve(null) }))
+                    return null;
+
+                return response;
+            }
+            default:
+                throw new Error(`Submit request response status ${response.status}`);
+        }
     }
 
     private async __updateHtml(context: SubmitContext, navSequence: number, html: string) {
@@ -405,66 +381,66 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             location.assign(context.url);
     }
 
-    private __setNavigation(data: NavigationModel, hash: string | null, replace: boolean) {
-        let navUrl = data.url;
+    private __setNavigation(model: NavigationModel, hash: string | null, replace: boolean) {
+        let navUrl = model.url;
         if (hash)
             navUrl += "#" + hash;
 
         const prevNav = this.__navigation;
 
         if (prevNav) {
-            if (prevNav.isAuthenticated !== data.isAuthenticated) {
+            if (prevNav.isAuthenticated !== model.isAuthenticated) {
                 location.href = navUrl;
                 return;
             }
 
-            document.title = data.title || "";
+            document.title = model.title || "";
 
             let metaDescription = document.getElementById("page-meta-description");
-            if (data.description) {
+            if (model.description) {
                 if (!metaDescription) {
                     document.head.appendChild(metaDescription = DOM.tag("meta", { id: "page-meta-description", name: "description", content: "" }));
                 }
 
-                metaDescription.setAttribute("content", data.description);
+                metaDescription.setAttribute("content", model.description);
             }
             else if (metaDescription)
                 metaDescription.remove();
 
             let metaKeywords = document.getElementById("page-meta-keywords");
-            if (data.keywords) {
+            if (model.keywords) {
                 if (!metaKeywords) {
                     document.head.appendChild(metaKeywords = DOM.tag("meta", { id: "page-meta-keywords", name: "keywords", content: "" }));
                 }
 
-                metaKeywords.setAttribute("content", data.keywords);
+                metaKeywords.setAttribute("content", model.keywords);
             }
             else if (metaKeywords)
                 metaKeywords.remove();
 
             let linkCanonical = document.getElementById("page-link-canonical");
-            if (data.canonicalLink) {
+            if (model.canonicalLink) {
                 if (!linkCanonical) {
                     document.head.appendChild(linkCanonical = DOM.tag("link", { id: "page-link-canonical", rel: "canonical", href: "" }));
                 }
 
-                linkCanonical.setAttribute("href", data.canonicalLink);
+                linkCanonical.setAttribute("href", model.canonicalLink);
             }
             else if (linkCanonical)
                 linkCanonical.remove();
 
-            this.__setOpenGraphProperty("type", data.openGraph ? data.openGraph.type : null);
-            this.__setOpenGraphProperty("title", data.openGraph ? data.openGraph.title : null);
-            this.__setOpenGraphProperty("image", data.openGraph ? data.openGraph.image : null);
-            this.__setOpenGraphProperty("url", data.openGraph ? data.openGraph.url : null);
-            this.__setOpenGraphProperty("site_name", data.openGraph ? data.openGraph.siteName : null);
-            this.__setOpenGraphProperty("description", data.openGraph ? data.openGraph.description : null);
+            this.__setOpenGraphProperty("type", model.openGraph ? model.openGraph.type : null);
+            this.__setOpenGraphProperty("title", model.openGraph ? model.openGraph.title : null);
+            this.__setOpenGraphProperty("image", model.openGraph ? model.openGraph.image : null);
+            this.__setOpenGraphProperty("url", model.openGraph ? model.openGraph.url : null);
+            this.__setOpenGraphProperty("site_name", model.openGraph ? model.openGraph.siteName : null);
+            this.__setOpenGraphProperty("description", model.openGraph ? model.openGraph.description : null);
 
             document.body.classList.remove(prevNav.bodyClass);
         }
 
-        this.__navigation = data;
-        this.__currentUrl = { url: data.url, hash };
+        this.__navigation = model;
+        this.__currentUrl = { url: model.url, hash };
 
         if (this.__navigation.bodyClass)
             document.body.classList.add(this.__navigation.bodyClass);
@@ -472,12 +448,10 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         if (navUrl === location.href)
             replace = true;
 
-        if (!hash) {
-            if (!replace)
-                window.history.pushState(window.history.state, data.title, navUrl);
-            else
-                window.history.replaceState(window.history.state, data.title, navUrl);
-        }
+        if (!replace)
+            window.history.pushState(window.history.state, model.title, navUrl);
+        else
+            window.history.replaceState(window.history.state, model.title, navUrl);
 
         if (!replace)
             window.scrollTo({ left: 0, top: 0, behavior: "auto" });
@@ -525,7 +499,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                 this.nav({
                     url: redirectLocation,
                     replace,
-                    context: { source },
+                    data: { source },
                     callback: () => { end(); }
                 });
             }
@@ -564,10 +538,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
         this.app.nav({
             url: url,
-            replace: true,
-            context: {
-                state: event.state
-            }
+            replace: true
         });
     }
     private __extractHashFromUrl(url: string): UrlParsed {

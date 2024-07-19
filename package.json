@@ -7,6 +7,9 @@
 		"core-js": "^3.37.1"
 	},
 	"scripts": {
+		"i": "npm i && npm run npm:install",
+		"u": "npm update --save && npm run npm:update",
+		"build": "npm run npm:build",
 		"npm:install": "autonpm install",
 		"npm:update": "autonpm update -save",
 		"npm:build": "autonpm build",
