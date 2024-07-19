@@ -12,10 +12,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     private __isRendered = false;
     private __hash: string | null = null;
 
-    constructor(website: WebsiteContext, nav: NavigationModel, element: HTMLElement) {
+    constructor(website: WebsiteContext, nav: NavigationModel) {
         super();
-
-        this.setElement(element);
 
         this.website = website;
         this.nav = nav;
@@ -34,30 +32,31 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     get model(): TModel { return this.nav.page as TModel; }
     get hash(): string | null { return this.__hash; }
 
-    protected onRenderContent() { }
-    protected onChangedHash(_newHash: string | null, _oldHash: string | null) { }
-    protected onSubmitForm(_response: AjaxResponse) { }
+    protected onRenderContent(): Promise<void> { return Promise.resolve(); }
+    protected onChangedHash(_newHash: string | null, _oldHash: string | null): Promise<void> { return Promise.resolve(); }
+    protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
-    render(hash: string | null) {
+    async render(element: HTMLElement, hash: string | null) {
         if (this.__isRendered)
             throw "Page already rendered.";
-
         this.__isRendered = true;
+
+        this.setElement(element);
         this.__hash = hash;
 
         this.refreshScripts();
 
-        this.onRenderContent();
+        await this.onRenderContent();
     }
 
-    formSubmitted(response: AjaxResponse) {
-        this.onSubmitForm(response);
+    async formSubmitted(response: AjaxResponse) {
+        await this.onSubmitForm(response);
     }
 
-    changedHash(newHash: string | null, oldHash: string | null) {
+    async changedHash(newHash: string | null, oldHash: string | null) {
         this.__hash = newHash;
 
-        this.onChangedHash(newHash, oldHash);
+        await this.onChangedHash(newHash, oldHash);
     }
 
     submit(form?: HTMLFormElement) {
@@ -67,7 +66,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         if (!form)
             form = DOM.queryElement(this.element, "form") as HTMLFormElement;
         if (!form)
-            throw `Not found form by submit.`;
+            throw new Error(`Not found form on page for submit.`);
 
         this.website.app.submit({ form, button: null });
     }
@@ -105,7 +104,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                     if (!this.__scripts)
                         return;
 
-                    const uiElem: UIElement = new t.default(elem, this.website, this);
+                    const uiElem: UIElement = new t.default(elem, this);
                     this.__scripts.push(uiElem);
                 });
             }

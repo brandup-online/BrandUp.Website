@@ -1,5 +1,6 @@
 import { AjaxQueue, AjaxRequest } from "brandup-ui-ajax";
-import { Application, NavigationOptions } from "brandup-ui-app";
+import { Application, ContextData, NavigateContext, NavigationOptions } from "brandup-ui-app";
+import { Page } from "./page";
 
 export interface AntiforgeryOptions {
     headerName: string;
@@ -12,13 +13,13 @@ export interface NavigationModel {
     query: { [key: string]: string; };
     validationToken: string;
     state: string;
-    title: string;
-    canonicalLink: string;
-    description: string;
-    keywords: string;
+    title: string | null;
+    canonicalLink: string | null;
+    description: string | null;
+    keywords: string | null;
     isAuthenticated: boolean;
-    bodyClass: string;
-    openGraph: PageOpenGraph;
+    bodyClass: string | null;
+    openGraph: PageOpenGraph | null;
     page: PageModel;
     [key: string]: any;
 }
@@ -43,8 +44,23 @@ export interface WebsiteContext {
     readonly queue: AjaxQueue;
     get id(): string;
     get validationToken(): string | null;
+    get current(): NavigationEntry | undefined;
     request(options: AjaxRequest, includeAntiforgery?: boolean): void;
     buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
     nav(options: NavigationOptions): void;
     getScript(name: string): Promise<{ default: any }> | null;
+}
+
+export interface WebsiteNavigateData extends ContextData {
+    website?: WebsiteContext;
+    current?: NavigationEntry;
+    new?: NavigationEntry;
+}
+
+export interface NavigationEntry {
+    context: NavigateContext;
+    url: string;
+    hash: string | null;
+    model: NavigationModel;
+    page: Page;
 }

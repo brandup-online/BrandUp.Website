@@ -1,5 +1,5 @@
 export * from "./common"
 export * from "./page"
-export * from "./utilities/wait"
+export * from "./helpers/wait"
 export * from "./website"
 export * from "./app"
