@@ -3,11 +3,11 @@
   "name": "example-web-site",
   "private": true,
   "dependencies": {
-    "brandup-ui": "^3.1.5",
-    "brandup-ui-ajax": "^3.1.5",
-    "brandup-ui-app": "^3.1.5",
-    "brandup-ui-dom": "^3.1.5",
-    "brandup-ui-website": "file:../../npm/brandup-ui-website"
+    "@brandup/ui": "^1.0.1",
+    "@brandup/ui-ajax": "^1.0.1",
+    "@brandup/ui-app": "^1.0.1",
+    "@brandup/ui-dom": "^1.0.1",
+    "@brandup/ui-website": "file:../../npm/brandup-ui-website"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.24.7",

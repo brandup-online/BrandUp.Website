@@ -1,4 +1,4 @@
-﻿import { UIElement } from "brandup-ui";
+﻿import { UIElement } from "@brandup/ui";
 
 class TestElem extends UIElement {
     get typeName(): string { return "Components.Test"; }

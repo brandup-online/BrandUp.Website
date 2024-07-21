@@ -1,11 +1,13 @@
-import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, NavigationOptions, StartContext, StopContext, SubmitContext, InvokeContext, Application } from "brandup-ui-app";
-import { DOM } from "brandup-ui-dom";
-import { NavigationModel, AntiforgeryOptions, WebsiteContext, NavigationEntry, WebsiteNavigateData } from "./common";
+import { DOM } from "@brandup/ui-dom";
+import { UIElement } from "@brandup/ui";
+import { AJAXMethod, AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
+import { Middleware, NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
+import { NavigationModel, NavigationEntry, WebsiteNavigateData } from "./common";
 import { Page } from "./page";
 import { scriptReplace } from "./helpers/script";
 import { extractHashFromUrl } from "./helpers/url";
-import { minWaitAsync } from "helpers/wait";
+import { minWaitAsync } from "./helpers/wait";
+import { WebsiteApplication } from "./app";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 const pageReloadHeader = "page-reload";
@@ -20,47 +22,35 @@ const DEFAULT_OPTIONS: WebsiteOptions = {
     submitMinTime: 500
 };
 
-export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> implements WebsiteContext {
+export class WebsiteMiddleware implements Middleware {
+    readonly name: string = "website-pages";
     readonly options: WebsiteOptions;
-    readonly antiforgery: AntiforgeryOptions;
-    readonly queue: AjaxQueue;
+    private __queue?: AjaxQueue;
     private __current?: NavigationEntry;
     private __navCounter = 0;
 
-    constructor(options: WebsiteOptions, antiforgery: AntiforgeryOptions) {
-        super();
-
+    constructor(options: WebsiteOptions) {
         this.options = Object.assign(options, DEFAULT_OPTIONS);
-        this.antiforgery = antiforgery;
 
         if (!this.options.pageTypes)
             this.options.pageTypes = {};
         if (!this.options.scripts)
             this.options.scripts = {};
-
-        this.queue = new AjaxQueue({
-            canRequest: (options) => {
-                if (!options.headers)
-                    options.headers = {};
-
-                if (this.antiforgery && options.method !== "GET" && options.method && this.__current)
-                    options.headers[this.antiforgery.headerName] = this.__current.model.validationToken;
-            }
-        });
     }
+
+    get validationToken(): string | null { return this.__current?.model.validationToken || null; }
+    get current(): NavigationEntry | undefined { return this.__current; }
 
     // Middleware members
 
-    start(context: StartContext, next: VoidFunction) {
-        context.data.website = this;
-
+    start(context: StartContext<WebsiteApplication>, next: MiddlewareNext) {
         const bodyElem = document.body;
 
         bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
         this.__showNavigationProgress();
 
         if (allowHistory)
-            window.addEventListener("popstate", (e: PopStateEvent) => this.__onPopState(e));
+            window.addEventListener("popstate", (e: PopStateEvent) => this.__onPopState(context, e));
 
         bodyElem.addEventListener("invalid", (event: Event) => {
             event.preventDefault();
@@ -78,26 +68,32 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             elem.classList.remove("invalid-required");
         });
 
-        next();
+        this.__queue = new AjaxQueue({
+            canRequest: (options) => {
+                if (!options.headers)
+                    options.headers = {};
+
+                if (context.app.model.antiforgery && options.method !== "GET" && options.method && this.__current)
+                    options.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
+            }
+        });
+
+        return next();
     }
 
-    loaded(context: StartContext, next: VoidFunction) {
-        context.data.website = this;
+    async navigate(context: NavigateContext<WebsiteApplication, WebsiteNavigateData>, next: MiddlewareNext) {
+        if (!this.__queue)
+            throw new Error('Website is not initialized.');
 
-        next();
-    }
-
-    async navigate(context: NavigateContext<WebsiteNavigateData>) {
-        context.data.website = this;
         const current = context.data.current = this.__current;
 
         this.__showNavigationProgress();
-        this.queue.reset(true);
+        this.__queue.reset(true);
         const navSequence = this.__incNavSequence();
 
         if (context.external || !allowHistory) {
             this.__forceNav(context);
-            return false;
+            return;
         }
 
         const isFirst = context.source === "first";
@@ -119,28 +115,28 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             else {
                 // continue navigation
 
-                const response: AjaxResponse = await minWaitAsync(this.queue.enque({
+                const response: AjaxResponse = await minWaitAsync(this.__queue.enque({
                     method: "GET", url: context.url, query: { "_": navSequence.toString() },
                     headers: { "page-nav": current?.model.state || "" },
                     disableCache: true
                 }), this.options.navMinTime);
 
                 if (this.__isNavOutdated(navSequence))
-                    return false;
+                    return;
 
                 if (response.status != 200) {
                     console.warn(`Nav request response status ${response.status}`);
                     this.__forceNav(context);
-                    return false;
+                    return;
                 }
 
                 if (response.headers.has(pageReloadHeader)) {
                     this.__forceNav(context);
-                    return false;
+                    return;
                 }
 
                 if (this.__precessPageResponse(context, response))
-                    return false;
+                    return;
 
                 if (response.type != "html")
                     throw new Error('Nav response is not html.');
@@ -157,16 +153,18 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
                 if (current && current.model.isAuthenticated !== navModel.isAuthenticated) {
                     this.__forceNav(context);
-                    return false;
+                    return;
                 }
             }
 
             await this.__renderPage(context, current, navModel, navSequence, navContent);
+
+            await next();
         }
         catch (reason) {
             if (!isFirst) {
                 this.__forceNav(context);
-                return false;
+                return;
             }
 
             throw reason;
@@ -176,18 +174,17 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         }
     }
 
-    async submit(context: SubmitContext) {
+    async submit(context: SubmitContext<WebsiteApplication>, next: MiddlewareNext) {
         if (!this.__current)
             throw new Error('Unable to submit.');
 
         const { url, form } = context;
         const method = (context.method.toUpperCase() as AJAXMethod);
 
-        context.data.website = this;
         const current = context.data.current = this.__current;
 
         this.__showNavigationProgress();
-        this.queue.reset(true);
+        current.page.queue.reset(true);
         const navSequence = this.__incNavSequence();
 
         try {
@@ -195,14 +192,14 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             for (var key in current.model.query)
                 query[key] = current.model.query[key];
 
-            const response: AjaxResponse = await minWaitAsync(this.queue.enque({
+            const response: AjaxResponse = await minWaitAsync(current.page.queue.enque({
                 method, url, query,
                 headers: { "page-nav": current.model.state || "", "page-submit": "true" },
                 data: new FormData(form)
             }), this.options.submitMinTime);
 
             if (this.__isNavOutdated(navSequence))
-                return false;
+                return;
 
             switch (response.status) {
                 case 200:
@@ -213,7 +210,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             }
 
             if (this.__precessPageResponse(context, response))
-                return false;
+                return;
 
             if (response.type == "html") {
                 if (!response.data)
@@ -229,50 +226,18 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             }
             else
                 await current.page.formSubmitted(response);
+
+            await next();
         }
         finally {
             this.__hideNavigationProgress();
         }
     }
 
-    stop(context: StopContext, next: VoidFunction) {
-        context.data.website = this;
+    stop(context: StopContext<WebsiteApplication>, next: MiddlewareNext) {
         context.data.current = this.__current;
 
-        next();
-    }
-
-    // WebsiteContext members
-
-    get id(): string { return this.app.model.websiteId; }
-    get validationToken(): string | null { return this.__current?.model.validationToken || null; }
-    get current(): NavigationEntry | undefined { return this.__current; }
-
-    request(options: AjaxRequest, includeAntiforgery = true) {
-        if (!options.headers)
-            options.headers = {};
-
-        if (includeAntiforgery && this.antiforgery && options.method !== "GET" && this.__current)
-            options.headers[this.antiforgery.headerName] = this.__current.model.validationToken;
-
-        this.queue.push(options);
-    }
-
-    buildUrl(path?: string, queryParams?: { [key: string]: string }): string {
-        return this.app.uri(path, queryParams);
-    }
-
-    nav(options: NavigationOptions) {
-        this.app.nav(options);
-    }
-
-    getScript(name: string): Promise<{ default: any }> | null {
-        if (!this.options.scripts)
-            return null;
-        const scriptFunc = this.options.scripts[name];
-        if (!scriptFunc)
-            return null;
-        return scriptFunc();
+        return next();
     }
 
     // WebsiteMiddleware members
@@ -302,7 +267,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
                     location.assign(redirectUrl);
             }
             else
-                this.nav({ url: redirectUrl, replace });
+                context.app.nav({ url: redirectUrl, replace });
 
             return true;
         }
@@ -317,7 +282,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             location.assign(context.url);
     }
 
-    private async __renderPage(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel | null, navSequence: number, newContent: DocumentFragment | null) {
+    private async __renderPage(context: NavigateContext<WebsiteApplication>, current: NavigationEntry | undefined, newNav: NavigationModel | null, navSequence: number, newContent: DocumentFragment | null) {
         const nav = newNav || current?.model;
         if (!nav)
             throw new Error('Not set nav.');
@@ -339,7 +304,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         const pageType: { default: typeof Page } = await pageFactory();
 
         if (this.__isNavOutdated(navSequence))
-            return null;
+            return;
 
         let currentPageElem: HTMLElement | null;
         let newPageElem: HTMLElement;
@@ -366,11 +331,13 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
         let page: Page | undefined;
         try {
-            page = new pageType.default(this, nav);
+            page = new pageType.default(context.app, nav);
             await page.render(newPageElem, current ? current.hash : null);
 
             if (this.__isNavOutdated(navSequence))
-                throw new Error('');
+                throw new Error('Page is outdated.');
+
+            this.__refreshPageScripts(page);
 
             if (newNav)
                 this.__setNavigation(context, current, newNav, page);
@@ -392,6 +359,37 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
         }
 
         return page;
+    }
+
+    private __refreshPageScripts(page: Page) {
+        if (!page.element)
+            return;
+
+        DOM.queryElements(page.element, "[data-content-script]").forEach(elem => {
+            if (UIElement.hasElement(elem))
+                return;
+
+            const scriptName = elem.getAttribute("data-content-script");
+            if (!scriptName)
+                return;
+
+            const script = this.__getScript(scriptName);
+            if (script) {
+                script.then((t) => {
+                    const uiElem: UIElement = new t.default(elem, this);
+                    page.attachDestroyElement(uiElem);
+                });
+            }
+        });
+    }
+
+    private __getScript(name: string): Promise<{ default: UIElement | any }> | null {
+        if (!this.options.scripts)
+            return null;
+        const scriptFunc = this.options.scripts[name];
+        if (!scriptFunc)
+            return null;
+        return scriptFunc();
     }
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {
@@ -485,7 +483,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
             metaTagElem.remove();
     }
 
-    private __onPopState(event: PopStateEvent) {
+    private __onPopState(context: StartContext, event: PopStateEvent) {
         event.preventDefault();
 
         const url = location.href;
@@ -508,7 +506,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 
         console.log(`popstate: ${url}`);
 
-        this.app.nav({ url: url, data: { popstate: event.state } });
+        context.app.nav({ url: url, data: { popstate: event.state } });
     }
 
     private __incNavSequence() {
@@ -580,7 +578,7 @@ export class WebsiteMiddleware extends Middleware<Application<ApplicationModel>,
 export interface WebsiteOptions {
     defaultType?: string;
     pageTypes?: { [key: string]: () => Promise<{ default: typeof Page } | any> };
-    scripts?: { [key: string]: () => Promise<{ default: typeof Page } | any> };
+    scripts?: { [key: string]: () => Promise<{ default: typeof UIElement } | any> };
     navMinTime?: number;
     submitMinTime?: number;
 }

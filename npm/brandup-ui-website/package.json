@@ -1,5 +1,5 @@
 {
-  "name": "brandup-ui-website",
+  "name": "@brandup/ui-website",
   "description": "Front-end website infrastructure.",
   "keywords": [
     "brandup",
@@ -28,15 +28,15 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "brandup-ui-ajax": "^3.1.5",
-    "brandup-ui-app": "^3.1.5",
-    "brandup-ui-dom": "^3.1.5"
+    "@brandup/ui-ajax": "^1.0.1",
+    "@brandup/ui-app": "^1.0.1",
+    "@brandup/ui-dom": "^1.0.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "rollup": "^4.18.1",
+    "rollup": "^4.19.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-typescript2": "^0.36.0",

@@ -5,8 +5,12 @@
     "target": "ESNext",
     "sourceMap": false,
     "strict": true,
-    "lib": [ "ES2020", "DOM" ],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "baseUrl": "./_client",
+    "outDir": "./out",
     "noImplicitAny": true,
     "noEmitOnError": true,
     "declarationMap": false

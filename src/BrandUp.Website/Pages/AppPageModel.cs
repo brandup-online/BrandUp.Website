@@ -202,7 +202,7 @@ namespace BrandUp.Website.Pages
             {
                 var antiforgeryToken = antiforgery.GetAndStoreTokens(httpContext);
 
-                startupModel.Antiforgery = new ClientModels.AntiforgeryModel
+                startupModel.Model.Antiforgery = new ClientModels.AntiforgeryModel
                 {
                     HeaderName = antiforgeryToken.HeaderName,
                     FormFieldName = antiforgeryToken.FormFieldName

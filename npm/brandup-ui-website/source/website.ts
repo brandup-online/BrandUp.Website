@@ -1,11 +1,11 @@
-import { ApplicationBuilder, Application, ApplicationModel, EnvironmentModel, ContextData } from "brandup-ui-app";
+import { ApplicationBuilder, EnvironmentModel, ContextData } from "@brandup/ui-app";
 import { WebsiteMiddleware, WebsiteOptions } from "./middleware";
-import { AntiforgeryOptions } from "./common";
-import { WebsiteApplication } from "app";
+import { WebsiteApplication } from "./app";
+import { WebsiteApplicationModel } from "./common";
 
-let current: Application | null = null;
+let current: WebsiteApplication | null = null;
 
-const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, context?: ContextData): Promise<Application> => {
+const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<WebsiteApplication> => {
     if (current)
         Promise.reject("Application already started.");
 
@@ -14,20 +14,20 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
 
     context["start"] = true;
 
-    return new Promise<Application>((resolve, reject) => {
+    return new Promise<WebsiteApplication>((resolve, reject) => {
         const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
         if (!appDataElem)
             throw "Is not defined application startup configuration.";
         const appData = <StartupModel>JSON.parse(appDataElem.text);
 
-        const appBuilder = new ApplicationBuilder();
+        const appBuilder = new ApplicationBuilder<WebsiteApplicationModel>();
         appBuilder
             .useApp(WebsiteApplication)
-            .useMiddleware(new WebsiteMiddleware(options, appData.antiforgery));
+            .useMiddleware(() => new WebsiteMiddleware(options));
 
         configure(appBuilder);
 
-        const app = current = appBuilder.build(appData.env, appData.model);
+        const app = current = <WebsiteApplication>appBuilder.build(appData.env, appData.model);
 
         let isStarted = false;
         const appStartFunc = () => {
@@ -72,13 +72,12 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<Ap
 
 interface StartupModel {
     env: EnvironmentModel;
-    model: ApplicationModel;
-    antiforgery: AntiforgeryOptions;
+    model: WebsiteApplicationModel;
 }
 
 interface IWebsiteInstance {
     /** Current runned website application. */
-    readonly current: Application | null;
+    readonly current: WebsiteApplication | null;
     /**
      * Run website application.
      * @param options Website options.
@@ -86,7 +85,7 @@ interface IWebsiteInstance {
      * @param context Custom run application context.
      * @returns Application instance.
      */
-    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<ApplicationModel>) => void, context?: ContextData): Promise<Application>;
+    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<WebsiteApplication>;
 }
 
 /** Website instance singleton point. */

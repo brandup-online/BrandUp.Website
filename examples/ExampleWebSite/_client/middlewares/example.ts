@@ -1,20 +1,22 @@
-﻿import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, Application, SubmitContext } from "brandup-ui-app";
+﻿import { Middleware, MiddlewareNext, NavigateContext, StartContext, SubmitContext } from "@brandup/ui-app";
 
-export class ExampleMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
-    start(context: StartContext, next: VoidFunction, end: VoidFunction) {
-        next();
+export class ExampleMiddleware implements Middleware {
+    readonly name: string = "example";
+
+    start(context: StartContext, next: MiddlewareNext) {
+        return next();
     }
 
-    loaded(context: LoadContext, next: VoidFunction, end: VoidFunction) {
-        next();
+    loaded(context: StartContext, next: MiddlewareNext) {
+        return next();
     }
 
-    navigate(context: NavigateContext, next: VoidFunction, end: VoidFunction) {
-        next();
+    navigate(context: NavigateContext, next: MiddlewareNext) {
+        return next();
     }
 
-    submit(context: SubmitContext, next: VoidFunction, end: VoidFunction) {
-        next();
+    async submit(context: SubmitContext, next: MiddlewareNext) {
+        await next();
 
         console.log(context);
     }

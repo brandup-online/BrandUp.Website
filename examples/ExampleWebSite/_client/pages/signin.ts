@@ -1,14 +1,14 @@
-﻿import { Page, PageModel } from "brandup-ui-website";
+﻿import { Page, PageModel } from "@brandup/ui-website";
 
 class SignInPage extends Page<PageModel> {
     get typeName(): string { return "SignInPage" }
 
-    onRenderContent() {
-        this.registerCommand("test", () => {
-            this.submit();
+    async onRenderContent() {
+        this.registerAsyncCommand("test", (context) => {
+            this.submit().finally(() => context.complate());
         });
 
-        super.onRenderContent();
+        return super.onRenderContent();
     }
 }
 

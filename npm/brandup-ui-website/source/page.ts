@@ -1,10 +1,11 @@
-import { PageModel, NavigationModel, WebsiteContext } from "./common";
-import { AjaxQueue, AjaxResponse } from "brandup-ui-ajax";
-import { UIElement } from "brandup-ui";
-import { DOM } from "brandup-ui-dom";
+import { DOM } from "@brandup/ui-dom";
+import { UIElement } from "@brandup/ui";
+import { AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
+import { PageModel, NavigationModel } from "./common";
+import { WebsiteApplication } from "./app";
 
 export class Page<TModel extends PageModel = { type: string }> extends UIElement {
-    readonly website: WebsiteContext;
+    readonly website: WebsiteApplication;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
     private __destroyCallbacks: Array<() => void> | null = [];
@@ -12,7 +13,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     private __isRendered = false;
     private __hash: string | null = null;
 
-    constructor(website: WebsiteContext, nav: NavigationModel) {
+    constructor(website: WebsiteApplication, nav: NavigationModel) {
         super();
 
         this.website = website;
@@ -22,8 +23,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
                 if (!options.headers)
                     options.headers = {};
 
-                if (website.antiforgery && options.method !== "GET" && options.method)
-                    options.headers[website.antiforgery.headerName] = nav.validationToken;
+                if (website.model.antiforgery && options.method !== "GET" && options.method)
+                    options.headers[website.model.antiforgery.headerName] = nav.validationToken;
             }
         });
     }
@@ -43,8 +44,6 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
         this.setElement(element);
         this.__hash = hash;
-
-        this.refreshScripts();
 
         await this.onRenderContent();
     }
@@ -68,7 +67,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         if (!form)
             throw new Error(`Not found form on page for submit.`);
 
-        this.website.app.submit({ form, button: null });
+        return this.website.submit({ form, button: null });
     }
 
     buildUrl(queryParams: { [key: string]: string }): string {
@@ -83,32 +82,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
             }
         }
 
-        return this.website.app.uri(this.nav.path, params);
-    }
-
-    refreshScripts() {
-        if (!this.element)
-            return;
-
-        DOM.queryElements(this.element, "[data-content-script]").forEach(elem => {
-            if (UIElement.hasElement(elem))
-                return;
-
-            const scriptName = elem.getAttribute("data-content-script");
-            if (!scriptName)
-                return;
-
-            const script = this.website.getScript(scriptName);
-            if (script) {
-                script.then((t) => {
-                    if (!this.__scripts)
-                        return;
-
-                    const uiElem: UIElement = new t.default(elem, this);
-                    this.__scripts.push(uiElem);
-                });
-            }
-        });
+        return this.website.buildUrl(this.nav.path, params);
     }
 
     attachDestroyFunc(f: () => void) {

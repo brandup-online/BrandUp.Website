@@ -1,6 +1,10 @@
-import { AjaxQueue, AjaxRequest } from "brandup-ui-ajax";
-import { Application, ContextData, NavigateContext, NavigationOptions } from "brandup-ui-app";
+import { ApplicationModel, ContextData, NavigateContext } from "@brandup/ui-app";
 import { Page } from "./page";
+
+export interface WebsiteApplicationModel extends ApplicationModel {
+    websiteId: string;
+    antiforgery: AntiforgeryOptions;
+}
 
 export interface AntiforgeryOptions {
     headerName: string;
@@ -38,21 +42,7 @@ export interface PageModel {
     [key: string]: any;
 }
 
-export interface WebsiteContext {
-    readonly app: Application;
-    readonly antiforgery: AntiforgeryOptions;
-    readonly queue: AjaxQueue;
-    get id(): string;
-    get validationToken(): string | null;
-    get current(): NavigationEntry | undefined;
-    request(options: AjaxRequest, includeAntiforgery?: boolean): void;
-    buildUrl(path?: string, queryParams?: { [key: string]: string }): string;
-    nav(options: NavigationOptions): void;
-    getScript(name: string): Promise<{ default: any }> | null;
-}
-
 export interface WebsiteNavigateData extends ContextData {
-    website?: WebsiteContext;
     current?: NavigationEntry;
     new?: NavigationEntry;
 }

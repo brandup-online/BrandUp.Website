@@ -1,29 +1,23 @@
-﻿import { ajaxRequest } from "brandup-ui-ajax";
-import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, Application } from "brandup-ui-app";
+﻿import { ajaxRequest } from "@brandup/ui-ajax";
+import { Middleware, MiddlewareNext, NavigateContext, StartContext } from "@brandup/ui-app";
 
-export class AuthMiddleware extends Middleware<Application<ApplicationModel>, ApplicationModel> {
-    start(context: StartContext, next: VoidFunction) {
-        this.app.registerCommand("signout", () => {
+export class AuthMiddleware implements Middleware {
+    readonly name: string = "auth";
+
+    start(context: StartContext, next: MiddlewareNext) {
+        context.app.registerCommand("signout", () => {
             ajaxRequest({
-                url: this.app.uri("api/auth/signout"),
+                url: context.app.buildUrl("api/auth/signout"),
                 method: "POST",
                 state: null,
                 success: () => {
-                    this.app.reload();
+                    context.app.reload();
                 }
             });
         });
 
-        console.log(`website id: ${this.app.model.websiteId}`);
+        console.log(`website id: ${context.app.model.websiteId}`);
 
-        next();
-    }
-
-    loaded(context: LoadContext, next: VoidFunction) {
-        next();
-    }
-
-    navigate(context: NavigateContext, next: VoidFunction) {
-        next();
+        return next();
     }
 }
