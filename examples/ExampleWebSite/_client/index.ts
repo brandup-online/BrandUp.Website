@@ -6,18 +6,18 @@ import "./styles.less";
 
 WEBSITE.run({
     pageTypes: {
-        "signin": () => import("./pages/signin"),
-        "form": () => import("./pages/form"),
-        "examples-navigation": () => import("./pages/examples/navigation")
+        "signin": { factory: () => import("./pages/signin") },
+        "form": { factory: () => import("./pages/form") },
+        "examples-navigation": { factory: () => import("./pages/examples/navigation") }
     },
     scripts: {
-        "test": () => import("./components/test")
+        "test": { factory: () => import("./components/test") }
     }
 }, (builder) => {
     builder
-        .useMiddleware(new ExampleMiddleware())
-        .useMiddleware(new AuthMiddleware())
-        .useMiddleware(new CityMiddleware());
+        .useMiddleware(() => new ExampleMiddleware())
+        .useMiddleware(() => new AuthMiddleware())
+        .useMiddleware(() => new CityMiddleware());
 })
     .then(() => console.log("example runned"))
     .catch(reason => console.log(`example run error: ${reason}`));

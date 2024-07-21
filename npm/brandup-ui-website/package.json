@@ -28,9 +28,9 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "@brandup/ui-ajax": "^1.0.1",
-    "@brandup/ui-app": "^1.0.1",
-    "@brandup/ui-dom": "^1.0.1"
+    "@brandup/ui-ajax": "^1.0.2",
+    "@brandup/ui-app": "^1.0.2",
+    "@brandup/ui-dom": "^1.0.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.8",

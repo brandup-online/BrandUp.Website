@@ -1,33 +1,31 @@
-import { ApplicationBuilder, EnvironmentModel, ContextData } from "@brandup/ui-app";
-import { WebsiteMiddleware, WebsiteOptions } from "./middleware";
+import { ApplicationBuilder, EnvironmentModel, ContextData, NavigateContext } from "@brandup/ui-app";
+import { WebsiteMiddleware, PagesOptions } from "./middleware";
 import { WebsiteApplication } from "./app";
 import { WebsiteApplicationModel } from "./common";
 
 let current: WebsiteApplication | null = null;
 
-const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<WebsiteApplication> => {
+const run = (pagesOptions: PagesOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>> => {
     if (current)
         Promise.reject("Application already started.");
 
     if (!context)
         context = {};
 
-    context["start"] = true;
-
-    return new Promise<WebsiteApplication>((resolve, reject) => {
+    return new Promise<NavigateContext<WebsiteApplication>>((resolve, reject) => {
         const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
         if (!appDataElem)
             throw "Is not defined application startup configuration.";
         const appData = <StartupModel>JSON.parse(appDataElem.text);
 
-        const appBuilder = new ApplicationBuilder<WebsiteApplicationModel>();
+        const appBuilder = new ApplicationBuilder<WebsiteApplicationModel>(appData.model);
         appBuilder
             .useApp(WebsiteApplication)
-            .useMiddleware(() => new WebsiteMiddleware(options));
+            .useMiddleware(() => new WebsiteMiddleware(pagesOptions));
 
         configure(appBuilder);
 
-        const app = current = <WebsiteApplication>appBuilder.build(appData.env, appData.model);
+        const app = current = <WebsiteApplication>appBuilder.build(appData.env);
 
         let isStarted = false;
         const appStartFunc = () => {
@@ -36,9 +34,9 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
             isStarted = true;
 
             app.run(context)
-                .then(() => {
+                .then((navContext) => {
                     console.log("website started");
-                    resolve(app);
+                    resolve(navContext);
                 })
                 .catch(reason => {
                     console.error(`website run error: ${reason}`);
@@ -85,7 +83,7 @@ interface IWebsiteInstance {
      * @param context Custom run application context.
      * @returns Application instance.
      */
-    run(options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<WebsiteApplication>;
+    run(pagesOptions: PagesOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>>;
 }
 
 /** Website instance singleton point. */

@@ -38,7 +38,7 @@ export interface PageOpenGraph {
 }
 
 export interface PageModel {
-    type: string;
+    type: string | null;
     [key: string]: any;
 }
 

@@ -4,8 +4,8 @@ class SignInPage extends Page<PageModel> {
     get typeName(): string { return "SignInPage" }
 
     async onRenderContent() {
-        this.registerAsyncCommand("test", (context) => {
-            this.submit().finally(() => context.complate());
+        this.registerCommand("test", async (context) => {
+            await this.submit();
         });
 
         return super.onRenderContent();

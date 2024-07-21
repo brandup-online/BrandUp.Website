@@ -17,19 +17,20 @@ const pageReplaceHeader = "page-replace";
 const navDataElemId = "nav-data";
 const pageElemId = "page-content";
 
-const DEFAULT_OPTIONS: WebsiteOptions = {
+export const WEBSITE_MIDDLEWARE_NAME = "website-pages";
+const DEFAULT_OPTIONS: PagesOptions = {
     navMinTime: 0,
     submitMinTime: 500
 };
 
 export class WebsiteMiddleware implements Middleware {
-    readonly name: string = "website-pages";
-    readonly options: WebsiteOptions;
+    readonly name: string = WEBSITE_MIDDLEWARE_NAME;
+    readonly options: PagesOptions;
     private __queue?: AjaxQueue;
     private __current?: NavigationEntry;
     private __navCounter = 0;
 
-    constructor(options: WebsiteOptions) {
+    constructor(options: PagesOptions) {
         this.options = Object.assign(options, DEFAULT_OPTIONS);
 
         if (!this.options.pageTypes)
@@ -291,17 +292,17 @@ export class WebsiteMiddleware implements Middleware {
         if (!pageTypeName && this.options.defaultType)
             pageTypeName = this.options.defaultType;
 
-        let pageFactory: (() => Promise<{ default: typeof Page } | any>) | null = null;
+        let pageDefinition: ScriptDefinition | null = null;
 
         if (pageTypeName) {
-            pageFactory = this.options && this.options.pageTypes ? this.options.pageTypes[pageTypeName] : null;
-            if (!pageFactory)
-                throw `Not found page type "${pageTypeName}".`;
+            pageDefinition = this.options && this.options.pageTypes ? this.options.pageTypes[pageTypeName] : null;
+            if (!pageDefinition)
+                throw `Not found page definition "${pageTypeName}".`;
         }
         else
-            pageFactory = () => new Promise<{ default: typeof Page } | any>(resolve => { resolve({ default: Page }); });
+            pageDefinition = { factory: () => Promise.resolve({ default: Page }) };
 
-        const pageType: { default: typeof Page } = await pageFactory();
+        const pageType: { default: typeof Page } = await pageDefinition.factory();
 
         if (this.__isNavOutdated(navSequence))
             return;
@@ -386,10 +387,12 @@ export class WebsiteMiddleware implements Middleware {
     private __getScript(name: string): Promise<{ default: UIElement | any }> | null {
         if (!this.options.scripts)
             return null;
+
         const scriptFunc = this.options.scripts[name];
         if (!scriptFunc)
             return null;
-        return scriptFunc();
+
+        return scriptFunc.factory();
     }
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {
@@ -575,10 +578,20 @@ export class WebsiteMiddleware implements Middleware {
     }
 }
 
-export interface WebsiteOptions {
+export interface PagesOptions {
     defaultType?: string;
-    pageTypes?: { [key: string]: () => Promise<{ default: typeof Page } | any> };
-    scripts?: { [key: string]: () => Promise<{ default: typeof UIElement } | any> };
+    pageTypes?: { [key: string]: PageDefinition };
+    scripts?: { [key: string]: ScriptDefinition };
     navMinTime?: number;
     submitMinTime?: number;
+}
+
+export interface PageDefinition {
+    factory: () => Promise<{ default: typeof Page } | any>;
+    preload?: boolean;
+}
+
+export interface ScriptDefinition {
+    factory: () => Promise<{ default: typeof UIElement } | any>;
+    preload?: boolean;
 }

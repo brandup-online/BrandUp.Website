@@ -9,12 +9,12 @@ Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-u
 ## Configure and start
 
 ```
-import { host } from "brandup-ui-website";
+import { WEBSITE } from "@brandup/ui-website";
 import { AuthMiddleware } from "./middlewares/auth";
 import { CityMiddleware } from "./middlewares/city";
 import "./styles.less";
 
-host.start({
+WEBSITE.run({
     pageTypes: {
         "signin": ()=> import("./pages/signin")
     },
