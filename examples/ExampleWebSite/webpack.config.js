@@ -64,7 +64,7 @@ module.exports = (env) => {
                     terserOptions: {
                         compress: true,
                         keep_classnames: false,
-                        keep_fnames: true,
+                        keep_fnames: false,
                         format: {
                             comments: false
                         },
