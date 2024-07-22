@@ -132,6 +132,12 @@ stages:
               customCommand: "run build"
 
           - task: "Npm@1"
+            displayName: "packages npm test"
+            inputs:
+              command: "custom"
+              customCommand: "run test"
+
+          - task: "Npm@1"
             displayName: "packages npm version"
             inputs:
               command: "custom"
