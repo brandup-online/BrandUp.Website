@@ -28,6 +28,7 @@
 		"npm:build": "autonpm build",
 		"npm:watch": "autonpm watch",
 		"npm:version": "autonpm-version",
+		"npm:cleanup": "autonpm-cleanup",
 		"npm:pack": "autonpm pack",
 		"test": "cross-env NODE_ENV=test jest --config=jest.config.ts --no-cache"
 	}
