@@ -1,7 +1,7 @@
 import { DOM } from "@brandup/ui-dom";
 import { UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
-import { Middleware, NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
+import { Middleware, NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER } from "@brandup/ui-app";
 import { NavigationModel, NavigationEntry, WebsiteNavigateData } from "./common";
 import { Page } from "./page";
 import { scriptReplace } from "./helpers/script";
@@ -249,7 +249,7 @@ export class WebsiteMiddleware implements Middleware {
             switch (pageAction) {
                 case "reset":
                 case "reload": {
-                    location.reload();
+                    BROWSER.default.location.reload();
                     return true;
                 }
                 default:
@@ -263,9 +263,9 @@ export class WebsiteMiddleware implements Middleware {
 
             if (response.headers.has(pageReloadHeader)) {
                 if (replace)
-                    location.replace(redirectUrl);
+                    BROWSER.default.location.replace(redirectUrl);
                 else
-                    location.assign(redirectUrl);
+                    BROWSER.default.location.assign(redirectUrl);
             }
             else
                 context.app.nav({ url: redirectUrl, replace });
@@ -278,9 +278,9 @@ export class WebsiteMiddleware implements Middleware {
 
     private __forceNav(context: NavigateContext) {
         if (context.replace && !context.external)
-            location.replace(context.url);
+            BROWSER.default.location.replace(context.url);
         else
-            location.assign(context.url);
+            BROWSER.default.location.assign(context.url);
     }
 
     private async __renderPage(context: NavigateContext<WebsiteApplication>, current: NavigationEntry | undefined, newNav: NavigationModel | null, navSequence: number, newContent: DocumentFragment | null) {
