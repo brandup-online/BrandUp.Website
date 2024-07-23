@@ -3,10 +3,10 @@
   "name": "example-web-site",
   "private": true,
   "dependencies": {
-    "@brandup/ui": "^1.0.2",
-    "@brandup/ui-ajax": "^1.0.2",
-    "@brandup/ui-app": "^1.0.2",
-    "@brandup/ui-dom": "^1.0.2",
+    "@brandup/ui": "^1.0.3",
+    "@brandup/ui-ajax": "^1.0.3",
+    "@brandup/ui-app": "^1.0.3",
+    "@brandup/ui-dom": "^1.0.3",
     "@brandup/ui-website": "file:../../npm/brandup-ui-website"
   },
   "devDependencies": {
@@ -22,7 +22,7 @@
     "mini-css-extract-plugin": "^2.9.0",
     "style-loader": "^3.3.4",
     "terser-webpack-plugin": "^5.3.10",
-    "typescript": "^5.5.3",
+    "typescript": "^5.5.4",
     "url-loader": "^4.1.1",
     "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4",

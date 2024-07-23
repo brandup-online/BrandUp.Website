@@ -378,7 +378,7 @@ export class WebsiteMiddleware implements Middleware {
             if (script) {
                 script.then((t) => {
                     const uiElem: UIElement = new t.default(elem, this);
-                    page.attachDestroyElement(uiElem);
+                    page.onDestroy(uiElem);
                 });
             }
         });

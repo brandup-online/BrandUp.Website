@@ -28,9 +28,9 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "@brandup/ui-ajax": "^1.0.2",
-    "@brandup/ui-app": "^1.0.2",
-    "@brandup/ui-dom": "^1.0.2"
+    "@brandup/ui-ajax": "^1.0.3",
+    "@brandup/ui-app": "^1.0.3",
+    "@brandup/ui-dom": "^1.0.3"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.8",
@@ -41,7 +41,7 @@
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-typescript2": "^0.36.0",
     "tslib": "^2.6.3",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.4"
   },
   "files": [
     "dist",
