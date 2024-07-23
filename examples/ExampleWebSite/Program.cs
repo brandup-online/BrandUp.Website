@@ -142,11 +142,11 @@ namespace ExampleWebSite
 
             app.UseRequestDecompression();
 
-            if (app.Environment.IsDevelopment())
-                app.UseDeveloperExceptionPage();
-            else
+            //if (app.Environment.IsDevelopment())
+            //    app.UseDeveloperExceptionPage();
+            //else
             {
-                app.UseExceptionHandler();
+                app.UseExceptionHandler("/error");
                 app.UseHsts();
             }
 
@@ -172,6 +172,20 @@ namespace ExampleWebSite
 
             app.MapRazorPages();
             app.MapControllers();
+
+            app.UseStatusCodePagesWithReExecute("/notfound");
+
+            //app.UseStatusCodePages(context =>
+            //{
+            //    switch (context.HttpContext.Response.StatusCode)
+            //    {
+            //        case 404:
+            //            context.HttpContext.Response.RedirectPage("/notfound", replace: true);
+            //            break;
+            //    }
+
+            //    return Task.CompletedTask;
+            //});
 
             #endregion
 

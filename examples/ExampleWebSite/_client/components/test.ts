@@ -10,6 +10,10 @@ class TestElem extends UIElement {
 
         elem.innerHTML = "test component";
     }
+
+    destroy() {
+        super.destroy();
+    }
 }
 
 export default TestElem;

@@ -15,7 +15,8 @@
     "baseUrl": "./source",
     "declaration": false,
     "declarationMap": false,
-    "removeComments": false
+    "removeComments": false,
+    "stripInternal": true
   },
   "include": [
     "source"
@@ -26,8 +27,5 @@
     ".vs",
     ".vscode"
   ],
-  "compileOnSave": false,
-  "typeAcquisition": {
-    "enable": true
-  }
+  "compileOnSave": false
 }

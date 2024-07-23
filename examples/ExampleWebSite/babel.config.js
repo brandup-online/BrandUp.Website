@@ -7,7 +7,7 @@ const plugins = [
 			useESModules: true
 		}
 	]
-]; // '@babel/plugin-transform-runtime'
+];
 
 module.exports = {
   presets: [

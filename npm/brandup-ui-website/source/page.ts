@@ -34,7 +34,8 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     protected onChangedHash(_newHash: string | null, _oldHash: string | null): Promise<void> { return Promise.resolve(); }
     protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
-    async render(element: HTMLElement, hash: string | null) {
+    /** @internal */
+    async __render(element: HTMLElement, hash: string | null | undefined) {
         this.setElement(element);
 
         if (hash)
@@ -43,14 +44,16 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         await this.onRenderContent();
     }
 
-    async formSubmitted(response: AjaxResponse) {
+    /** @internal */
+    async __submitted(response: AjaxResponse) {
         if (!this.element)
             return;
 
         await this.onSubmitForm(response);
     }
 
-    async changedHash(newHash: string | null, oldHash: string | null) {
+    /** @internal */
+    async __changedHash(newHash: string | null, oldHash: string | null) {
         if (!this.element)
             return;
 

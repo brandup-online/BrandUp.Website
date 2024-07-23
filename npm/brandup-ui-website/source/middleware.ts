@@ -88,12 +88,47 @@ export class WebsiteMiddleware implements Middleware {
 
         const current = context.data.current = this.__current;
 
+        const navSequence = this.__incNavSequence();
         this.__showNavigationProgress();
         this.__queue.reset(true);
-        const navSequence = this.__incNavSequence();
 
         if (context.external || !allowHistory) {
             this.__forceNav(context);
+            return;
+        }
+
+        if (current && (current.hash || context.hash) && current.url.toLowerCase() === context.url.toLowerCase()) {
+            const isHashEqual = current.hash?.toLowerCase() === context.hash?.toLowerCase();
+
+            if (!isHashEqual && !context.data.popstate) {
+                this.__hideNavigationProgress();
+
+                const newHash = context.hash ? "#" + context.hash : "";
+                console.log(`nav to hash: ${newHash}`);
+                location.hash = newHash;
+                return;
+            }
+
+            if (current.hash && !context.hash)
+                console.log(`remove hash: ${current.hash}`);
+            else if (!current.hash && context.hash)
+                console.log(`add hash: ${context.hash}`);
+            else if (!isHashEqual)
+                console.log(`change hash: ${current.hash} > ${context.hash}`);
+            else
+                console.log(`no change hash: ${current.hash} == ${context.hash}`);
+
+            current.hash = context.hash;
+
+            try {
+                await current.page.__changedHash(context.hash, current.hash);
+
+                await next();
+            }
+            finally {
+                this.__hideNavigationProgress();
+            }
+
             return;
         }
 
@@ -125,7 +160,7 @@ export class WebsiteMiddleware implements Middleware {
                 if (this.__isNavOutdated(navSequence))
                     return;
 
-                if (response.status != 200) {
+                if (response.status != 200 && response.type != "html") {
                     console.warn(`Nav request response status ${response.status}`);
                     this.__forceNav(context);
                     return;
@@ -163,7 +198,7 @@ export class WebsiteMiddleware implements Middleware {
             await next();
         }
         catch (reason) {
-            if (!isFirst) {
+            if (!isFirst && !this.__isNavOutdated(navSequence)) {
                 this.__forceNav(context);
                 return;
             }
@@ -184,9 +219,9 @@ export class WebsiteMiddleware implements Middleware {
 
         const current = context.data.current = this.__current;
 
+        const navSequence = this.__incNavSequence();
         this.__showNavigationProgress();
         current.page.queue.reset(true);
-        const navSequence = this.__incNavSequence();
 
         try {
             var query: { [key: string]: string | string[]; } = {};
@@ -226,7 +261,7 @@ export class WebsiteMiddleware implements Middleware {
                 await this.__renderPage(context, current, null, navSequence, contentFragment);
             }
             else
-                await current.page.formSubmitted(response);
+                await current.page.__submitted(response);
 
             await next();
         }
@@ -333,7 +368,7 @@ export class WebsiteMiddleware implements Middleware {
         let page: Page | undefined;
         try {
             page = new pageType.default(context.app, nav);
-            await page.render(newPageElem, current ? current.hash : null);
+            await page.__render(newPageElem, current?.hash);
 
             if (this.__isNavOutdated(navSequence))
                 throw new Error('Page is outdated.');
@@ -396,9 +431,7 @@ export class WebsiteMiddleware implements Middleware {
     }
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {
-        let navUrl = newNav.url;
-        if (context.hash)
-            navUrl += "#" + context.hash;
+        let navUrl = context.url;
 
         const isFirst = context.source == "first";
         const fromPopstate = !!context.data.popstate;
@@ -451,7 +484,7 @@ export class WebsiteMiddleware implements Middleware {
 
         this.__current = {
             context,
-            url: newNav.url,
+            url: context.url,
             hash: context.hash,
             model: newNav,
             page
@@ -462,10 +495,15 @@ export class WebsiteMiddleware implements Middleware {
             replace = true;
 
         if (!isFirst && !fromPopstate) {
-            if (!replace)
-                window.history.pushState(window.history.state, title, navUrl);
-            else
-                window.history.replaceState(window.history.state, title, navUrl);
+            if (!context.hash) {
+                if (replace)
+                    window.history.replaceState(window.history.state, title, navUrl);
+                else
+                    window.history.pushState(window.history.state, title, navUrl);
+            }
+
+            if (context.hash)
+                location.hash = "#" + context.hash;
 
             document.title = title;
 
@@ -489,27 +527,9 @@ export class WebsiteMiddleware implements Middleware {
     private __onPopState(context: StartContext, event: PopStateEvent) {
         event.preventDefault();
 
-        const url = location.href;
-        const current = this.__current;
-        const newUrl = extractHashFromUrl(url);
+        console.log(`popstate: ${location.href}`);
 
-        if (current) {
-            if (current.hash && !newUrl.hash)
-                console.log(`remove hash: ${current.hash}`);
-            else if (!current.hash && newUrl.hash)
-                console.log(`add hash: ${newUrl.hash}`);
-            else if (current.hash && newUrl.hash)
-                console.log(`change hash: ${newUrl.hash}`);
-
-            if ((current.hash || newUrl.hash) && current.url.toLowerCase() === newUrl.url.toLowerCase()) {
-                current.page.changedHash(newUrl.hash, current.hash);
-                return;
-            }
-        }
-
-        console.log(`popstate: ${url}`);
-
-        context.app.nav({ url: url, data: { popstate: event.state } });
+        context.app.nav({ data: { popstate: true } });
     }
 
     private __incNavSequence() {
@@ -552,6 +572,7 @@ export class WebsiteMiddleware implements Middleware {
 
         this.__progressStart = Date.now();
     }
+
     private __hideNavigationProgress() {
         let d = 500 - (Date.now() - this.__progressStart);
         if (d < 0)
