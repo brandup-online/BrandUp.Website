@@ -27,7 +27,7 @@ it('Success with default page type', async () => {
     document.body.insertAdjacentElement("beforeend", DOM.tag("div", { id: "page-content" }));
 
     const context = await WEBSITE.run({
-        pageTypes: {
+        pages: {
             "test": { factory: () => Promise.resolve({ default: Page }) }
         }
     }, builder => { }, { test: "test" });

@@ -1,11 +1,11 @@
 import { ApplicationBuilder, EnvironmentModel, ContextData, NavigateContext } from "@brandup/ui-app";
-import { WebsiteMiddleware, PagesOptions } from "./middleware";
+import { WebsiteMiddlewareImpl } from "./middleware";
 import { WebsiteApplication } from "./app";
-import { WebsiteApplicationModel } from "./common";
+import { WebsiteApplicationModel, WebsiteOptions } from "./types";
 
 let current: WebsiteApplication | null = null;
 
-const run = (pagesOptions: PagesOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>> => {
+const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>> => {
     if (current)
         Promise.reject("Application already started.");
 
@@ -21,7 +21,7 @@ const run = (pagesOptions: PagesOptions, configure: (builder: ApplicationBuilder
         const appBuilder = new ApplicationBuilder<WebsiteApplicationModel>(appData.model);
         appBuilder
             .useApp(WebsiteApplication)
-            .useMiddleware(() => new WebsiteMiddleware(pagesOptions));
+            .useMiddleware(() => new WebsiteMiddlewareImpl(options));
 
         configure(appBuilder);
 
@@ -83,7 +83,7 @@ interface IWebsiteInstance {
      * @param context Custom run application context.
      * @returns Application instance.
      */
-    run(pagesOptions: PagesOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>>;
+    run(pagesOptions: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>>;
 }
 
 /** Website instance singleton point. */

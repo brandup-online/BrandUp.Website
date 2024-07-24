@@ -1,12 +1,13 @@
 import { DOM } from "@brandup/ui-dom";
 import { UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
-import { Middleware, NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER } from "@brandup/ui-app";
+import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";
-import { NavigationModel, NavigationEntry, WebsiteNavigateData } from "./common";
+import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, ComponentDefinition, PageDefinition, ComponentScript, PageScript, PreloadingDefinition } from "./types";
 import { Page } from "./page";
-import { scriptReplace } from "./helpers/script";
+import * as ScriptHelper from "./helpers/script";
 import { WebsiteApplication } from "./app";
+import { DEFAULT_OPTIONS, WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 const pageReloadHeader = "page-reload";
@@ -16,38 +17,30 @@ const pageReplaceHeader = "page-replace";
 const navDataElemId = "nav-data";
 const pageElemId = "page-content";
 
-export const WEBSITE_MIDDLEWARE_NAME = "website-pages";
-const DEFAULT_OPTIONS: PagesOptions = {
-    navMinTime: 0,
-    submitMinTime: 500
-};
-
-export class WebsiteMiddleware implements Middleware {
+export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     readonly name: string = WEBSITE_MIDDLEWARE_NAME;
-    readonly options: PagesOptions;
+    readonly options: WebsiteOptions;
     private __queue: AjaxQueue;
     private __current?: NavigationEntry;
     private __navCounter = 0;
-    private __canRequest?: (request: AjaxRequest) => void;
+    private __prepareRequest?: (request: AjaxRequest) => void;
 
-    constructor(options: PagesOptions) {
+    constructor(options: WebsiteOptions) {
         this.options = Object.assign(options, DEFAULT_OPTIONS);
 
-        if (!this.options.pageTypes)
-            this.options.pageTypes = {};
-        if (!this.options.scripts)
-            this.options.scripts = {};
+        if (this.options.defaultType && (!this.options.pages || !this.options.pages[this.options.defaultType]))
+            throw new Error(`Default page type is not registered.`);
+
+        ScriptHelper.preloadDefinitions(this.options.pages);
+        ScriptHelper.preloadDefinitions(this.options.components);
 
         this.__queue = new AjaxQueue({
-            canRequest: (request) => {
-                if (this.__canRequest)
-                    this.__canRequest(request);
-            }
+            canRequest: (request) => this.prepareRequest(request)
         });
     }
 
-    get validationToken(): string | null { return this.__current?.model.validationToken || null; }
     get current(): NavigationEntry | undefined { return this.__current; }
+    get validationToken(): string | null { return this.__current?.model.validationToken || null; }
 
     // Middleware members
 
@@ -76,7 +69,7 @@ export class WebsiteMiddleware implements Middleware {
             elem.classList.remove("invalid-required");
         });
 
-        this.__canRequest = (request) => {
+        this.__prepareRequest = (request) => {
             if (!request.headers)
                 request.headers = {};
 
@@ -332,17 +325,17 @@ export class WebsiteMiddleware implements Middleware {
         if (!pageTypeName && this.options.defaultType)
             pageTypeName = this.options.defaultType;
 
-        let pageDefinition: ScriptDefinition | null = null;
+        let pageDefinition: PageDefinition | null = null;
 
         if (pageTypeName) {
-            pageDefinition = this.options && this.options.pageTypes ? this.options.pageTypes[pageTypeName] : null;
+            pageDefinition = this.options.pages ? this.options.pages[pageTypeName] : null;
             if (!pageDefinition)
-                throw `Not found page definition "${pageTypeName}".`;
+                throw new Error(`Not found page definition "${pageTypeName}".`);
         }
         else
             pageDefinition = { factory: () => Promise.resolve({ default: Page }) };
 
-        const pageType: { default: typeof Page } = await pageDefinition.factory();
+        const pageType: PageScript = await pageDefinition.factory();
 
         if (this.__isNavOutdated(navSequence))
             return;
@@ -372,13 +365,13 @@ export class WebsiteMiddleware implements Middleware {
 
         let page: Page | undefined;
         try {
-            page = new pageType.default(context.app, nav);
+            page = <Page>new pageType.default(context.app, nav);
             await page.__render(newPageElem, current?.hash);
 
             if (this.__isNavOutdated(navSequence))
                 throw new Error('Page is outdated.');
 
-            this.__refreshPageScripts(page);
+            this.renderComponents(page);
 
             if (newNav)
                 this.__setNavigation(context, current, newNav, page);
@@ -396,14 +389,15 @@ export class WebsiteMiddleware implements Middleware {
             currentPageElem.replaceWith(newPageElem);
             currentPageElem.remove();
 
-            scriptReplace(newPageElem);
+            ScriptHelper.scriptReplace(newPageElem);
         }
 
         return page;
     }
 
-    private __refreshPageScripts(page: Page) {
-        if (!page.element)
+    renderComponents(page?: Page) {
+        page = page || this.__current?.page;
+        if (!page || !page.element)
             return;
 
         DOM.queryElements(page.element, "[data-content-script]").forEach(elem => {
@@ -414,7 +408,7 @@ export class WebsiteMiddleware implements Middleware {
             if (!scriptName)
                 return;
 
-            const script = this.__getScript(scriptName);
+            const script = this.findComponent(scriptName);
             if (script) {
                 script.then((t) => {
                     const uiElem: UIElement = new t.default(elem, this);
@@ -424,15 +418,20 @@ export class WebsiteMiddleware implements Middleware {
         });
     }
 
-    private __getScript(name: string): Promise<{ default: UIElement | any }> | null {
-        if (!this.options.scripts)
+    findComponent(name: string): Promise<ComponentScript> | null {
+        if (!this.options.components)
             return null;
 
-        const scriptFunc = this.options.scripts[name];
+        const scriptFunc = this.options.components[name];
         if (!scriptFunc)
             return null;
 
         return scriptFunc.factory();
+    }
+
+    prepareRequest(request: AjaxRequest) {
+        if (this.__prepareRequest)
+            this.__prepareRequest(request);
     }
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {
@@ -602,22 +601,4 @@ export class WebsiteMiddleware implements Middleware {
             }, 180);
         }, d);
     }
-}
-
-export interface PagesOptions {
-    defaultType?: string;
-    pageTypes?: { [key: string]: PageDefinition };
-    scripts?: { [key: string]: ScriptDefinition };
-    navMinTime?: number;
-    submitMinTime?: number;
-}
-
-export interface PageDefinition {
-    factory: () => Promise<{ default: typeof Page } | any>;
-    preload?: boolean;
-}
-
-export interface ScriptDefinition {
-    factory: () => Promise<{ default: typeof UIElement } | any>;
-    preload?: boolean;
 }

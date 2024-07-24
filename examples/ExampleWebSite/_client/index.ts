@@ -5,13 +5,13 @@ import { CityMiddleware } from "./middlewares/city";
 import "./styles.less";
 
 WEBSITE.run({
-    pageTypes: {
+    pages: {
         "signin": { factory: () => import("./pages/signin") },
-        "form": { factory: () => import("./pages/form") },
+        "form": { factory: () => import("./pages/form"), preload: true },
         "examples-navigation": { factory: () => import("./pages/examples/navigation") }
     },
-    scripts: {
-        "test": { factory: () => import("./components/test") }
+    components: {
+        "test": { factory: () => import("./components/test"), preload: true }
     }
 }, (builder) => {
     builder

@@ -1,3 +1,5 @@
+import { PreloadingDefinition } from "types";
+
 const scriptReplace = (node: Node) => {
     if ((node as Element).tagName === "SCRIPT") {
         const source = <HTMLScriptElement>node;
@@ -20,6 +22,24 @@ const scriptReplace = (node: Node) => {
     return node;
 };
 
+const preloadDefinitions = (defs?: { [name: string]: PreloadingDefinition }) => {
+    if (!defs)
+        return;
+
+    const loadings: Promise<any>[] = [];
+    for (let name in defs) {
+        const def = defs[name];
+        if (def.preload)
+            loadings.push(def.factory());
+    }
+
+    if (loadings.length) {
+        Promise.allSettled(loadings)
+            .then(() => console.log(`preloaded`));
+    }
+}
+
 export {
-    scriptReplace
+    scriptReplace,
+    preloadDefinitions
 };

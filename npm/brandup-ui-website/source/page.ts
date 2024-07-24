@@ -1,10 +1,11 @@
 import { DOM } from "@brandup/ui-dom";
 import { UIElement } from "@brandup/ui";
 import { AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
-import { PageModel, NavigationModel } from "./common";
+import { PageModel, NavigationModel, WebsiteMiddleware } from "./types";
 import { WebsiteApplication } from "./app";
+import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
-export class Page<TModel extends PageModel = { type: string }> extends UIElement {
+export class Page<TModel extends PageModel = PageModel> extends UIElement {
     readonly website: WebsiteApplication;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
@@ -88,6 +89,11 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
         }
 
         return this.website.buildUrl(this.nav.path, params);
+    }
+
+    renderComponents() {
+        const middleware = this.website.middleware<WebsiteMiddleware>(WEBSITE_MIDDLEWARE_NAME);
+        middleware.renderComponents(this);
     }
 
     destroy() {
