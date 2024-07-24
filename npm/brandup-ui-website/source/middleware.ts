@@ -1,12 +1,11 @@
 import { DOM } from "@brandup/ui-dom";
 import { UIElement } from "@brandup/ui";
-import { AJAXMethod, AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
+import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
 import { Middleware, NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER } from "@brandup/ui-app";
+import { FuncHelper } from "@brandup/ui-helpers";
 import { NavigationModel, NavigationEntry, WebsiteNavigateData } from "./common";
 import { Page } from "./page";
 import { scriptReplace } from "./helpers/script";
-import { extractHashFromUrl } from "./helpers/url";
-import { minWaitAsync } from "./helpers/wait";
 import { WebsiteApplication } from "./app";
 
 const allowHistory = !!window.history && !!window.history.pushState;
@@ -26,9 +25,10 @@ const DEFAULT_OPTIONS: PagesOptions = {
 export class WebsiteMiddleware implements Middleware {
     readonly name: string = WEBSITE_MIDDLEWARE_NAME;
     readonly options: PagesOptions;
-    private __queue?: AjaxQueue;
+    private __queue: AjaxQueue;
     private __current?: NavigationEntry;
     private __navCounter = 0;
+    private __canRequest?: (request: AjaxRequest) => void;
 
     constructor(options: PagesOptions) {
         this.options = Object.assign(options, DEFAULT_OPTIONS);
@@ -37,6 +37,13 @@ export class WebsiteMiddleware implements Middleware {
             this.options.pageTypes = {};
         if (!this.options.scripts)
             this.options.scripts = {};
+
+        this.__queue = new AjaxQueue({
+            canRequest: (request) => {
+                if (this.__canRequest)
+                    this.__canRequest(request);
+            }
+        });
     }
 
     get validationToken(): string | null { return this.__current?.model.validationToken || null; }
@@ -69,15 +76,13 @@ export class WebsiteMiddleware implements Middleware {
             elem.classList.remove("invalid-required");
         });
 
-        this.__queue = new AjaxQueue({
-            canRequest: (options) => {
-                if (!options.headers)
-                    options.headers = {};
+        this.__canRequest = (request) => {
+            if (!request.headers)
+                request.headers = {};
 
-                if (context.app.model.antiforgery && options.method !== "GET" && options.method && this.__current)
-                    options.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
-            }
-        });
+            if (context.app.model.antiforgery && request.method && request.method !== "GET" && this.__current)
+                request.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
+        };
 
         return next();
     }
@@ -151,7 +156,7 @@ export class WebsiteMiddleware implements Middleware {
             else {
                 // continue navigation
 
-                const response: AjaxResponse = await minWaitAsync(this.__queue.enque({
+                const response: AjaxResponse = await FuncHelper.minWaitAsync(() => this.__queue.enque({
                     method: "GET", url: context.url, query: { "_": navSequence.toString() },
                     headers: { "page-nav": current?.model.state || "" },
                     disableCache: true
@@ -228,7 +233,7 @@ export class WebsiteMiddleware implements Middleware {
             for (var key in current.model.query)
                 query[key] = current.model.query[key];
 
-            const response: AjaxResponse = await minWaitAsync(current.page.queue.enque({
+            const response: AjaxResponse = await FuncHelper.minWaitAsync(() => current.page.queue.enque({
                 method, url, query,
                 headers: { "page-nav": current.model.state || "", "page-submit": "true" },
                 data: new FormData(form)

@@ -1,25 +1,32 @@
 {
   "compilerOptions": {
-    "module": "ES2020",
+    "module": "ESNext",
     "moduleResolution": "node",
     "target": "ESNext",
     "sourceMap": false,
     "strict": true,
     "lib": [
-      "ES2020",
+      "ESNext",
       "DOM"
     ],
-    "baseUrl": "./_client",
-    "outDir": "./out",
+    "baseUrl": "./src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "noImplicitAny": true,
     "noEmitOnError": true,
-    "declarationMap": false
+    "declaration": false,
+    "declarationMap": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": false,
+    "allowSyntheticDefaultImports": true
   },
+  "type": "module",
   "exclude": [
     "node_modules",
     "wwwroot",
     ".idea",
     ".vscode"
   ],
-  "compileOnSave": true
+  "compileOnSave": false
 }

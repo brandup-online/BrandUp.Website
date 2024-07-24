@@ -1,5 +1,5 @@
 import peerDepsExternal from "rollup-plugin-peer-deps-external";
-import postcss from 'rollup-plugin-postcss'
+import postcss from 'rollup-plugin-postcss';
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import babel from "@rollup/plugin-babel";
@@ -30,7 +30,7 @@ export default [
                     sass: null,
                     stylus: null,
                     less: { javascriptEnabled: true }
-                }, 
+                },
                 extract: false
             }),
             resolve({ moduleDirectories: [path.resolve(__dirname, 'node_modules')] }), // работа с node_modules

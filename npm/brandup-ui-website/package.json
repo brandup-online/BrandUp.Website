@@ -28,19 +28,17 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "@brandup/ui": "^1.0.7",
-    "@brandup/ui-ajax": "^1.0.7",
-    "@brandup/ui-app": "^1.0.7",
-    "@brandup/ui-dom": "^1.0.7"
+    "@brandup/ui": "^1.0.9",
+    "@brandup/ui-ajax": "^1.0.9",
+    "@brandup/ui-app": "^1.0.9",
+    "@brandup/ui-dom": "^1.0.9",
+    "@brandup/ui-helpers": "^1.0.9"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
     "rollup": "^4.19.0",
     "rollup-plugin-dts": "^6.1.1",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-typescript2": "^0.36.0",
     "tslib": "^2.6.3",
     "typescript": "^5.5.4"
   },

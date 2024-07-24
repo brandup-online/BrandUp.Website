@@ -6,7 +6,8 @@ const plugins = [
 			helpers: true,
 			useESModules: true
 		}
-	]
+	],
+	//"@babel/plugin-syntax-dynamic-import"
 ];
 
 module.exports = {

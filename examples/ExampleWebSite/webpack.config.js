@@ -38,7 +38,8 @@ module.exports = (env) => {
         entry: {
             app: path.resolve(__dirname, '_client', 'index.ts')
         },
-        resolve: { 
+        resolve: {
+            cache: true,
             extensions: ['.js', '.jsx', '.ts', '.tsx', '.less'],
             modules: [path.resolve(__dirname, 'node_modules')]
         },
@@ -54,7 +55,10 @@ module.exports = (env) => {
             rules: [
                 {
                     test: /\.(?:ts|js|mjs|cjs)$/,
-                    exclude: /node_modules/,
+                    exclude: {
+                        and: [/node_modules/],
+                        not: [/@brandup/]
+                    },
                     use: {
                         loader: 'babel-loader'
                     }
@@ -69,8 +73,8 @@ module.exports = (env) => {
                 },
                 {
                     test: /\.html$/,
-					include: /pages/,
-                    use: [ { loader: "raw-loader" } ]
+                    include: /pages/,
+                    use: [{ loader: "raw-loader" }]
                 },
                 {
                     test: /\.svg$/,
@@ -88,7 +92,7 @@ module.exports = (env) => {
                 {
                     test: /\.(png|jpg|jpeg|gif)$/,
                     use: 'url-loader?limit=25000'
-                },
+                }
             ]
         },
         optimization: {
@@ -103,15 +107,15 @@ module.exports = (env) => {
                         format: {
                             comments: false
                         },
-						sourceMap: false
+                        sourceMap: false
                     },
                     extractComments: false
                 })
             ],
-            removeAvailableModules: true,
+            removeAvailableModules: false,
             removeEmptyChunks: true,
             providedExports: false,
-            usedExports: false
+            usedExports: true
         },
         plugins: [
             new MiniCssExtractPlugin({
