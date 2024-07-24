@@ -6,8 +6,9 @@ const plugins = [
 			helpers: true,
 			useESModules: true
 		}
-	]
-]; // '@babel/plugin-transform-runtime'
+	],
+	//"@babel/plugin-syntax-dynamic-import"
+];
 
 module.exports = {
   presets: [

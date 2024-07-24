@@ -8,10 +8,7 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
     readonly website: WebsiteApplication;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
-    private __destroyCallbacks: Array<() => void> | null = [];
-    private __scripts: Array<UIElement> | null = [];
-    private __isRendered = false;
-    private __hash: string | null = null;
+    private __hash: string | undefined;
 
     constructor(website: WebsiteApplication, nav: NavigationModel) {
         super();
@@ -31,82 +28,69 @@ export class Page<TModel extends PageModel = { type: string }> extends UIElement
 
     get typeName(): string { return "BrandUp.Page"; }
     get model(): TModel { return this.nav.page as TModel; }
-    get hash(): string | null { return this.__hash; }
+    get hash(): string | undefined { return this.__hash; }
 
     protected onRenderContent(): Promise<void> { return Promise.resolve(); }
     protected onChangedHash(_newHash: string | null, _oldHash: string | null): Promise<void> { return Promise.resolve(); }
     protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
-    async render(element: HTMLElement, hash: string | null) {
-        if (this.__isRendered)
-            throw "Page already rendered.";
-        this.__isRendered = true;
-
+    /** @internal */
+    async __render(element: HTMLElement, hash: string | null | undefined) {
         this.setElement(element);
-        this.__hash = hash;
+
+        if (hash)
+            this.__hash = hash;
 
         await this.onRenderContent();
     }
 
-    async formSubmitted(response: AjaxResponse) {
+    /** @internal */
+    async __submitted(response: AjaxResponse) {
+        if (!this.element)
+            return;
+
         await this.onSubmitForm(response);
     }
 
-    async changedHash(newHash: string | null, oldHash: string | null) {
-        this.__hash = newHash;
+    /** @internal */
+    async __changedHash(newHash: string | null, oldHash: string | null) {
+        if (!this.element)
+            return;
+
+        if (newHash)
+            this.__hash = newHash;
+        else
+            delete this.__hash;
 
         await this.onChangedHash(newHash, oldHash);
     }
 
-    submit(form?: HTMLFormElement) {
+    async submit(form?: HTMLFormElement) {
         if (!this.element)
-            throw 'Not set page element.';
+            throw new Error('Page is not rendered.');
 
         if (!form)
             form = DOM.queryElement(this.element, "form") as HTMLFormElement;
         if (!form)
             throw new Error(`Not found form on page for submit.`);
 
-        return this.website.submit({ form, button: null });
+        await this.website.submit({ form, button: null });
     }
 
     buildUrl(queryParams: { [key: string]: string }): string {
         const params: { [key: string]: string } = {};
-        for (const k in this.nav.query) {
+        for (const k in this.nav.query)
             params[k] = this.nav.query[k];
-        }
 
         if (queryParams) {
-            for (const k in queryParams) {
+            for (const k in queryParams)
                 params[k] = queryParams[k];
-            }
         }
 
         return this.website.buildUrl(this.nav.path, params);
     }
 
-    attachDestroyFunc(f: () => void) {
-        if (!this.__destroyCallbacks)
-            throw "Page is destroyed.";
-
-        this.__destroyCallbacks?.push(f);
-    }
-
-    attachDestroyElement(elem: UIElement) {
-        this.attachDestroyFunc(() => { elem.destroy(); });
-    }
-
     destroy() {
-        if (this.__scripts) {
-            this.__scripts.map((elem) => { elem.destroy(); });
-            this.__scripts = null;
-        }
-
-        if (this.__destroyCallbacks) {
-            this.__destroyCallbacks.map((f) => { f(); });
-            this.__destroyCallbacks = null;
-        }
-
         this.queue.destroy();
 
         super.destroy();

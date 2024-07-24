@@ -16,7 +16,7 @@
     "javascript.format.insertSpaceAfterConstructor": true,
     "javascript.format.insertSpaceAfterCommaDelimiter": true,
     "[javascript]": {
-        "editor.defaultFormatter": "ms-vscode.js-debug"
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     },
     "html.suggest.html5": true,
     "html.autoClosingTags": true,
