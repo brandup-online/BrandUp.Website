@@ -1,7 +1,8 @@
-﻿import { Page, PageModel } from "@brandup/ui-website";
+﻿import { PageModel } from "@brandup/ui-website";
+import PageBase from "./base";
 
-class SignInPage extends Page<PageModel> {
-    get typeName(): string { return "SignInPage" }
+class SignInPage extends PageBase<PageModel> {
+    get typeName(): string { return "Example.SignInPage" }
 
     async onRenderContent() {
         this.registerCommand("test", async (context) => {

@@ -67,7 +67,7 @@ export interface WebsiteMiddleware extends Middleware {
 }
 
 export interface WebsiteOptions {
-    defaultType?: string;
+    defaultPage?: string;
     pages?: { [key: string]: PageDefinition };
     components?: { [key: string]: ComponentDefinition };
     navMinTime?: number;

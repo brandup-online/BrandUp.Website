@@ -2,39 +2,47 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns#">
 <head>
-    <meta content="en" http-equiv="content-language">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
+	<meta content="en" http-equiv="content-language">
+	<meta content="width=device-width, initial-scale=1" name="viewport">
+	<link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
 </head>
 <body>
-    <script type="text/javascript" src="~/dist/app.js" asp-append-version="true" async></script>
+	<script type="text/javascript" src="~/dist/app.js" asp-append-version="true" async></script>
 
-    <div class="app">
-        <nav class="app-nav" role="navigation">
-            <div class="content-width">
-                <a asp-area="" asp-page="/Index" class="logo">brandup-website</a>
-                <ul class="menu">
-                    <li><a asp-page="/Examples/Index">Examples</a></li>
-                    <li><a asp-page="/About">About</a></li>
-                    <li><a asp-page="/Payment">Payment</a></li>
-                    <li><a asp-page="/Delivery">Delivery</a></li>
-                    <li><a asp-page="/Contacts">Contacts</a></li>
-                    
-                </ul>
-                <ul class="user">
-                    @if (User.Identity.IsAuthenticated)
-                    {
-                        <li><a href="#" rel="nofollow" data-command="signout" class="button">Sign out</a></li>
-                    }
-                    else
-                    {
-                        <li><a asp-page="/SignIn" class="button">Sign in</a></li>
-                    }
-                </ul>
-            </div>
-        </nav>
+	<div class="app">
+		<nav class="app-nav" role="navigation">
+			<div class="content-width">
+				<a asp-area="" asp-page="/Index" class="logo">
+					<i>
+						<svg viewBox="0 0 30 30">
+							<rect width="30" height="30" rx="5" fill="#00509A" />
+							<path d="M10.1855 22V7.99609H15.2832C16.8457 7.99609 18.0469 8.28255 18.8867 8.85547C19.7266 9.42839 20.1465 10.2357 20.1465 11.2773C20.1465 12.0326 19.8893 12.6934 19.375 13.2598C18.8672 13.8262 18.2161 14.2201 17.4219 14.4414V14.4805C18.418 14.6042 19.2122 14.972 19.8047 15.584C20.4036 16.196 20.7031 16.9414 20.7031 17.8203C20.7031 19.1029 20.2441 20.1217 19.3262 20.877C18.4082 21.6257 17.1549 22 15.5664 22H10.1855ZM13.3398 10.3203V13.6406H14.7266C15.3776 13.6406 15.8887 13.4844 16.2598 13.1719C16.6374 12.8529 16.8262 12.4167 16.8262 11.8633C16.8262 10.8346 16.0579 10.3203 14.5215 10.3203H13.3398ZM13.3398 15.9844V19.6758H15.0488C15.778 19.6758 16.3477 19.5065 16.7578 19.168C17.1745 18.8294 17.3828 18.3672 17.3828 17.7812C17.3828 17.2214 17.1777 16.7819 16.7676 16.4629C16.3639 16.1439 15.7975 15.9844 15.0684 15.9844H13.3398Z" fill="white" />
+						</svg>
+					</i>
+					<span>WEBSITE</span>
+				</a>
+				<ul>
+					<li><a asp-page="/Examples/Index">Examples</a></li>
+					<li><a asp-page="/About">About</a></li>
+					<li><a asp-page="/Payment">Payment</a></li>
+					<li><a asp-page="/Delivery">Delivery</a></li>
+					<li><a asp-page="/Contacts">Contacts</a></li>
+					
+				</ul>
+				<ul class="user">
+					@if (User.Identity.IsAuthenticated)
+					{
+						<li><a href="#" rel="nofollow" data-command="signout" class="button">Sign out</a></li>
+					}
+					else
+					{
+						<li><a asp-page="/SignIn" class="button">Sign in</a></li>
+					}
+				</ul>
+			</div>
+		</nav>
 
-        @RenderBody()
-    </div>
+		@RenderBody()
+	</div>
 </body>
 </html>

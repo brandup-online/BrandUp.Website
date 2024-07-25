@@ -1,10 +1,5 @@
 ﻿@import "vars.less";
-
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-}
+@import "reset.less";
 
 body {
     font-size: @Font-Size;
@@ -36,17 +31,6 @@ input, textarea, button {
 
     @media all and (max-width: @Adaptive-1-Width) {
         font-size: 14px;
-    }
-}
-
-ul, ol {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    & li {
-        padding: 0;
-        margin: 0;
     }
 }
 
@@ -86,7 +70,7 @@ ul, ol {
 }
 
 .app-nav {
-    background: #3F8CFF;
+    background: #000;
     color: #fff;
 
     & .content-width {
@@ -97,28 +81,32 @@ ul, ol {
     }
 
     & a.logo {
-        display: block;
-        font-size: 24px;
-        line-height: 30px;
+        flex: 0 0 auto;
         color: #fff;
+        font-size: 28px;
+        line-height: 40px;
         text-decoration: none;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        column-gap: 10px;
+
+        & svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        & span {
+            text-transform: uppercase;
+        }
     }
 
     & ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+        flex: 1 1 auto;
         display: flex;
         flex-flow: row nowrap;
-
-        & li {
-            padding: 0;
-            margin: 0 0 0 @Content-Padding / 1.5;
-
-            &:first-child {
-                margin: 0;
-            }
-        }
+        justify-content: flex-end;
+        column-gap: @Content-Padding / 1.5;
 
         & a {
             color: #fff;
@@ -150,12 +138,9 @@ ul, ol {
             }
         }
 
-        &.menu {
-            flex: 1 1 auto;
-            margin: 0 0 0 @Content-Padding;
-        }
-
         &.user {
+            flex: 0 0 auto;
+            margin: 0 0 0 @Content-Padding;
         }
     }
 }
@@ -182,16 +167,6 @@ ul, ol {
         line-height: 36px;
         padding: 0;
         margin: 0;
-    }
-}
-
-.page-block {
-
-}
-
-.page-block-examples {
-    & ul {
-
     }
 }
 
@@ -228,7 +203,7 @@ ul, ol {
 
 .bp-page-loader {
     background: #fff;
-    box-shadow: 0px 1px 49px -5px rgba(0,0,0,0.75);
+    box-shadow: 0px 1px 49px -5px rgba(0, 0, 0, 0.75);
 }
 
 @import "animations.less";

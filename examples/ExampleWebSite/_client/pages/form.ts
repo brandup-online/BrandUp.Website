@@ -1,8 +1,9 @@
-﻿import { Page, PageModel } from "@brandup/ui-website";
+﻿import { PageModel } from "@brandup/ui-website";
+import PageBase from "./base";
 import "./form.less";
 
-class FormPage extends Page<PageModel> {
-    get typeName(): string { return "FormPage" }
+class FormPage extends PageBase<PageModel> {
+    get typeName(): string { return "Example.FormPage" }
 }
 
 export default FormPage;

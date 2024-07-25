@@ -28,7 +28,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     constructor(options: WebsiteOptions) {
         this.options = Object.assign(options, DEFAULT_OPTIONS);
 
-        if (this.options.defaultType && (!this.options.pages || !this.options.pages[this.options.defaultType]))
+        if (this.options.defaultPage && (!this.options.pages || !this.options.pages[this.options.defaultPage]))
             throw new Error(`Default page type is not registered.`);
 
         ScriptHelper.preloadDefinitions(this.options.pages);
@@ -73,7 +73,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             if (!request.headers)
                 request.headers = {};
 
-            if (context.app.model.antiforgery && request.method && request.method !== "GET" && this.__current)
+            if (context.app.model.antiforgery && request.method && request.method !== "GET" && this.__current?.model.validationToken)
                 request.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
         };
 
@@ -274,6 +274,47 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         return next();
     }
 
+    renderComponents(page?: Page) {
+        page = page || this.__current?.page;
+        if (!page || !page.element)
+            return;
+
+        DOM.queryElements(page.element, "[data-content-script]").forEach(elem => {
+            if (UIElement.hasElement(elem))
+                return;
+
+            const scriptName = elem.getAttribute("data-content-script");
+            if (!scriptName)
+                return;
+
+            const script = this.findComponent(scriptName);
+            if (script) {
+                script.then((t) => {
+                    const uiElem: UIElement = new t.default(elem, this);
+                    page.onDestroy(uiElem);
+                });
+            }
+        });
+    }
+
+    findComponent(name: string): Promise<ComponentScript> | null {
+        if (!this.options.components)
+            return null;
+
+        const scriptFunc = this.options.components[name];
+        if (!scriptFunc)
+            return null;
+
+        return scriptFunc.factory();
+    }
+
+    prepareRequest(request: AjaxRequest) {
+        if (!this.__prepareRequest)
+            throw new Error("Application is not started.");
+
+        this.__prepareRequest(request);
+    }
+
     // WebsiteMiddleware members
 
     private __precessPageResponse(context: NavigateContext, response: AjaxResponse): boolean {
@@ -322,8 +363,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             throw new Error('Not set nav.');
 
         let pageTypeName: string | null = nav.page.type;
-        if (!pageTypeName && this.options.defaultType)
-            pageTypeName = this.options.defaultType;
+        if (!pageTypeName && this.options.defaultPage)
+            pageTypeName = this.options.defaultPage;
 
         let pageDefinition: PageDefinition | null = null;
 
@@ -393,45 +434,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         }
 
         return page;
-    }
-
-    renderComponents(page?: Page) {
-        page = page || this.__current?.page;
-        if (!page || !page.element)
-            return;
-
-        DOM.queryElements(page.element, "[data-content-script]").forEach(elem => {
-            if (UIElement.hasElement(elem))
-                return;
-
-            const scriptName = elem.getAttribute("data-content-script");
-            if (!scriptName)
-                return;
-
-            const script = this.findComponent(scriptName);
-            if (script) {
-                script.then((t) => {
-                    const uiElem: UIElement = new t.default(elem, this);
-                    page.onDestroy(uiElem);
-                });
-            }
-        });
-    }
-
-    findComponent(name: string): Promise<ComponentScript> | null {
-        if (!this.options.components)
-            return null;
-
-        const scriptFunc = this.options.components[name];
-        if (!scriptFunc)
-            return null;
-
-        return scriptFunc.factory();
-    }
-
-    prepareRequest(request: AjaxRequest) {
-        if (this.__prepareRequest)
-            this.__prepareRequest(request);
     }
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {

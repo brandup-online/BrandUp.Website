@@ -15,16 +15,33 @@ import { CityMiddleware } from "./middlewares/city";
 import "./styles.less";
 
 WEBSITE.run({
-    pageTypes: {
+    defaultPage: "base",
+    pages: {
+        "base": ()=> import("./pages/base")
         "signin": ()=> import("./pages/signin")
     },
-    scripts: {
+    components: {
         "test": () => import("./components/test")
     }
 }, (builder) => {
         builder
             .useMiddleware(new AuthMiddleware());
     });
+```
+
+## Application
+
+Base application type `WebsiteApplication<TModel extends WebsiteApplicationModel>`.
+
+```
+class WebsiteApplication<TModel extends WebsiteApplicationModel = WebsiteApplicationModel> extends Application<TModel> {
+    /** Ajax queue by current application instance. */
+    readonly queue: AjaxQueue;
+    /** Add antiforgery token for request. */
+    prepareRequest(request: AjaxRequest): void;
+    /** Request without ajax queue. */
+    request(options: AjaxRequest): Promise<_brandup_ui_ajax.AjaxResponse<any, any>>;
+}
 ```
 
 ## Middleware

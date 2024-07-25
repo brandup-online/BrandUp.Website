@@ -1,8 +1,9 @@
-﻿import { Page, PageModel } from "@brandup/ui-website";
+﻿import { PageModel } from "@brandup/ui-website";
+import PageBase from "../base";
 import "./navigation.less";
 
-class ExampleNavigationPage extends Page<PageModel> {
-    get typeName(): string { return "ExampleNavigationPage" }
+class ExampleNavigationPage extends PageBase<PageModel> {
+    get typeName(): string { return "Example.NavigationPage" }
 }
 
 export default ExampleNavigationPage;
