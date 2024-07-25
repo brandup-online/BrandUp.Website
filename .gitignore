@@ -351,10 +351,10 @@ MigrationBackup/
 
 package-lock.json
 
-/examples/ExampleWebSite/wwwroot/dist
-/examples/ExampleWebSite/_client/**/*.js
-/examples/ExampleWebSite/_client/**/*.js.map
-/examples/ExampleWebSite/_data/temp
+/example/wwwroot/dist
+/example/_client/**/*.js
+/example/_client/**/*.js.map
+/example/_data/temp
 
 /npm/*/coverage
 /npm/*/dist
