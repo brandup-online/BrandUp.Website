@@ -4,43 +4,45 @@ import { AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
 import { PageModel, NavigationModel, WebsiteMiddleware } from "./types";
 import { WebsiteApplication } from "./app";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
+import { NavigateContext } from "@brandup/ui-app";
 
-export class Page<TModel extends PageModel = PageModel> extends UIElement {
-    readonly website: WebsiteApplication;
+export class Page<TApplication extends WebsiteApplication = WebsiteApplication, TModel extends PageModel = PageModel> extends UIElement {
+    readonly context: NavigateContext<TApplication>;
+    readonly website: TApplication;
     readonly nav: NavigationModel;
     readonly queue: AjaxQueue;
-    private __hash: string | undefined;
+    private __hash: string | null;
 
-    constructor(website: WebsiteApplication, nav: NavigationModel) {
+    constructor(context: NavigateContext<TApplication>, nav: NavigationModel) {
         super();
 
-        this.website = website;
+        this.context = context;
+        this.website = context.app;
         this.nav = nav;
         this.queue = new AjaxQueue({
             canRequest: (options) => {
                 if (!options.headers)
                     options.headers = {};
 
-                if (website.model.antiforgery && options.method !== "GET" && options.method)
-                    options.headers[website.model.antiforgery.headerName] = nav.validationToken;
+                if (context.app.model.antiforgery && options.method !== "GET" && options.method)
+                    options.headers[context.app.model.antiforgery.headerName] = nav.validationToken;
             }
         });
+
+        this.__hash = context.hash;
     }
 
     get typeName(): string { return "BrandUp.Page"; }
     get model(): TModel { return this.nav.page as TModel; }
-    get hash(): string | undefined { return this.__hash; }
+    get hash(): string | null { return this.__hash; }
 
     protected onRenderContent(): Promise<void> { return Promise.resolve(); }
     protected onChangedHash(_newHash: string | null, _oldHash: string | null): Promise<void> { return Promise.resolve(); }
     protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
     /** @internal */
-    async __render(element: HTMLElement, hash: string | null | undefined) {
+    async __render(element: HTMLElement) {
         this.setElement(element);
-
-        if (hash)
-            this.__hash = hash;
 
         await this.onRenderContent();
     }
@@ -61,12 +63,12 @@ export class Page<TModel extends PageModel = PageModel> extends UIElement {
         if (newHash)
             this.__hash = newHash;
         else
-            delete this.__hash;
+            this.__hash = null;
 
         await this.onChangedHash(newHash, oldHash);
     }
 
-    async submit(form?: HTMLFormElement) {
+    submit(form?: HTMLFormElement) {
         if (!this.element)
             throw new Error('Page is not rendered.');
 
@@ -75,7 +77,7 @@ export class Page<TModel extends PageModel = PageModel> extends UIElement {
         if (!form)
             throw new Error(`Not found form on page for submit.`);
 
-        await this.website.submit({ form, button: null });
+        form.submit();
     }
 
     buildUrl(queryParams: { [key: string]: string }): string {

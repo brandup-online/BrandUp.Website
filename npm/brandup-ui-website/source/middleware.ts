@@ -23,8 +23,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     readonly options: WebsiteOptions;
     private __queue: AjaxQueue;
     private __current?: NavigationEntry;
-    private __navCounter = 0;
     private __prepareRequest?: (request: AjaxRequest) => void;
+    private __startedFirstNav?: boolean;
 
     constructor(options: WebsiteOptions) {
         this.options = Object.assign(options, DEFAULT_OPTIONS);
@@ -87,7 +87,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
         const current = context.data.current = this.__current;
 
-        const navSequence = this.__incNavSequence();
         this.__showNavigationProgress();
         this.__queue.reset(true);
 
@@ -151,13 +150,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 // continue navigation
 
                 const response: AjaxResponse = await FuncHelper.minWaitAsync(() => this.__queue.enque({
-                    method: "GET", url: context.url, query: { "_": navSequence.toString() },
+                    method: "GET", url: context.url, query: { "_": new Date().getTime().toString() },
                     headers: { "page-nav": current?.model.state || "" },
                     disableCache: true
-                }), this.options.navMinTime);
-
-                if (this.__isNavOutdated(navSequence))
-                    return;
+                }, context.abort), this.options.navMinTime, context.abort);
 
                 if (response.status != 200 && response.type != "html") {
                     console.warn(`Nav request response status ${response.status}`);
@@ -170,7 +166,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     return;
                 }
 
-                if (this.__precessPageResponse(context, response))
+                if (await this.__precessPageResponse(context, response))
                     return;
 
                 if (response.type != "html")
@@ -192,12 +188,12 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 }
             }
 
-            const page = await this.__renderPage(context, current, navModel, navSequence, navContent);
+            const page = await this.__renderPage(context, current, navModel, navContent);
             if (page)
                 await next();
         }
         catch (reason) {
-            if (!isFirst && !this.__isNavOutdated(navSequence)) {
+            if (!isFirst && !context.abort.aborted) {
                 this.__forceNav(context);
                 return;
             }
@@ -218,7 +214,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
         const current = context.data.current = this.__current;
 
-        const navSequence = this.__incNavSequence();
         this.__showNavigationProgress();
         current.page.queue.reset(true);
 
@@ -231,10 +226,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 method, url, query,
                 headers: { "page-nav": current.model.state || "", "page-submit": "true" },
                 data: new FormData(form)
-            }), this.options.submitMinTime);
-
-            if (this.__isNavOutdated(navSequence))
-                return;
+            }, context.abort), this.options.submitMinTime, context.abort);
 
             switch (response.status) {
                 case 200:
@@ -244,7 +236,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     throw new Error(`Submit request response status ${response.status}`);
             }
 
-            if (this.__precessPageResponse(context, response))
+            if (await this.__precessPageResponse(context, response))
                 return;
 
             if (response.type == "html") {
@@ -257,7 +249,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 fixElem.insertAdjacentHTML("beforebegin", response.data);
                 fixElem.remove();
 
-                await this.__renderPage(context, current, null, navSequence, contentFragment);
+                await this.__renderPage(context, current, null, contentFragment);
             }
             else
                 await current.page.__submitted(response);
@@ -318,7 +310,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
     // WebsiteMiddleware members
 
-    private __precessPageResponse(context: NavigateContext, response: AjaxResponse): boolean {
+    private async __precessPageResponse(context: NavigateContext, response: AjaxResponse): Promise<boolean> {
         const pageAction = response.headers.get(pageActionHeader);
         if (pageAction) {
             switch (pageAction) {
@@ -342,8 +334,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 else
                     BROWSER.default.location.assign(redirectUrl);
             }
-            else
-                context.app.nav({ url: redirectUrl, replace });
+            else {
+                await context.app.nav({ url: redirectUrl, replace });
+                context.abort.throwIfAborted();
+            }
 
             return true;
         }
@@ -358,7 +352,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             BROWSER.default.location.assign(context.url);
     }
 
-    private async __renderPage(context: NavigateContext<WebsiteApplication>, current: NavigationEntry | undefined, newNav: NavigationModel | null, navSequence: number, newContent: DocumentFragment | null) {
+    private async __renderPage(context: NavigateContext<WebsiteApplication>, current: NavigationEntry | undefined, newNav: NavigationModel | null, newContent: DocumentFragment | null) {
         const nav = newNav || current?.model;
         if (!nav)
             throw new Error('Not set nav.');
@@ -378,9 +372,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             pageDefinition = { factory: () => Promise.resolve({ default: Page }) };
 
         const pageType: PageScript = await pageDefinition.factory();
-
-        if (this.__isNavOutdated(navSequence))
-            return null;
+        context.abort.throwIfAborted();
 
         let currentPageElem: HTMLElement | null;
         let newPageElem: HTMLElement;
@@ -388,27 +380,27 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             // replace page content
 
             currentPageElem = current?.page.element || null;
+            if (!currentPageElem)
+                currentPageElem = this.__getPageElem();
 
-            newPageElem = <HTMLElement>newContent.getElementById(pageElemId);
-            if (!newPageElem)
-                throw new Error("Not found page element.");
-        }
-        else {
-            currentPageElem = null;
-
-            const elem = document.getElementById(pageElemId);
+            const elem = newContent.getElementById(pageElemId);
             if (!elem)
                 throw new Error("Not found page element.");
             newPageElem = elem;
         }
+        else {
+            // render first nav
+
+            currentPageElem = null;
+            newPageElem = this.__getPageElem();
+        }
 
         let page: Page | undefined;
         try {
-            page = <Page>new pageType.default(context.app, nav);
-            await page.__render(newPageElem, current?.hash);
+            page = <Page>new pageType.default(context, nav);
+            await page.__render(newPageElem);
 
-            if (this.__isNavOutdated(navSequence))
-                return null;
+            context.abort.throwIfAborted();
 
             this.renderComponents(page);
 
@@ -432,6 +424,13 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         }
 
         return page;
+    }
+
+    private __getPageElem() {
+        const elem = document.getElementById(pageElemId);
+        if (!elem)
+            throw new Error("Not found page element.");
+        return elem;
     }
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {
@@ -498,14 +497,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         console.log(`popstate: ${location.href}`);
 
         context.app.nav({ data: { popstate: true } });
-    }
-
-    private __incNavSequence() {
-        this.__navCounter++;
-        return this.__navCounter;
-    }
-    private __isNavOutdated(navSequence: number) {
-        return this.__navCounter !== navSequence;
     }
 
     private __loaderElem: HTMLElement | null = null;
