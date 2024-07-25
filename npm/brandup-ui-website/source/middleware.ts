@@ -3,10 +3,11 @@ import { UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
 import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";
-import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, ComponentDefinition, PageDefinition, ComponentScript, PageScript, PreloadingDefinition } from "./types";
+import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript } from "./types";
+import { WebsiteApplication } from "./app";
 import { Page } from "./page";
 import * as ScriptHelper from "./helpers/script";
-import { WebsiteApplication } from "./app";
+import * as MetaHelper from "./helpers/meta";
 import { DEFAULT_OPTIONS, WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
 const allowHistory = !!window.history && !!window.history.pushState;
@@ -191,9 +192,9 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 }
             }
 
-            await this.__renderPage(context, current, navModel, navSequence, navContent);
-
-            await next();
+            const page = await this.__renderPage(context, current, navModel, navSequence, navContent);
+            if (page)
+                await next();
         }
         catch (reason) {
             if (!isFirst && !this.__isNavOutdated(navSequence)) {
@@ -379,7 +380,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         const pageType: PageScript = await pageDefinition.factory();
 
         if (this.__isNavOutdated(navSequence))
-            return;
+            return null;
 
         let currentPageElem: HTMLElement | null;
         let newPageElem: HTMLElement;
@@ -401,16 +402,13 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             newPageElem = elem;
         }
 
-        if (current?.page)
-            current.page.destroy();
-
         let page: Page | undefined;
         try {
             page = <Page>new pageType.default(context.app, nav);
             await page.__render(newPageElem, current?.hash);
 
             if (this.__isNavOutdated(navSequence))
-                throw new Error('Page is outdated.');
+                return null;
 
             this.renderComponents(page);
 
@@ -444,49 +442,25 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         const title = newNav.title || "";
 
         if (!isFirst) {
-            let metaDescription = document.getElementById("page-meta-description");
-            if (newNav.description) {
-                if (!metaDescription)
-                    document.head.appendChild(metaDescription = DOM.tag("meta", { id: "page-meta-description", name: "description", content: "" }));
+            MetaHelper.setMetadata("description", newNav.description);
+            MetaHelper.setMetadata("keywords", newNav.keywords);
+            MetaHelper.setCanonical(newNav.canonicalLink);
+            MetaHelper.setOG("type", newNav.openGraph?.type);
+            MetaHelper.setOG("title", newNav.openGraph?.title);
+            MetaHelper.setOG("image", newNav.openGraph?.image);
+            MetaHelper.setOG("url", newNav.openGraph?.url);
+            MetaHelper.setOG("site_name", newNav.openGraph?.siteName);
+            MetaHelper.setOG("description", newNav.openGraph?.description);
 
-                metaDescription.setAttribute("content", newNav.description);
-            }
-            else if (metaDescription)
-                metaDescription.remove();
-
-            let metaKeywords = document.getElementById("page-meta-keywords");
-            if (newNav.keywords) {
-                if (!metaKeywords)
-                    document.head.appendChild(metaKeywords = DOM.tag("meta", { id: "page-meta-keywords", name: "keywords", content: "" }));
-
-                metaKeywords.setAttribute("content", newNav.keywords);
-            }
-            else if (metaKeywords)
-                metaKeywords.remove();
-
-            let linkCanonical = document.getElementById("page-link-canonical");
-            if (newNav.canonicalLink) {
-                if (!linkCanonical)
-                    document.head.appendChild(linkCanonical = DOM.tag("link", { id: "page-link-canonical", rel: "canonical", href: "" }));
-
-                linkCanonical.setAttribute("href", newNav.canonicalLink);
-            }
-            else if (linkCanonical)
-                linkCanonical.remove();
-
-            this.__setOpenGraphProperty("type", newNav.openGraph?.type);
-            this.__setOpenGraphProperty("title", newNav.openGraph?.title);
-            this.__setOpenGraphProperty("image", newNav.openGraph?.image);
-            this.__setOpenGraphProperty("url", newNav.openGraph?.url);
-            this.__setOpenGraphProperty("site_name", newNav.openGraph?.siteName);
-            this.__setOpenGraphProperty("description", newNav.openGraph?.description);
-
-            if (current && current.model.bodyClass)
+            if (current?.model.bodyClass)
                 document.body.classList.remove(current.model.bodyClass);
 
             if (newNav.bodyClass)
                 document.body.classList.add(newNav.bodyClass);
         }
+
+        if (current?.page)
+            current.page.destroy();
 
         this.__current = {
             context,
@@ -516,18 +490,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             if (!replace)
                 window.scrollTo({ left: 0, top: 0, behavior: "auto" });
         }
-    }
-
-    private __setOpenGraphProperty(name: string, value: string | null | undefined) {
-        let metaTagElem = document.getElementById(`og-${name}`);
-        if (value) {
-            if (!metaTagElem)
-                document.head.appendChild(metaTagElem = DOM.tag("meta", { id: `og-${name}`, property: name, content: value }));
-
-            metaTagElem.setAttribute("content", value);
-        }
-        else if (metaTagElem)
-            metaTagElem.remove();
     }
 
     private __onPopState(context: StartContext, event: PopStateEvent) {

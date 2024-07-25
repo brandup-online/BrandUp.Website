@@ -8,7 +8,7 @@
 		"@babel/preset-env": "^7.24.8",
 		"@babel/preset-typescript": "^7.24.7",
 		"@babel/runtime": "^7.24.8",
-		"@brandup/autonpm": "^1.0.16",
+		"@brandup/autonpm": "^1.0.17",
 		"@types/jest": "^29.5.12",
 		"babel-jest": "^29.7.0",
 		"core-js": "^3.37.1",
