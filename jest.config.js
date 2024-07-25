@@ -1,8 +1,7 @@
 const config = {
-	testMatch: ["**/test/**/*.test.ts"],
-	testEnvironment: "jsdom",
-
 	verbose: true,
+	testMatch: ["**/test/**/*.test.ts"],
+	testEnvironment: './FixJSDOMEnvironment.ts',
 	transform: {
 		"^.+\\.[jt]sx?$": "babel-jest",
 		".+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$": "jest-transform-stub",
