@@ -4,28 +4,28 @@ import { AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
 import { PageModel, NavigationModel, WebsiteMiddleware } from "./types";
 import { WebsiteApplication } from "./app";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
-import { NavigateContext } from "@brandup/ui-app";
+import { NavigateContext, QueryParams } from "@brandup/ui-app";
 
 export class Page<TApplication extends WebsiteApplication = WebsiteApplication, TModel extends PageModel = PageModel> extends UIElement {
     readonly context: NavigateContext<TApplication>;
     readonly website: TApplication;
-    readonly nav: NavigationModel;
+    readonly response: NavigationModel;
     readonly queue: AjaxQueue;
     private __hash: string | null;
 
-    constructor(context: NavigateContext<TApplication>, nav: NavigationModel) {
+    constructor(context: NavigateContext<TApplication>, response: NavigationModel) {
         super();
 
         this.context = context;
         this.website = context.app;
-        this.nav = nav;
+        this.response = response;
         this.queue = new AjaxQueue({
             canRequest: (options) => {
                 if (!options.headers)
                     options.headers = {};
 
                 if (context.app.model.antiforgery && options.method !== "GET" && options.method)
-                    options.headers[context.app.model.antiforgery.headerName] = nav.validationToken;
+                    options.headers[context.app.model.antiforgery.headerName] = response.validationToken;
             }
         });
 
@@ -33,7 +33,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
     }
 
     get typeName(): string { return "BrandUp.Page"; }
-    get model(): TModel { return this.nav.page as TModel; }
+    get model(): TModel { return this.response.page as TModel; }
     get hash(): string | null { return this.__hash; }
 
     protected onRenderContent(): Promise<void> { return Promise.resolve(); }
@@ -80,22 +80,22 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
         form.submit();
     }
 
-    buildUrl(queryParams: { [key: string]: string }): string {
-        const params: { [key: string]: string } = {};
-        for (const k in this.nav.query)
-            params[k] = this.nav.query[k];
+    buildUrl(query: QueryParams): string {
+        const params: QueryParams = {};
+        for (const name in this.response.query)
+            params[name] = this.response.query[name];
 
-        if (queryParams) {
-            for (const k in queryParams)
-                params[k] = queryParams[k];
+        if (query) {
+            for (const name in query)
+                params[name] = query[name];
         }
 
-        return this.website.buildUrl(this.nav.path, params);
+        return this.website.buildUrl(this.response.path, params);
     }
 
     renderComponents() {
         const middleware = this.website.middleware<WebsiteMiddleware>(WEBSITE_MIDDLEWARE_NAME);
-        middleware.renderComponents(this);
+        return middleware.renderComponents(this);
     }
 
     destroy() {

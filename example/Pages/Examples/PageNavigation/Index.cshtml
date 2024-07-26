@@ -33,6 +33,15 @@
                 <a nav-url="/test/test">Page not found</a>
             </li>
             <li>
+                <a asp-page="Redirect">Page redirect</a>
+            </li>
+            <li>
+                <a asp-page="Redirect" asp-route-replace="true">Page redirect with replace</a>
+            </li>
+            <li>
+                <a asp-page="Redirect" asp-route-reload="true">Page redirect with reload</a>
+            </li>
+            <li>
                 <a asp-page="Error">Page exception</a>
             </li>
             <li>

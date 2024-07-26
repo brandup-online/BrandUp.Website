@@ -267,30 +267,34 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         return next();
     }
 
-    renderComponents(page?: Page) {
+    async renderComponents(page?: Page) {
         page = page || this.__current?.page;
         if (!page || !page.element)
             return;
 
-        DOM.queryElements(page.element, "[data-content-script]").forEach(elem => {
+        const defineScripts = DOM.queryElements(page.element, "[data-content-script]");
+        for (let i = 0; i < defineScripts.length; i++) {
+            const elem = defineScripts.item(i);
             if (UIElement.hasElement(elem))
-                return;
+                continue;
 
-            const scriptName = elem.getAttribute("data-content-script");
-            if (!scriptName)
-                return;
+            const componentName = elem.getAttribute("data-content-script");
+            if (!componentName)
+                continue;
 
-            const script = this.findComponent(scriptName);
-            if (script) {
-                script.then((t) => {
-                    const uiElem: UIElement = new t.default(elem, this);
-                    page.onDestroy(uiElem);
-                });
+            const componentType = this.findComponent(componentName);
+            if (componentType) {
+                const scriptType = await componentType();
+                if (!scriptType.default)
+                    throw new Error(`Component ${componentName} is not set default export.`);
+
+                const component: UIElement = new scriptType.default(elem, this);
+                page.onDestroy(component);
             }
-        });
+        }
     }
 
-    findComponent(name: string): Promise<ComponentScript> | null {
+    findComponent(name: string): (() => Promise<ComponentScript>) | null {
         if (!this.options.components)
             return null;
 
@@ -298,7 +302,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         if (!scriptFunc)
             return null;
 
-        return scriptFunc.factory();
+        return scriptFunc.factory;
     }
 
     prepareRequest(request: AjaxRequest) {
@@ -334,10 +338,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 else
                     BROWSER.default.location.assign(redirectUrl);
             }
-            else {
-                await context.app.nav({ url: redirectUrl, replace });
-                context.abort.throwIfAborted();
-            }
+            else
+                await context.redirect({ url: redirectUrl, replace, data: context.data });
 
             return true;
         }
@@ -402,7 +404,9 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             context.abort.throwIfAborted();
 
-            this.renderComponents(page);
+            await this.renderComponents(page);
+
+            context.abort.throwIfAborted();
 
             if (newNav)
                 this.__setNavigation(context, current, newNav, page);

@@ -12,5 +12,6 @@ export default class FixJSDOMEnvironment extends JSDOMEnvironment {
         this.global.Response = Response;
         this.global.FormData = FormData;
         this.global.AbortController = AbortController;
+        this.global.AbortSignal = AbortSignal;
     }
 }

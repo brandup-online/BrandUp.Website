@@ -61,8 +61,8 @@ export interface WebsiteMiddleware extends Middleware {
     get current(): Readonly<NavigationEntry> | undefined;
     get validationToken(): string | null;
 
-    renderComponents(page?: Page): void;
-    findComponent(name: string): Promise<ComponentScript> | null;
+    renderComponents(page?: Page): Promise<void>;
+    findComponent(name: string): (() => Promise<ComponentScript>) | null;
     prepareRequest(request: AjaxRequest): void;
 }
 

@@ -10,7 +10,7 @@ class ExampleNavigationPage extends PageBase<PageModel> {
 
         if (this.context.query.has("test")) {
             console.log("begin redirect from render");
-            await this.website.nav({ url: "/about" });
+            await this.context.redirect("/about");
         }
 
         if (this.context.query.has("error"))
