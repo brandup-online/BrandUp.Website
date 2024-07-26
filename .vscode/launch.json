@@ -8,7 +8,7 @@
             "name": "C#: ExampleWebSite Debug",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/examples/ExampleWebSite/ExampleWebSite.csproj"
+            "projectPath": "${workspaceFolder}/example/ExampleWebSite.csproj"
         }
     ]
 }

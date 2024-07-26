@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\examples\ExampleWebSite\ExampleWebSite.csproj" />
+    <ProjectReference Include="..\..\example\ExampleWebSite.csproj" />
     <ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
   </ItemGroup>
 
