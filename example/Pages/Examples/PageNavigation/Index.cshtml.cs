@@ -1,5 +1,4 @@
 using BrandUp.Website.Pages;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ExampleWebSite.Pages.Examples.PageNavigation
 {
@@ -11,8 +10,5 @@ namespace ExampleWebSite.Pages.Examples.PageNavigation
         public override string ScriptName => "examples-navigation";
 
         #endregion
-
-        [FromQuery]
-        public string Test { get; set; }
     }
 }

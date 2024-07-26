@@ -1,18 +1,18 @@
-import { ApplicationBuilder, EnvironmentModel, ContextData, NavigateContext } from "@brandup/ui-app";
+import { ApplicationBuilder, EnvironmentModel, ContextData, StartContext } from "@brandup/ui-app";
 import { WebsiteMiddlewareImpl } from "./middleware";
 import { WebsiteApplication } from "./app";
 import { WebsiteApplicationModel, WebsiteOptions } from "./types";
 
 let current: WebsiteApplication | null = null;
 
-const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>> => {
+const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<StartContext<WebsiteApplication>> => {
     if (current)
         Promise.reject("Application already started.");
 
     if (!context)
         context = {};
 
-    return new Promise<NavigateContext<WebsiteApplication>>((resolve, reject) => {
+    return new Promise<StartContext<WebsiteApplication>>((resolve, reject) => {
         const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
         if (!appDataElem)
             throw "Is not defined application startup configuration.";
@@ -83,7 +83,7 @@ interface IWebsiteInstance {
      * @param context Custom run application context.
      * @returns Application instance.
      */
-    run(pagesOptions: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<NavigateContext<WebsiteApplication>>;
+    run(pagesOptions: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<StartContext<WebsiteApplication>>;
 }
 
 /** Website instance singleton point. */

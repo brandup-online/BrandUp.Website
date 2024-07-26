@@ -8,10 +8,13 @@ class ExampleNavigationPage extends PageBase<PageModel> {
     protected async onRenderContent() {
         await super.onRenderContent();
 
-        if (this.nav.query["test"]) {
+        if (this.context.query.has("test")) {
             console.log("begin redirect from render");
             await this.website.nav({ url: "/about" });
         }
+
+        if (this.context.query.has("error"))
+            throw new Error("page error")
     }
 }
 

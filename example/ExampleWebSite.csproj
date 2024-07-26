@@ -22,7 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\BrandUp.Website\BrandUp.Website.csproj" />
+	  <ProjectReference Include="..\src\BrandUp.Website\BrandUp.Website.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

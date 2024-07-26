@@ -33,6 +33,5 @@ it('Success with default page type', async () => {
     }, builder => { }, { test: "test" });
 
     expect(context).not.toBeNull();
-    expect(context.url).toEqual(firstNav.url);
-    expect(context.source).toEqual("first");
+    expect(context.data.test).toEqual("test");
 })
