@@ -1,15 +1,17 @@
 import { AjaxQueue, AjaxRequest, request } from "@brandup/ui-ajax";
 import { Application, ContextData, EnvironmentModel, StopContext } from "@brandup/ui-app";
-import { WebsiteApplicationModel, WebsiteMiddleware } from "./types";
+import { WebsiteApplicationModel, WebsiteMiddleware, WebsiteOptions } from "./types";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
 export class WebsiteApplication<TModel extends WebsiteApplicationModel = WebsiteApplicationModel> extends Application<TModel> {
+    readonly options: WebsiteOptions;
     /** Ajax queue by current application instance. */
     readonly queue: AjaxQueue;
 
-    constructor(env: EnvironmentModel, model: TModel) {
+    constructor(env: EnvironmentModel, model: TModel, options: WebsiteOptions) {
         super(env, model);
 
+        this.options = options;
         this.queue = new AjaxQueue({
             canRequest: (request) => this.prepareRequest(request)
         });

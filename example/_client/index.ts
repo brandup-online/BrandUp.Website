@@ -21,5 +21,5 @@ WEBSITE.run({
         .useMiddleware(() => new AuthMiddleware())
         .useMiddleware(() => new CityMiddleware());
 })
-    .then(() => console.log("example runned"))
-    .catch(reason => console.log(`example run error: ${reason}`));
+    .then(() => console.log("website runned"))
+    .catch(reason => console.log(`website run error: ${reason}`));

@@ -1,14 +1,14 @@
 import { DOM } from "@brandup/ui-dom";
 import { UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
-import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER } from "@brandup/ui-app";
+import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER, Application } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";
 import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript } from "./types";
 import { WebsiteApplication } from "./app";
 import { Page } from "./page";
 import * as ScriptHelper from "./helpers/script";
 import * as MetaHelper from "./helpers/meta";
-import { DEFAULT_OPTIONS, WEBSITE_MIDDLEWARE_NAME } from "./constants";
+import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 const pageReloadHeader = "page-reload";
@@ -24,16 +24,12 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     private __queue: AjaxQueue;
     private __current?: NavigationEntry;
     private __prepareRequest?: (request: AjaxRequest) => void;
-    private __startedFirstNav?: boolean;
 
     constructor(options: WebsiteOptions) {
-        this.options = Object.assign(options, DEFAULT_OPTIONS);
+        this.options = options;
 
         if (this.options.defaultPage && (!this.options.pages || !this.options.pages[this.options.defaultPage]))
             throw new Error(`Default page type is not registered.`);
-
-        ScriptHelper.preloadDefinitions(this.options.pages);
-        ScriptHelper.preloadDefinitions(this.options.components);
 
         this.__queue = new AjaxQueue({
             canRequest: (request) => this.prepareRequest(request)
@@ -267,12 +263,11 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         return next();
     }
 
-    async renderComponents(page?: Page) {
-        page = page || this.__current?.page;
-        if (!page || !page.element)
-            return;
+    async renderComponents(container: UIElement) {
+        if (!container.element)
+            throw new Error(`Container ${container.typeName} is not set element.`);
 
-        const defineScripts = DOM.queryElements(page.element, "[data-content-script]");
+        const defineScripts = DOM.queryElements(container.element, "[data-content-script]");
         for (let i = 0; i < defineScripts.length; i++) {
             const elem = defineScripts.item(i);
             if (UIElement.hasElement(elem))
@@ -289,7 +284,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     throw new Error(`Component ${componentName} is not set default export.`);
 
                 const component: UIElement = new scriptType.default(elem, this);
-                page.onDestroy(component);
+                container.onDestroy(component);
             }
         }
     }

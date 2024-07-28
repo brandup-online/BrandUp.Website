@@ -4,29 +4,33 @@
 
 ## Installation
 
-Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-ui-website).
+Install NPM package [@brandup/ui-website](https://www.npmjs.com/package/@brandup/ui-website).
+
+```
+npm i @brandup/ui-website
+```
 
 ## Configure and start
 
 ```
 import { WEBSITE } from "@brandup/ui-website";
 import { AuthMiddleware } from "./middlewares/auth";
-import { CityMiddleware } from "./middlewares/city";
 import "./styles.less";
 
 WEBSITE.run({
-    defaultPage: "base",
-    pages: {
-        "base": ()=> import("./pages/base")
-        "signin": ()=> import("./pages/signin")
-    },
-    components: {
-        "test": () => import("./components/test")
-    }
-}, (builder) => {
+        defaultPage: "base",
+        pages: {
+            "base": { factory: ()=> import("./pages/base"), preload: true }
+            "signin": { factory: ()=> import("./pages/signin") }
+        },
+        components: {
+            "test": { factory: () => import("./components/test") }
+        }
+    }, (builder) => {
         builder
-            .useMiddleware(new AuthMiddleware());
-    });
+            .useMiddleware(() => new AuthMiddleware());
+    })
+    .then(() => console.log("website runned"));
 ```
 
 ## Application
@@ -49,47 +53,40 @@ class WebsiteApplication<TModel extends WebsiteApplicationModel = WebsiteApplica
 Develop custom middleware:
 
 ```
-import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
-import { ajaxRequest } from "brandup-ui";
+import { Middleware, MiddlewareNext, NavigateContext, StartContext } from "@brandup/ui-app";
+import { Page, PageModel, WebsiteApplicationModel } from "@brandup/ui-website";
+import { request } from "@brandup/ui-ajax";
 
-export class AuthMiddleware extends Middleware<ApplicationModel> {
-    start(context: StartContext, next) {
+export class AuthMiddleware extends Middleware<WebsiteApplicationModel> {
+    start(context: StartContext, next: MiddlewareNext) {
         this.app.registerCommand("signout", () => {
-            ajaxRequest({
-                url: this.app.uri("api/auth/signout"),
-                method: "POST",
-                state: null,
-                success: () => {
-                    this.app.reload();
-                }
-            });
+            request({
+                url: context.app.buildUrl("api/auth/signout"),
+                method: "POST"
+            }).then(() => this.app.reload());
         });
 
-        console.log(`website id: ${this.app.model.websiteId}`);
+        console.log(`website id: ${context.app.model.websiteId}`);
 
-        next();
+        return next();
     }
 
-    loaded(context: LoadContext, next) {
-        next();
+    async loaded(context: StartContext, next: MiddlewareNext) {
+        await next();
     }
 
-    navigating(context: NavigatingContext, next) {
-        next();
-    }
-
-    navigate(context: NavigateContext, next) {
-        next();
+    navigate(context: NavigateContext, next: MiddlewareNext) {
+        return next();
     }
 }
 ```
 
-Use middleware: `builder.useMiddleware(new AuthMiddleware());`
+Use middleware: `builder.useMiddleware(() => new AuthMiddleware());`
 
 ## Page
 
 ```
-import { Page, PageModel } from "brandup-ui-website";
+import { Page, PageModel } from "@brandup/ui-website";
 
 class SignInPage extends Page<PageModel> {
     get typeName(): string { return "SignInPage" }
@@ -117,3 +114,28 @@ host.start({
     }
 });
 ```
+
+## Component
+
+Declare component:
+
+```
+import { WEBSITE } from "@brandup/ui-website";
+import { AuthMiddleware } from "./middlewares/auth";
+import "./styles.less";
+
+WEBSITE.run({
+        components: {
+            "test": { factory: () => import("./components/test") }
+        }
+    }, (builder) => { });
+```
+
+Render component:
+
+```
+<div data-content-script="test"></div>
+```
+
+Component code:
+

@@ -2,6 +2,8 @@ import { ApplicationBuilder, EnvironmentModel, ContextData, StartContext } from 
 import { WebsiteMiddlewareImpl } from "./middleware";
 import { WebsiteApplication } from "./app";
 import { WebsiteApplicationModel, WebsiteOptions } from "./types";
+import * as ScriptHelper from "./helpers/script";
+import { DEFAULT_OPTIONS } from "./constants";
 
 let current: WebsiteApplication | null = null;
 
@@ -11,6 +13,11 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
 
     if (!context)
         context = {};
+
+    options = Object.assign(options, DEFAULT_OPTIONS);
+
+    ScriptHelper.preloadDefinitions(options.pages);
+    ScriptHelper.preloadDefinitions(options.components);
 
     return new Promise<StartContext<WebsiteApplication>>((resolve, reject) => {
         const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
@@ -25,7 +32,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
 
         configure(appBuilder);
 
-        const app = current = <WebsiteApplication>appBuilder.build(appData.env);
+        const app = current = <WebsiteApplication>appBuilder.build(appData.env, options);
 
         let isStarted = false;
         const appStartFunc = () => {
