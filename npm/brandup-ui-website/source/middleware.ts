@@ -509,7 +509,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         if (!this.__loaderElem)
             return;
 
-        this.__loaderElem.classList.remove("show", "show2", "finish");
+        this.__loaderElem.classList.remove("show", "finish");
         this.__loaderElem.style.width = "0%";
 
         window.setTimeout(() => {
