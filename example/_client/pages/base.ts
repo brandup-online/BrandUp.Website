@@ -3,4 +3,8 @@ import "./base.less";
 
 export default class PageBase<TModel extends PageModel = PageModel> extends Page<WebsiteApplication, TModel> {
     get typeName(): string { return "Example.PageBase"; }
+
+    protected async onRenderedContent() {
+        console.log("page rendered");
+    }
 }

@@ -422,6 +422,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             ScriptHelper.scriptReplace(newPageElem);
         }
 
+        await page.__rendered();
+
         return page;
     }
 

@@ -37,6 +37,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
     get hash(): string | null { return this.__hash; }
 
     protected onRenderContent(): Promise<void> { return Promise.resolve(); }
+    protected onRenderedContent(): Promise<void> { return Promise.resolve(); }
     protected onChangedHash(_newHash: string | null, _oldHash: string | null): Promise<void> { return Promise.resolve(); }
     protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
@@ -45,6 +46,11 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
         this.setElement(element);
 
         await this.onRenderContent();
+    }
+
+    /** @internal */
+    async __rendered() {
+        await this.onRenderedContent();
     }
 
     /** @internal */
