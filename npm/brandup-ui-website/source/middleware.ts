@@ -471,6 +471,12 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         };
 
         let replace = context.replace;
+		if (replace && (context.current?.scope != context.scope || context.current?.source === "first")) {
+			// Если изменилась область навигации или предыдущая бала первой, то 
+			// не нужно перезаписывать текущую страницу
+			replace = false;
+		}
+
         if (isFirst || navUrl === location.href)
             replace = true;
 
@@ -481,8 +487,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 else
                     window.history.pushState(window.history.state, title, navUrl);
             }
-
-            if (context.hash)
+            else
                 location.hash = "#" + context.hash;
 
             document.title = title;
