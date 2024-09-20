@@ -471,10 +471,15 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         };
 
         let replace = context.replace;
-		if (replace && (context.current?.scope != context.scope || context.current?.source === "first")) {
+        let forceSkipScroll = false;
+        const changedScope = context.current?.scope != context.scope;
+		if (replace && (changedScope || context.current?.source === "first")) {
 			// Если изменилась область навигации или предыдущая бала первой, то 
 			// не нужно перезаписывать текущую страницу
 			replace = false;
+
+            if (changedScope)
+                forceSkipScroll = true; // принудительно пропускаем прокрутку
 		}
 
         if (isFirst || navUrl === location.href)
@@ -492,7 +497,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             document.title = title;
 
-            if (!replace)
+            if (!replace && !forceSkipScroll)
                 window.scrollTo({ left: 0, top: 0, behavior: "auto" });
         }
     }
