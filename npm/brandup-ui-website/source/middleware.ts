@@ -184,9 +184,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 }
             }
 
-            const page = await this.__renderPage(context, current, navModel, navContent);
-            if (page)
-                await next();
+            await this.__renderPage(context, current, navModel, navContent);
+            await next();
         }
         catch (reason) {
             if (!isFirst && !context.abort.aborted) {
