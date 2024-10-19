@@ -38,8 +38,8 @@ namespace BrandUp.Website
             ArgumentNullException.ThrowIfNull(response);
             ArgumentNullException.ThrowIfNull(pageLocation);
 
-            var pageFeature = response.HttpContext.Features.Get<IPageFeature>();
-            if (pageFeature == null || pageFeature.PageModel == null || pageFeature.PageModel.RequestMode == AppPageRequestMode.Full)
+            var isNav = response.HttpContext.Request.Headers.ContainsKey(PageConstants.HttpHeaderPageNav);
+            if (!isNav)
             {
                 response.StatusCode = (int)(isPermament ? HttpStatusCode.PermanentRedirect : HttpStatusCode.Redirect);
                 response.Headers.Location = pageLocation;

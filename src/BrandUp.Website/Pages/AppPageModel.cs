@@ -53,15 +53,6 @@ namespace BrandUp.Website.Pages
 
             httpContext.Features.Set<IPageFeature>(new PageFeature { PageModel = this });
 
-            if (httpRequest.QueryString.HasValue && httpRequest.Query.ContainsKey("_"))
-            {
-                var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>(httpRequest.Query);
-                newQuery.Remove("_");
-
-                httpRequest.Query = new Microsoft.AspNetCore.Http.QueryCollection(newQuery);
-                httpRequest.QueryString = Microsoft.AspNetCore.Http.QueryString.Create(newQuery);
-            }
-
             if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out string navigationData))
                 RequestMode = AppPageRequestMode.Content;
 

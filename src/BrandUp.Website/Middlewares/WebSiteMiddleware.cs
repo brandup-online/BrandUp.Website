@@ -133,6 +133,17 @@ namespace BrandUp.Website.Middlewares
                 IsLocalIp = isLocalIp
             });
 
+            if (request.QueryString.HasValue && request.Query.ContainsKey("_"))
+            {
+                // remove cache param from query string
+
+                var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>(request.Query);
+                newQuery.Remove("_");
+
+                request.Query = new QueryCollection(newQuery);
+                request.QueryString = QueryString.Create(newQuery);
+            }
+
             await next(context);
 
             //if (context.Response.HasStarted

@@ -114,6 +114,33 @@ namespace ExampleWebSite
                     options.SlidingExpiration = true;
                     options.ReturnUrlParameter = "returnUrl";
                     options.LoginPath = "/signin";
+                    options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
+                    {
+                        OnRedirectToLogin = async (context) =>
+                        {
+                            context.Response.RedirectPage(context.RedirectUri);
+
+                            await Task.CompletedTask;
+                        },
+                        OnRedirectToReturnUrl = async (context) =>
+                        {
+                            context.Response.RedirectPage(context.RedirectUri);
+
+                            await Task.CompletedTask;
+                        },
+                        OnRedirectToAccessDenied = async (context) =>
+                        {
+                            context.Response.RedirectPage(context.RedirectUri);
+
+                            await Task.CompletedTask;
+                        },
+                        OnRedirectToLogout = async (context) =>
+                        {
+                            context.Response.RedirectPage(context.RedirectUri);
+
+                            await Task.CompletedTask;
+                        }
+                    };
                 });
 
             #endregion
