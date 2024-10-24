@@ -72,6 +72,10 @@ input, textarea, button {
 .app-nav {
     background: #000;
     color: #fff;
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
 
     & .content-width {
         height: 80px;
@@ -152,6 +156,7 @@ input, textarea, button {
     display: flex;
     flex-flow: column nowrap;
     row-gap: 40px;
+    margin-top: 80px;
 
     @media all and (max-width: @Adaptive-3-Width) {
         padding-bottom: 30px;

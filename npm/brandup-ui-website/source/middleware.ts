@@ -83,8 +83,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             return;
         }
         else if (context.action === "hash") {
-            if (this.__current)
+            if (this.__current) {
+                this.__setNavigation(context, this.__current, this.__current.model, this.__current.page);
                 await this.__current.page.__changedHash(context);
+            }
 
             await next();
             return;
@@ -403,12 +405,14 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
     private __setNavigation(context: NavigateContext, current: NavigationEntry | undefined, newNav: NavigationModel, page: Page) {
         let navUrl = context.url;
+        if (context.hash)
+            navUrl += "#" + context.hash;
 
-        const isFirst = context.source == "first";
-        const fromPopstate = !!context.data.popstate;
+        const isFirst = context.action == "first";
         const title = newNav.title || "";
+        const changedPage = current?.page !== page;
 
-        if (!isFirst) {
+        if (!isFirst && changedPage) {
             MetaHelper.setMetadata("description", newNav.description);
             MetaHelper.setMetadata("keywords", newNav.keywords);
             MetaHelper.setCanonical(newNav.canonicalLink);
@@ -426,7 +430,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 document.body.classList.add(newNav.bodyClass);
         }
 
-        if (current?.page)
+        if (current?.page && changedPage)
             current.page.destroy();
 
         this.__current = {
@@ -440,7 +444,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         let replace = context.replace;
         let forceSkipScroll = false;
         const changedScope = context.current?.scope != context.scope;
-        if (replace && (changedScope || context.current?.source === "first")) {
+        if (replace && (changedScope || context.current?.action === "first")) {
             // Если изменилась область навигации или предыдущая бала первой, то 
             // не нужно перезаписывать текущую страницу
             replace = false;
@@ -449,24 +453,30 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 forceSkipScroll = true; // принудительно пропускаем прокрутку
         }
 
-        if (isFirst || navUrl === location.href)
+        const isNoChangeUrl = context.action === "url-no-change";
+        if (isFirst || isNoChangeUrl)
             replace = true;
 
-        if (!isFirst && !fromPopstate) {
-            if (!context.hash) {
-                if (replace)
-                    window.history.replaceState(window.history.state, title, navUrl);
-                else
-                    window.history.pushState(window.history.state, title, navUrl);
-            }
+        console.log("replace", navUrl, replace);
+
+        const state = window.history.state;
+
+        if (!isFirst) {
+            const isHashChanged = context.action === "hash";
+
+            if (replace)
+                window.history.replaceState(state, title, navUrl);
             else
-                location.hash = "#" + context.hash;
+                window.history.pushState(state, title, navUrl);
 
-            document.title = title;
+            if (changedPage && !isHashChanged)
+                document.title = title;
 
-            if (!replace && !forceSkipScroll)
+            if ((!replace && !forceSkipScroll && !isHashChanged) || isNoChangeUrl)
                 window.scrollTo({ left: 0, top: 0, behavior: "auto" });
         }
+        else
+            window.history.replaceState(state, title, navUrl);
     }
 
     private __loaderElem: HTMLElement | null = null;
