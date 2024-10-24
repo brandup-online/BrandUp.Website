@@ -79,7 +79,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
 
     private async __triggerChangeHash() {
         const prevHash = this.__context.current?.hash ?? null;
-        if (!this.__hash && prevHash)
+        if (!this.__hash && !prevHash)
             return;
 
         let action: PageHashAction;

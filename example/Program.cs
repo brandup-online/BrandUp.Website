@@ -202,18 +202,6 @@ namespace ExampleWebSite
 
             app.UseStatusCodePagesWithReExecute("/notfound");
 
-            //app.UseStatusCodePages(context =>
-            //{
-            //    switch (context.HttpContext.Response.StatusCode)
-            //    {
-            //        case 404:
-            //            context.HttpContext.Response.RedirectPage("/notfound", replace: true);
-            //            break;
-            //    }
-
-            //    return Task.CompletedTask;
-            //});
-
             #endregion
 
             app.Run();
