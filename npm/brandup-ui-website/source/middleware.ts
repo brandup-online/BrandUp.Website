@@ -47,9 +47,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
         this.__showNavigationProgress();
 
-        if (allowHistory)
-            window.addEventListener("popstate", (e: PopStateEvent) => this.__onPopState(context, e));
-
         bodyElem.addEventListener("invalid", (event: Event) => {
             event.preventDefault();
 
@@ -81,58 +78,29 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         if (!this.__queue)
             throw new Error('Website is not initialized.');
 
-        const current = context.data.current = this.__current;
-
-        this.__showNavigationProgress();
-        this.__queue.reset(true);
-
         if (context.external || !allowHistory) {
             this.__forceNav(context);
             return;
         }
+        else if (context.action === "hash") {
+            if (this.__current)
+                await this.__current.page.__changedHash(context);
 
-        if (current && (current.hash || context.hash) && current.url.toLowerCase() === context.url.toLowerCase()) {
-            const isHashEqual = current.hash?.toLowerCase() === context.hash?.toLowerCase();
-
-            if (!isHashEqual && !context.data.popstate) {
-                this.__hideNavigationProgress();
-
-                const newHash = context.hash ? "#" + context.hash : "";
-                console.log(`nav to hash: ${newHash}`);
-                location.hash = newHash;
-                return;
-            }
-
-            if (current.hash && !context.hash)
-                console.log(`remove hash: ${current.hash}`);
-            else if (!current.hash && context.hash)
-                console.log(`add hash: ${context.hash}`);
-            else if (!isHashEqual)
-                console.log(`change hash: ${current.hash} > ${context.hash}`);
-            else
-                console.log(`no change hash: ${current.hash} == ${context.hash}`);
-
-            current.hash = context.hash;
-
-            try {
-                await current.page.__changedHash(context.hash, current.hash);
-
-                await next();
-            }
-            finally {
-                this.__hideNavigationProgress();
-            }
-
+            await next();
             return;
         }
 
+        this.__showNavigationProgress();
+        this.__queue.reset(true);
+
         const isFirst = context.source === "first";
+        const current: NavigationEntry | undefined = context.data.current = this.__current;
 
         try {
             let navModel: NavigationModel;
             let navContent: DocumentFragment | null = null;
 
-            if (isFirst) {
+            if (isFirst || !this.__current) {
                 // first navigation
 
                 const navScriptElement = <HTMLScriptElement>document.getElementById(navDataElemId);
@@ -472,14 +440,14 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         let replace = context.replace;
         let forceSkipScroll = false;
         const changedScope = context.current?.scope != context.scope;
-		if (replace && (changedScope || context.current?.source === "first")) {
-			// Если изменилась область навигации или предыдущая бала первой, то 
-			// не нужно перезаписывать текущую страницу
-			replace = false;
+        if (replace && (changedScope || context.current?.source === "first")) {
+            // Если изменилась область навигации или предыдущая бала первой, то 
+            // не нужно перезаписывать текущую страницу
+            replace = false;
 
             if (changedScope)
                 forceSkipScroll = true; // принудительно пропускаем прокрутку
-		}
+        }
 
         if (isFirst || navUrl === location.href)
             replace = true;
@@ -499,14 +467,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             if (!replace && !forceSkipScroll)
                 window.scrollTo({ left: 0, top: 0, behavior: "auto" });
         }
-    }
-
-    private __onPopState(context: StartContext, event: PopStateEvent) {
-        event.preventDefault();
-
-        console.log(`popstate: ${location.href}`);
-
-        context.app.nav({ data: { popstate: true } });
     }
 
     private __loaderElem: HTMLElement | null = null;

@@ -7,6 +7,7 @@
     </header>
 
     <section class="page-block page-block-examples-navigation">
+        <h2>Common</h2>
         <ul>
             <li>
                 <a asp-page="/About">Nav with asp-page</a>
@@ -60,6 +61,7 @@
     </section>
 
     <section class="page-block page-block-examples-navigation">
+        <h2>Navigation scope</h2>
         <ul>
             <li>
                 <a nav-url="?test1=test1" nav-replace>noscope1</a>
@@ -68,6 +70,19 @@
             <li>
                 <a nav-url="?test2=test1" nav-replace nav-scope="test">scope1</a>
                 <a nav-url="?test2=test2" nav-replace nav-scope="test">scope2</a>
+            </li>
+        </ul>
+    </section>
+
+    <section class="page-block page-block-examples-navigation">
+        <h2>Navigation hash</h2>
+        <ul>
+            <li>
+                <a nav-url="#hash1">hash1</a>
+                <a nav-url="#hash2">hash2</a>
+                <a nav-url="#hash3">hash3</a>
+                <a nav-url="#hash4">hash4</a>
+                <a nav-url="#hash5">hash5</a>
             </li>
         </ul>
     </section>

@@ -6,17 +6,23 @@ import { WebsiteApplication } from "./app";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
 import { NavigateContext, QueryParams } from "@brandup/ui-app";
 
+export const PAGE_HASHCHANGED_EVENT = "hash-changed";
+
 export class Page<TApplication extends WebsiteApplication = WebsiteApplication, TModel extends PageModel = PageModel> extends UIElement {
-    readonly context: NavigateContext<TApplication>;
+    private __context: NavigateContext<TApplication>;
+    private __hash: string | null;
     readonly website: TApplication;
     readonly response: NavigationModel;
     readonly queue: AjaxQueue;
-    private __hash: string | null;
+
+    get context() { return this.__context; }
 
     constructor(context: NavigateContext<TApplication>, response: NavigationModel) {
         super();
 
-        this.context = context;
+        this.__context = context;
+        this.__hash = context.hash;
+
         this.website = context.app;
         this.response = response;
         this.queue = new AjaxQueue({
@@ -28,8 +34,6 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
                     options.headers[context.app.model.antiforgery.headerName] = response.validationToken;
             }
         });
-
-        this.__hash = context.hash;
     }
 
     get typeName(): string { return "BrandUp.Page"; }
@@ -38,7 +42,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
 
     protected onRenderContent(): Promise<void> { return Promise.resolve(); }
     protected onRenderedContent(): Promise<void> { return Promise.resolve(); }
-    protected onChangedHash(_newHash: string | null, _oldHash: string | null): Promise<void> { return Promise.resolve(); }
+    protected onChangedHash(_newHash: string | null, _oldHash: string | null, action: PageHashAction): Promise<void> { return Promise.resolve(); }
     protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
     /** @internal */
@@ -51,6 +55,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
     /** @internal */
     async __rendered() {
         await this.onRenderedContent();
+        await this.__triggerChangeHash();
     }
 
     /** @internal */
@@ -62,19 +67,41 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
     }
 
     /** @internal */
-    async __changedHash(newHash: string | null, oldHash: string | null) {
+    async __changedHash(context: NavigateContext<TApplication>) {
         if (!this.element)
             return;
 
-        if (newHash)
-            this.__hash = newHash;
-        else
-            this.__hash = null;
+        this.__context = context;
+        this.__hash = context.hash;
 
-        await this.onChangedHash(newHash, oldHash);
+        await this.__triggerChangeHash();
     }
 
-    submit(form?: HTMLFormElement) {
+    private async __triggerChangeHash() {
+        const prevHash = this.__context.current?.hash ?? null;
+        if (!this.__hash && prevHash)
+            return;
+
+        let action: PageHashAction;
+        if (this.__hash && !prevHash)
+            action = "add";
+        else if (!this.__hash && prevHash)
+            action = "remove";
+        else if (this.__hash === prevHash)
+            action = "unchanged";
+        else
+            action = "changed";
+
+        await this.onChangedHash(this.__hash, prevHash, action);
+
+        this.trigger(PAGE_HASHCHANGED_EVENT, <PageHashChangedEvent>{
+            prev: prevHash,
+            new: this.__hash,
+            action: action
+        });
+    }
+
+    submit(form?: HTMLFormElement): HTMLFormElement {
         if (!this.element)
             throw new Error('Page is not rendered.');
 
@@ -84,6 +111,8 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
             throw new Error(`Not found form on page for submit.`);
 
         form.submit();
+
+        return form;
     }
 
     buildUrl(query: QueryParams): string {
@@ -109,4 +138,12 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
 
         super.destroy();
     }
+}
+
+export type PageHashAction = "unchanged" | "add" | "remove" | "changed";
+
+export interface PageHashChangedEvent {
+    prev: string | null,
+    new: string | null,
+    action: PageHashAction
 }
