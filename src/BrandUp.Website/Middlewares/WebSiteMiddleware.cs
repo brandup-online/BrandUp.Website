@@ -137,7 +137,7 @@ namespace BrandUp.Website.Middlewares
             {
                 // remove cache param from query string
 
-                var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>(request.Query);
+                var newQuery = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>(request.Query, StringComparer.OrdinalIgnoreCase);
                 newQuery.Remove("_");
 
                 request.Query = new QueryCollection(newQuery);
@@ -145,35 +145,6 @@ namespace BrandUp.Website.Middlewares
             }
 
             await next(context);
-
-            //if (context.Response.HasStarted
-            //    || context.Response.StatusCode < 400
-            //    || context.Response.StatusCode >= 600
-            //    || context.Response.ContentLength.HasValue
-            //    || !string.IsNullOrEmpty(context.Response.ContentType))
-            //{
-            //    return;
-            //}
-
-            //var pathFormat = "/notfound";
-
-            //var newPath = new PathString(string.Format(CultureInfo.InvariantCulture, pathFormat, context.Response.StatusCode));
-
-            //var originalPath = context.Request.Path;
-            //var originalQueryString = context.Request.QueryString;
-
-            //context.Request.Path = newPath;
-            ////context.Request.QueryString = new QueryString();
-
-            //try
-            //{
-            //    await next(context);
-            //}
-            //finally
-            //{
-            //    context.Request.Path = originalPath;
-            //    //context.Request.QueryString = originalQueryString;
-            //}
         }
 
         static HostString ReplaceHost(HostString current, string newHostValue)
