@@ -7,7 +7,7 @@ namespace ExampleWebSite.Pages.Examples.PageSubmit
     public class IndexModel : AppPageModel
     {
         public override string Title => "Page submit";
-        public override string ScriptName => "form";
+        public override string ScriptName => "example-submit";
 
         [BindProperty, Required]
         public string Key { get; set; }

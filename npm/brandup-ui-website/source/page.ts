@@ -110,7 +110,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
         if (!form)
             throw new Error(`Not found form on page for submit.`);
 
-        form.submit();
+        form.dispatchEvent(new SubmitEvent("submit", { submitter: form, bubbles: true }));
 
         return form;
     }

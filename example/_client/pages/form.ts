@@ -2,7 +2,7 @@
 import PageBase from "./base";
 import "./form.less";
 
-class FormPage extends PageBase<PageModel> {
+class FormPage<T extends PageModel> extends PageBase<T> {
     get typeName(): string { return "Example.FormPage" }
 }
 

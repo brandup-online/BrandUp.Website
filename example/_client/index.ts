@@ -10,7 +10,8 @@ WEBSITE.run({
         "base": { factory: () => import("./pages/base"), preload: true },
         "form": { factory: () => import("./pages/form"), preload: true },
         "signin": { factory: () => import("./pages/signin") },
-        "examples-navigation": { factory: () => import("./pages/examples/navigation") }
+        "examples-navigation": { factory: () => import("./pages/examples/navigation") },
+        "example-submit": { factory: () => import("./pages/examples/submit") }
     },
     components: {
         "test": { factory: () => import("./components/test"), preload: true }
