@@ -453,16 +453,21 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 forceSkipScroll = true; // принудительно пропускаем прокрутку
         }
 
-        const isNoChangeUrl = context.action === "url-no-change";
-        if (isFirst || isNoChangeUrl)
-            replace = true;
-
-        console.log("replace", navUrl, replace);
-
         const state = window.history.state;
 
         if (!isFirst) {
             const isHashChanged = context.action === "hash";
+            const isNoChangeUrl = context.action === "url-no-change";
+
+            if (context.data.popstate !== undefined || isNoChangeUrl) {
+                /*
+                    1. Если навигация из события popstate, то принулительно перезаписываем состояние.
+                    2. Если url навигации не поменялся, то перезаписываем состояние.
+                */
+
+                //console.warn(`nav from popstate`, context.data.popstate);
+                replace = true;
+            }
 
             if (replace)
                 window.history.replaceState(state, title, navUrl);
