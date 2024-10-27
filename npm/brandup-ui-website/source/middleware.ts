@@ -232,7 +232,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         return next();
     }
 
-    async renderComponents(container: UIElement) {
+    async renderComponents(container: Page) {
         if (!container.element)
             throw new Error(`Container ${container.typeName} is not set element.`);
 
@@ -252,7 +252,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 if (!scriptType.default)
                     throw new Error(`Component ${componentName} is not set default export.`);
 
-                const component: UIElement = new scriptType.default(elem, this);
+                const component: UIElement = new scriptType.default(elem, container);
                 container.onDestroy(component);
             }
         }
@@ -368,10 +368,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             context.abort.throwIfAborted();
 
-            await this.renderComponents(page);
-
-            context.abort.throwIfAborted();
-
             if (newNav)
                 this.__setNavigation(context, current, newNav, page);
             else if (current)
@@ -390,6 +386,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             ScriptHelper.scriptReplace(newPageElem);
         }
+
+        await this.renderComponents(page);
 
         await page.__rendered();
 
