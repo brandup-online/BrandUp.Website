@@ -58,7 +58,7 @@ export interface NavigationEntry {
 }
 
 export interface WebsiteMiddleware extends Middleware {
-    get current(): Readonly<NavigationEntry> | undefined;
+    get current(): Readonly<NavigationEntry | undefined>;
     get validationToken(): string | null;
 
     renderComponents(container: UIElement): Promise<void>;
