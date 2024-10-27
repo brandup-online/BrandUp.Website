@@ -475,7 +475,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             if (changedPage && !isHashChanged)
                 document.title = title;
 
-            if ((!replace && !forceSkipScroll && !isHashChanged) || isNoChangeUrl)
+            if ((!replace && !forceSkipScroll && !isHashChanged)) // || isNoChangeUrl
                 window.scrollTo({ left: 0, top: 0, behavior: "auto" });
         }
         else
