@@ -28,11 +28,11 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "@brandup/ui": "^1.0.29",
-    "@brandup/ui-ajax": "^1.0.29",
-    "@brandup/ui-app": "^1.0.29",
-    "@brandup/ui-dom": "^1.0.29",
-    "@brandup/ui-helpers": "^1.0.29"
+    "@brandup/ui": "^1.0.30",
+    "@brandup/ui-ajax": "^1.0.30",
+    "@brandup/ui-app": "^1.0.30",
+    "@brandup/ui-dom": "^1.0.30",
+    "@brandup/ui-helpers": "^1.0.30"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.3.0",

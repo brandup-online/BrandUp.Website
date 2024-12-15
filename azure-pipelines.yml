@@ -22,7 +22,7 @@ variables:
   - name: envName
     value: "brandup-website"
   - name: version-major
-    value: "9"
+    value: "10"
   - name: version-minor
     value: "0"
 
@@ -52,10 +52,10 @@ stages:
             persistCredentials: "true"
 
           - task: UseDotNet@2
-            displayName: "use dotnet 8.x"
+            displayName: "use dotnet 9.x"
             inputs:
               packageType: "sdk"
-              version: "8.x"
+              version: "9.x"
 
           - task: DotNetCoreCLI@2
             displayName: "dotnet restore"
