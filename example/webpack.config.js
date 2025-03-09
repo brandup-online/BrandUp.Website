@@ -7,7 +7,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const bundleOutputDir = './wwwroot/dist';
 
-const lessLoaderOptions = { webpackImporter: true, lessOptions: { math: 'always', plugins: [new CleanCSSPlugin({ advanced: true })] } };
+const lessLoaderOptions = { webpackImporter: true, lessOptions: { math: 'always', plugins: [new CleanCSSPlugin({ advanced: false })] } };
 var splitChunks = {
     cacheGroups: {
         vendors: {
