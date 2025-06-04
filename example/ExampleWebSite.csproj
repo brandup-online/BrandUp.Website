@@ -18,7 +18,7 @@
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="TimeZoneConverter" Version="7.0.0" />
-		<PackageReference Include="WebMarkupMin.AspNetCoreLatest" Version="2.18.1" />
+		<PackageReference Include="WebMarkupMin.AspNetCoreLatest" Version="2.19.0" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -154,7 +154,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 }
             }
 
-            await this.__renderPage(context, current, navModel, navContent);
+            context.data.page = await this.__renderPage(context, current, navModel, navContent);
+
             await next();
         }
         catch (reason) {
