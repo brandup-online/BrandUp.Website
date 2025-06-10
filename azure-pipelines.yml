@@ -89,15 +89,23 @@ stages:
               testRunner: VSTest
               testResultsFiles: "$(Agent.TempDirectory)/**/*.trx"
 
+          #- task: DotNetCoreCLI@2
+          #  displayName: "dotnet pack"
+          #  inputs:
+          #    command: pack
+          #    nobuild: true
+          #    arguments: /p:Version=$(Build.BuildNumber)
+          #    packagesToPack: "src/*/*.csproj"
+          #    #versioningScheme: byBuildNumber
+          #    packDirectory: $(Build.ArtifactStagingDirectory)
+
           - task: DotNetCoreCLI@2
             displayName: "dotnet pack"
             inputs:
-              command: pack
-              nobuild: true
-              arguments: /p:Version=$(Build.BuildNumber)
-              packagesToPack: "src/*/*.csproj"
-              #versioningScheme: byBuildNumber
-              packDirectory: $(Build.ArtifactStagingDirectory)
+              command: "custom"
+              projects: "src/*/*.csproj"
+              custom: "pack"
+              arguments: "--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)"
 
           - publish: $(build.artifactstagingdirectory)
             displayName: publish artifact
