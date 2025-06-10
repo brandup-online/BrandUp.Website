@@ -12,7 +12,6 @@ import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
 const allowHistory = !!window.history && !!window.history.pushState;
 const pageReloadHeader = "page-reload";
-const pageActionHeader = "page-action";
 const pageLocationHeader = "page-location";
 const pageReplaceHeader = "page-replace";
 const navDataElemId = "nav-data";
@@ -280,24 +279,12 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     // WebsiteMiddleware members
 
     private async __precessPageResponse(context: NavigateContext, response: AjaxResponse): Promise<boolean> {
-        const pageAction = response.headers.get(pageActionHeader);
-        if (pageAction) {
-            switch (pageAction) {
-                case "reset":
-                case "reload": {
-                    BROWSER.default.location.reload();
-                    return true;
-                }
-                default:
-                    throw "Неизвестный тип действия для страницы.";
-            }
-        }
-
+        const isReload = response.headers.has(pageReloadHeader);
         const redirectUrl = response.headers.get(pageLocationHeader);
         if (redirectUrl) {
             const replace = response.headers.has(pageReplaceHeader);
 
-            if (response.headers.has(pageReloadHeader)) {
+            if (isReload) {
                 if (replace)
                     BROWSER.default.location.replace(redirectUrl);
                 else
@@ -308,6 +295,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             return true;
         }
+        else if (isReload)
+            BROWSER.default.location.reload();
 
         return false;
     }

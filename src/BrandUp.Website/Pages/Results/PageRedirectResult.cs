@@ -12,8 +12,7 @@ namespace BrandUp.Website.Pages.Results
 
         public override Task ExecuteResultAsync(ActionContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
 
             context.HttpContext.Response.RedirectPage(PageUrl, IsPermament, Replace, Reload);
 

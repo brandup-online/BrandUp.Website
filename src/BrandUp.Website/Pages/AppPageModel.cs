@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
@@ -123,12 +122,7 @@ namespace BrandUp.Website.Pages
                             needReloadPage = true;
 
                         if (needReloadPage)
-                        {
                             HttpContext.Response.Headers[PageConstants.HttpHeaderPageReload] = "true";
-
-                            context.Result = new OkResult();
-                            return;
-                        }
 
                         break;
                     }
@@ -307,11 +301,6 @@ namespace BrandUp.Website.Pages
             ArgumentNullException.ThrowIfNull(pageUrl);
 
             return new Results.PageRedirectResult(pageUrl) { IsPermament = isPermament, Replace = replace, Reload = reload };
-        }
-
-        public Results.PageActionResult PageAction(PageActionType actionType)
-        {
-            return new Results.PageActionResult(this, actionType);
         }
     }
 }
