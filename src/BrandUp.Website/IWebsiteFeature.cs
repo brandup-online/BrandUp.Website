@@ -1,6 +1,6 @@
-﻿namespace BrandUp.Website.Infrastructure
+﻿namespace BrandUp.Website
 {
-    public class WebsiteFeature(WebsiteOptions options, WebsiteContext context) : IWebsiteFeature
+    internal class WebsiteFeature(WebsiteOptions options, WebsiteContext context) : IWebsiteFeature
     {
         public WebsiteOptions Options { get; } = options ?? throw new ArgumentNullException(nameof(options));
         public WebsiteContext Context { get; } = context ?? throw new ArgumentNullException(nameof(context));
@@ -11,5 +11,6 @@
     {
         WebsiteOptions Options { get; }
         WebsiteContext Context { get; }
+        bool IsLocalIp { get; }
     }
 }

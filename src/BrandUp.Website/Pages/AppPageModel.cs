@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -10,9 +11,11 @@ namespace BrandUp.Website.Pages
 {
     public abstract class AppPageModel : PageModel, IPageModel
     {
-        readonly static DateTime StartDate = DateTime.UtcNow;
         IWebsiteEvents websiteEvents;
         IPageEvents pageEvents;
+
+        public const string NavStateKey_Version = "_version";
+        public const string NavStateKey_Area = "_area";
 
         #region Properties
 
@@ -55,7 +58,7 @@ namespace BrandUp.Website.Pages
             if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out string navigationData))
                 RequestMode = AppPageRequestMode.Content;
 
-            var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(Infrastructure.IWebsiteFeature)} in HttpContext features.");
+            var websiteFeature = HttpContext.Features.Get<IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(IWebsiteFeature)} in HttpContext features.");
             WebsiteContext = websiteFeature.Context;
             websiteEvents = HttpContext.RequestServices.GetService<IWebsiteEvents>();
             pageEvents = HttpContext.RequestServices.GetService<IPageEvents>();
@@ -63,6 +66,7 @@ namespace BrandUp.Website.Pages
 
             var request = Request;
             var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
+            var websiteVersion = HttpContext.RequestServices.GetRequiredService<IWebsiteVersion>();
 
             #region Navigation
 
@@ -101,13 +105,13 @@ namespace BrandUp.Website.Pages
                                         NavigationState.Add(kv.Key, value);
                                     }
 
-                                    if (NavigationState.TryGetValue("_start", out object startValue) && (long)startValue != StartDate.Ticks)
+                                    if (!NavigationState.TryGetValue(NavStateKey_Version, out object versionValue) || versionValue == null || !Version.TryParse(versionValue.ToString(), out var navVersion) || navVersion != websiteVersion.GetVersion())
                                         needReloadPage = true;
 
                                     if (!needReloadPage)
                                     {
                                         string navAreaName = null;
-                                        if (NavigationState.TryGetValue("_area", out object areaNameValue))
+                                        if (NavigationState.TryGetValue(NavStateKey_Area, out object areaNameValue))
                                             navAreaName = (string)areaNameValue;
 
                                         RouteData.TryGetAreaName(out string curAreaName);
@@ -128,10 +132,10 @@ namespace BrandUp.Website.Pages
                     }
                 default:
                     {
-                        NavigationState.Add("_start", StartDate.Ticks);
+                        NavigationState.Add(NavStateKey_Version, websiteVersion.GetVersion().ToString());
 
                         RouteData.TryGetAreaName(out string areaName);
-                        NavigationState.Add("_area", areaName?.ToLower() ?? string.Empty);
+                        NavigationState.Add(NavStateKey_Area, areaName?.ToLower() ?? string.Empty);
 
                         break;
                     }
@@ -205,7 +209,7 @@ namespace BrandUp.Website.Pages
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-            var websiteFeature = HttpContext.Features.Get<Infrastructure.IWebsiteFeature>();
+            var websiteFeature = HttpContext.Features.Get<IWebsiteFeature>();
             var protector = protectionProvider.CreateProtector(websiteFeature.Options.ProtectionPurpose);
 
             var navModel = new ClientModels.NavigationModel

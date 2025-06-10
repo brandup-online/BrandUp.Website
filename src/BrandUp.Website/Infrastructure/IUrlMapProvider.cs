@@ -21,8 +21,7 @@ namespace BrandUp.Website.Infrastructure
 
         public string ExtractName(HttpContext context, string requestHost)
         {
-            if (requestHost == null)
-                throw new ArgumentNullException(nameof(requestHost));
+            ArgumentNullException.ThrowIfNull(requestHost);
 
             string websiteName = null;
             if (!string.Equals(requestHost, webSiteHost, StringComparison.InvariantCultureIgnoreCase))

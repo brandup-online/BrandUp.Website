@@ -8,8 +8,10 @@
 
     <section class="page-block">
         @{
-            var webSiteContext = HttpContext.GetWebsiteContext(); 
+            var webSiteContext = HttpContext.GetWebsiteContext();
+            var websiteVersion = HttpContext.RequestServices.GetRequiredService<BrandUp.Website.Infrastructure.IWebsiteVersion>();
         }
+        <p>WebSite Version: @websiteVersion.GetVersion()</p>
         <p>WebSite Id: @webSiteContext.Website.Id</p>
         <p>WebSite Name: @webSiteContext.Website.Name</p>
         <p>WebSite Title: @webSiteContext.Website.Title</p>
