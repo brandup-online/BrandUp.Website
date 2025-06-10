@@ -93,6 +93,7 @@ stages:
             displayName: "dotnet pack"
             inputs:
               command: pack
+              arguments: /p:Version=$(Build.BuildNumber)
               packagesToPack: "src/*/*.csproj"
               versioningScheme: byBuildNumber
               packDirectory: $(Build.ArtifactStagingDirectory)
