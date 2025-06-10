@@ -69,7 +69,7 @@ stages:
             inputs:
               command: "build"
               projects: $(restore-projects)
-              arguments: --configuration $(buildConfiguration) -p:AssemblyVersion=$(Build.BuildNumber) -p:Version=$(Build.BuildNumber) -p:FileVersion=$(Build.BuildNumber)
+              arguments: --configuration $(buildConfiguration) /p:AssemblyVersion=$(Build.BuildNumber) /p:Version=$(Build.BuildNumber) /p:FileVersion=$(Build.BuildNumber)
 
           - task: DotNetCoreCLI@2
             displayName: "dotnet test"
@@ -93,8 +93,8 @@ stages:
             displayName: "dotnet pack"
             inputs:
               command: pack
-              nobuild: true
-              arguments: -p:AssemblyVersion=$(Build.BuildNumber) -p:Version=$(Build.BuildNumber) -p:FileVersion=$(Build.BuildNumber)
+              # nobuild: true
+              arguments: /p:AssemblyVersion=$(Build.BuildNumber) /p:Version=$(Build.BuildNumber) /p:FileVersion=$(Build.BuildNumber)
               packagesToPack: "src/*/*.csproj"
               versioningScheme: byBuildNumber
               packDirectory: $(Build.ArtifactStagingDirectory)
