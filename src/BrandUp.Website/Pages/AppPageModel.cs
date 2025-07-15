@@ -306,5 +306,10 @@ namespace BrandUp.Website.Pages
 
             return new Results.PageRedirectResult(pageUrl) { IsPermament = isPermament, Replace = replace, Reload = reload };
         }
+
+        public Results.PageRedirectResult PageRedirect(Uri pageUrl, bool isPermament = false, bool replace = false, bool reload = false)
+        {
+            return PageRedirect(pageUrl.ToString(), isPermament, replace, reload);
+        }
     }
 }
