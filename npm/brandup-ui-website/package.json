@@ -16,7 +16,7 @@
   "homepage": "https://github.com/brandup-online/BrandUp.Website",
   "repository": {
     "type": "git",
-    "url": "https://github.com/brandup-online/BrandUp.Website"
+    "url": "git+https://github.com/brandup-online/BrandUp.Website.git"
   },
   "bugs": {
     "url": "https://github.com/brandup-online/BrandUp.Website/issues",
