@@ -7,14 +7,14 @@ import terser from "@rollup/plugin-terser";
 import typescript from "rollup-plugin-typescript2";
 const path = require('path');
 
-const mainFile = "_client/index.ts";
+const mainFile = "src/index.ts";
 
 export default [
     {
         input: mainFile,
         output: [
             {
-                file: "wwwroot/dist/app.js",
+                file: "../../example/wwwroot/dist/app.js",
                 format: "iife",
                 sourcemap: false,
                 inlineDynamicImports: true,

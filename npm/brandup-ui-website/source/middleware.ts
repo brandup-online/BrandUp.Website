@@ -1,7 +1,7 @@
 import { DOM } from "@brandup/ui-dom";
 import { UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
-import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext, BROWSER, Application } from "@brandup/ui-app";
+import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";
 import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript } from "./types";
 import { WebsiteApplication } from "./app";
@@ -286,9 +286,9 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             if (isReload) {
                 if (replace)
-                    BROWSER.default.location.replace(redirectUrl);
+                    window.location.replace(redirectUrl);
                 else
-                    BROWSER.default.location.assign(redirectUrl);
+                    window.location.assign(redirectUrl);
             }
             else
                 await context.redirect({ url: redirectUrl, replace, data: context.data });
@@ -296,16 +296,16 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             return true;
         }
         else if (isReload)
-            BROWSER.default.location.reload();
+            window.location.reload();
 
         return false;
     }
 
     private __forceNav(context: NavigateContext) {
         if (context.replace && !context.external)
-            BROWSER.default.location.replace(context.url);
+            window.location.replace(context.url);
         else
-            BROWSER.default.location.assign(context.url);
+            window.location.assign(context.url);
     }
 
     private async __renderPage(context: NavigateContext<WebsiteApplication>, current: NavigationEntry | undefined, newNav: NavigationModel | null, newContent: DocumentFragment | null) {
