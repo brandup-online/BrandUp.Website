@@ -3,11 +3,11 @@
   "name": "example-web-site",
   "private": true,
   "dependencies": {
-    "@brandup/ui": "^1.0.35",
-    "@brandup/ui-ajax": "^1.0.35",
-    "@brandup/ui-app": "^1.0.35",
-    "@brandup/ui-dom": "^1.0.35",
-    "@brandup/ui-helpers": "^1.0.35",
+    "@brandup/ui": "^1.0.37",
+    "@brandup/ui-ajax": "^1.0.37",
+    "@brandup/ui-app": "^1.0.37",
+    "@brandup/ui-dom": "^1.0.37",
+    "@brandup/ui-helpers": "^1.0.37",
     "@brandup/ui-website": "file:../brandup-ui-website"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "css-loader": "^6.11.0",
     "less": "^4.4.0",
     "less-loader": "^11.1.4",
-    "less-plugin-clean-css": "1.5.1",
+    "less-plugin-clean-css": "^1.6.0",
     "mini-css-extract-plugin": "^2.9.2",
     "postcss": "^8.5.6",
     "rollup": "^4.45.1",
