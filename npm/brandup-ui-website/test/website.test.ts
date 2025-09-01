@@ -30,7 +30,7 @@ it('Success with default page type', async () => {
         pages: {
             "test": { factory: () => Promise.resolve({ default: Page }) }
         }
-    }, builder => { }, { test: "test" });
+    }, () => { }, { test: "test" });
 
     expect(context).not.toBeNull();
     expect(context.data.test).toEqual("test");

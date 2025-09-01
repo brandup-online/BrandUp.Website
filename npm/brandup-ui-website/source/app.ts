@@ -32,7 +32,7 @@ export class WebsiteApplication<TModel extends WebsiteApplicationModel = Website
         return request<TData, TState>(options, abortSignal);
     }
 
-    destroy<TData extends ContextData = ContextData>(contextData?: TData | null): Promise<StopContext<this, TData>> {
+    override destroy<TData extends ContextData = ContextData>(contextData?: TData | null): Promise<StopContext<this, TData>> {
         this.queue.destroy();
 
         return super.destroy(contextData);

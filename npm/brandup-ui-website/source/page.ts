@@ -42,7 +42,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
 
     protected onRenderContent(): Promise<void> { return Promise.resolve(); }
     protected onRenderedContent(): Promise<void> { return Promise.resolve(); }
-    protected onChangedHash(_newHash: string | null, _oldHash: string | null, action: PageHashAction): Promise<void> { return Promise.resolve(); }
+    protected onChangedHash(_newHash: string | null, _oldHash: string | null, _action: PageHashAction): Promise<void> { return Promise.resolve(); }
     protected onSubmitForm(_response: AjaxResponse): Promise<void> { return Promise.resolve(); }
 
     /** @internal */
@@ -133,7 +133,7 @@ export class Page<TApplication extends WebsiteApplication = WebsiteApplication, 
         return middleware.renderComponents(this);
     }
 
-    destroy() {
+    override destroy() {
         this.queue.destroy();
 
         super.destroy();

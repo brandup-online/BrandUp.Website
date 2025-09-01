@@ -357,7 +357,7 @@ package-lock.json
 /npm/*/coverage
 /npm/*/dist
 /npm/*/test/**/*.js
-/npm/*/out/**/*.js
+/npm/*/out/*
 /npm/*/source/**/*.js
 /npm/*/source/**/*.d.ts
 /npm/*/source/**/*.js.map
