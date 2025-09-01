@@ -27,9 +27,9 @@ export class WebsiteApplication<TModel extends WebsiteApplicationModel = Website
     }
 
     /** Request without ajax queue. */
-    request(options: AjaxRequest, abortSignal?: AbortSignal) {
+    request<TData = any, TState = any>(options: AjaxRequest, abortSignal?: AbortSignal) {
         this.prepareRequest(options);
-        return request(options, abortSignal);
+        return request<TData, TState>(options, abortSignal);
     }
 
     destroy<TData extends ContextData = ContextData>(contextData?: TData | null): Promise<StopContext<this, TData>> {
