@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<Company>BrandUp.online</Company>
 		<Authors>Dmitry Kovyazin</Authors>
 		<Product>BrandUp.Website</Product>
