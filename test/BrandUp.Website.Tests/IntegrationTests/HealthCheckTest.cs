@@ -18,11 +18,11 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("/healthz");
+            var response = await client.GetAsync("/healthz", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-            var responseHtml = await response.Content.ReadAsStringAsync();
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             Assert.Contains("Healthy", responseHtml);
         }
 
@@ -33,11 +33,11 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("/healthz");
+            var response = await client.GetAsync("/healthz", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-            var responseHtml = await response.Content.ReadAsStringAsync();
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             Assert.Contains("Healthy", responseHtml);
         }
     }

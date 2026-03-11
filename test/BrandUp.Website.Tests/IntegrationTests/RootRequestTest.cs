@@ -25,7 +25,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync("/");
+            var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -41,7 +41,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync(path);
+            var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
 
             Assert.Equal(statusCode, response.StatusCode);
             Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
@@ -61,7 +61,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync(path);
+            var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
 
             Assert.Equal(statusCode, response.StatusCode);
             Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
@@ -84,7 +84,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync(path);
+            var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
 
             Assert.Equal(statusCode, response.StatusCode);
             Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
@@ -106,7 +106,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync(path);
+            var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
 
             Assert.Equal(statusCode, response.StatusCode);
             Assert.Equal(new Uri(redirectUrl), response.Headers.Location);
@@ -128,7 +128,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync(path);
+            var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
 
             Assert.Equal(statusCode, response.StatusCode);
             Assert.Equal(new Uri(redirectUrl), response.Headers.Location);

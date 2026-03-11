@@ -20,11 +20,11 @@ namespace BrandUp.Website.IntegrationTests
         public async Task Request_Full()
         {
             using var client = factory.CreateClient();
-            using var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-            var responseHtml = await response.Content.ReadAsStringAsync();
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             Assert.Contains("html", responseHtml);
         }
 
@@ -32,7 +32,7 @@ namespace BrandUp.Website.IntegrationTests
         public async Task Request_Full_Redirect()
         {
             using var client = factory.CreateClient();
-            using var response = await client.GetAsync("/delivery");
+            using var response = await client.GetAsync("/delivery", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.PermanentRedirect, response.StatusCode);
             Assert.Equal("/contacts", response.Headers.Location.OriginalString);
@@ -43,7 +43,7 @@ namespace BrandUp.Website.IntegrationTests
         {
             using var client = factory.CreateClient();
             client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
-            using var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("true", response.Headers.GetValues(PageConstants.HttpHeaderPageReload).First());
@@ -82,7 +82,7 @@ namespace BrandUp.Website.IntegrationTests
         {
             using var client = factory.CreateClient();
             client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
-            using var response = await client.PostAsync("/", new StringContent("test"));
+            using var response = await client.PostAsync("/", new StringContent("test"), TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("true", response.Headers.GetValues(PageConstants.HttpHeaderPageReload).First());

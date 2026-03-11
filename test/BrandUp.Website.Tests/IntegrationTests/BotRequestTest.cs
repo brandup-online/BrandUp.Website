@@ -20,11 +20,11 @@ namespace BrandUp.Website.IntegrationTests
 
             using var client = factory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-            using var response = await client.GetAsync("/");
+            using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
 
-            var responseHtml = await response.Content.ReadAsStringAsync();
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             Assert.Contains("body", responseHtml);
         }
 
@@ -38,11 +38,11 @@ namespace BrandUp.Website.IntegrationTests
             using var client = factory.CreateClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
             client.DefaultRequestHeaders.Add(Pages.PageConstants.HttpHeaderPageNav, "true");
-            using var response = await client.PostAsync("/", new StringContent(string.Empty));
+            using var response = await client.PostAsync("/", new StringContent(string.Empty), TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
 
-            var responseHtml = await response.Content.ReadAsStringAsync();
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             Assert.Empty(responseHtml);
         }
     }

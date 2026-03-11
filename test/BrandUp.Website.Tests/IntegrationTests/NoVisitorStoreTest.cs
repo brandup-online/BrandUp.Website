@@ -31,7 +31,7 @@ namespace BrandUp.Website.IntegrationTests
             factory.ClientOptions.AllowAutoRedirect = false;
 
             using var client = factory.CreateClient();
-            var response = await client.GetAsync(path);
+            var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
 
             Assert.Equal(statusCode, response.StatusCode);
             if (redirectUrl != null)
