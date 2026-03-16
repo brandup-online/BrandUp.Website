@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Text.Json.Serialization;
 using BrandUp.Website;
 using ExampleWebSite.Infrastructure.HealthChecks;
 using ExampleWebSite.Repositories;
@@ -47,7 +48,9 @@ namespace ExampleWebSite
                 });
 
             services.AddHttpContextAccessor();
-            services.AddRazorPages();
+            services
+                .AddRazorPages()
+                .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 
             #region Web
 
@@ -59,15 +62,15 @@ namespace ExampleWebSite
                     options.Providers.Add<BrotliCompressionProvider>();
                     options.Providers.Add<GzipCompressionProvider>();
 
-                    options.MimeTypes = new string[] { "text/html", "text/xml", "text/json", "text/plain", "application/json", "application/xml", "application/javascript", "text/css" };
+                    options.MimeTypes = ["text/html", "text/xml", "text/json", "text/plain", "application/json", "application/xml", "application/javascript", "text/css"];
                 })
                 .Configure<BrotliCompressionProviderOptions>(options =>
                 {
-                    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+                    options.Level = CompressionLevel.Fastest;
                 })
                 .Configure<GzipCompressionProviderOptions>(options =>
                 {
-                    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+                    options.Level = CompressionLevel.Fastest;
                 });
 
             services.AddResponseCaching();
