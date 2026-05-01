@@ -87,3 +87,12 @@ export interface PreloadingDefinition<T = { default: any }> {
 
 export type PageScript = { default: typeof Page | any };
 export type ComponentScript = { default: typeof UIElement | any };
+
+/** Состояние навигации в window.history.state */
+export interface HistoryState {
+    [key: string]: any;
+    brandup_website?: {
+        id: string;
+        scroll?: { x: number; y: number; }
+    };
+}

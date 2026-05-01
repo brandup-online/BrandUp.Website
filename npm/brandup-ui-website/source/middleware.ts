@@ -3,7 +3,7 @@ import { UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
 import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";
-import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript } from "./types";
+import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript, HistoryState } from "./types";
 import { WebsiteApplication } from "./app";
 import { Page } from "./page";
 import * as ScriptHelper from "./helpers/script";
@@ -69,6 +69,17 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             if (context.app.model.antiforgery && request.method && request.method !== "GET" && this.__current?.model.validationToken)
                 request.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
         };
+
+        window.addEventListener("scroll", () => {
+            let state: HistoryState | null = window.history.state;
+            if (!this.__current || !state?.brandup_website)
+                return;
+
+            if (state.brandup_website.id === this.__current.context.id) {
+                state.brandup_website.scroll = { x: window.scrollX, y: window.scrollY };
+                window.history.replaceState(state, "");
+            }
+        }, { passive: true });
 
         return next();
     }
@@ -377,9 +388,17 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             ScriptHelper.scriptReplace(newPageElem);
         }
 
-        await this.renderComponents(page);
-
-        await page.__rendered();
+        try {
+            await this.renderComponents(page);
+            await page.__rendered();
+        }
+        finally {
+            if (context.data.popstate) {
+                const state: HistoryState = context.data.popstate;
+                if (state?.brandup_website?.id === context.id && state.brandup_website?.scroll)
+                    window.scroll({ top: state.brandup_website.scroll.y, left: state.brandup_website.scroll.x, behavior: "instant" });
+            }
+        }
 
         return page;
     }
@@ -441,7 +460,13 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 forceSkipScroll = true; // принудительно пропускаем прокрутку
         }
 
-        const state = window.history.state;
+        let state: HistoryState | null = window.history.state;
+        if (!state)
+            state = {};
+        if (!state.brandup_website)
+            state.brandup_website = { id: context.id };
+        else
+            state.brandup_website.id = context.id;
 
         if (!isFirst) {
             const isHashChanged = context.action === "hash";
@@ -453,23 +478,23 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     2. Если url навигации не поменялся, то перезаписываем состояние.
                 */
 
-                //console.warn(`nav from popstate`, context.data.popstate);
+                console.log(`nav from popstate`, context.data.popstate);
                 replace = true;
             }
 
             if (replace)
-                window.history.replaceState(state, title, navUrl);
+                window.history.replaceState(state, "", navUrl);
             else
-                window.history.pushState(state, title, navUrl);
+                window.history.pushState(state, "", navUrl);
 
             if (changedPage && !isHashChanged)
                 document.title = title;
 
-            if ((!replace && !forceSkipScroll && !isHashChanged)) // || isNoChangeUrl
+            if ((!replace && !forceSkipScroll && !isHashChanged) || (isNoChangeUrl && context.data.clickElem))
                 window.scrollTo({ left: 0, top: 0, behavior: "auto" });
         }
         else
-            window.history.replaceState(state, title, navUrl);
+            window.history.replaceState(state, "", navUrl);
     }
 
     private __loaderElem: HTMLElement | null = null;

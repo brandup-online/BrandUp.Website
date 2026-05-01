@@ -1,4 +1,4 @@
-import { PreloadingDefinition } from "types";
+import { PreloadingDefinition } from "../types";
 
 const scriptReplace = (node: Node) => {
     if ((node as Element).tagName === "SCRIPT") {

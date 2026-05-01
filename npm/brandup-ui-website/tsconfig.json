@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "target": "ESNext",
     "sourceMap": true,
     "strict": true,
@@ -9,7 +9,6 @@
       "DOM",
       "ESNext"
     ],
-    "baseUrl": "./source",
     "outDir": "./out",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
