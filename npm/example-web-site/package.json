@@ -3,11 +3,11 @@
   "name": "example-web-site",
   "private": true,
   "dependencies": {
-    "@brandup/ui": "^1.0.42",
-    "@brandup/ui-ajax": "^1.0.42",
-    "@brandup/ui-app": "^1.0.42",
-    "@brandup/ui-dom": "^1.0.42",
-    "@brandup/ui-helpers": "^1.0.42",
+    "@brandup/ui": "^1.0.43",
+    "@brandup/ui-ajax": "^1.0.43",
+    "@brandup/ui-app": "^1.0.43",
+    "@brandup/ui-dom": "^1.0.43",
+    "@brandup/ui-helpers": "^1.0.43",
     "@brandup/ui-website": "file:../brandup-ui-website"
   },
   "devDependencies": {
