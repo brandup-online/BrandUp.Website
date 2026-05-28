@@ -2,10 +2,10 @@
 
 namespace BrandUp.Website.Helpers
 {
-    public static class SeoHelper
+    public static partial class SeoHelper
     {
-        const string RegexExpression = "(Google|Yahoo|Rambler|Bot|Yandex|Spider|Snoopy|Crawler|Finder|Mail|bing|Aport|WebAlta|Slurp|curl)";
-        readonly static Regex SearchEngineRegex = new(RegexExpression, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        [GeneratedRegex("(Google|Yahoo|Rambler|Bot|Yandex|Spider|Snoopy|Crawler|Finder|Mail|bing|Aport|WebAlta|Slurp|curl)", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex SearchEngineRegex();
 
         public static bool IsBot(string userAgent, out SearchBotName searchBot)
         {
@@ -14,14 +14,14 @@ namespace BrandUp.Website.Helpers
             if (string.IsNullOrEmpty(userAgent))
                 return false;
 
-            var match = SearchEngineRegex.Match(userAgent);
+            var match = SearchEngineRegex().Match(userAgent);
 
             if (match.Success)
             {
                 var searchBotName = match.Groups[1].Value;
 
                 if (!Enum.TryParse(searchBotName, true, out searchBot))
-                    throw new InvalidOperationException($"Unknown search bot name \"{searchBotName}\"");
+                    searchBot = SearchBotName.Unknown;
             }
 
             return match.Success;

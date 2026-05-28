@@ -19,7 +19,7 @@
 
         public Task<IWebsite> FindByNameAsync(string name)
         {
-            return Task.FromResult<IWebsite>(name == string.Empty ? website : null);
+            return Task.FromResult<IWebsite>(string.IsNullOrEmpty(name) ? website : null);
         }
 
         public Task<string[]> GetAliasesAsync(IWebsite website)

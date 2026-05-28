@@ -364,3 +364,4 @@ package-lock.json
 /npm/*/src/**/*.js
 /npm/*/src/**/*.d.ts
 /npm/*/src/**/*.js.map
+.claude/settings.json

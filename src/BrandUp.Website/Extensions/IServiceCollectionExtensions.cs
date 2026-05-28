@@ -1,5 +1,7 @@
 ﻿using BrandUp.Website.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace BrandUp.Website
 {
@@ -12,7 +14,12 @@ namespace BrandUp.Website
 
         public static IWebsiteBuilder AddWebsite(this IServiceCollection services, Action<WebsiteOptions> setupAction)
         {
-            services.Configure(setupAction).PostConfigure<WebsiteOptions>(options => options.Validate());
+            services.AddOptions<WebsiteOptions>()
+                .Configure(setupAction)
+                .ValidateOnStart();
+
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<WebsiteOptions>, WebsiteOptionsValidator>());
+
             return new WebsiteBuilder(services);
         }
     }

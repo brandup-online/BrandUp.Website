@@ -9,12 +9,12 @@ let current: WebsiteApplication | null = null;
 
 const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<WebsiteApplicationModel>) => void, context?: ContextData): Promise<StartContext<WebsiteApplication>> => {
     if (current)
-        Promise.reject("Application already started.");
+        return Promise.reject("Application already started.");
 
     if (!context)
         context = {};
 
-    options = Object.assign(options, DEFAULT_OPTIONS);
+    options = Object.assign({}, DEFAULT_OPTIONS, options);
 
     ScriptHelper.preloadDefinitions(options.pages);
     ScriptHelper.preloadDefinitions(options.components);
@@ -42,7 +42,6 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
 
             app.run(context)
                 .then((navContext) => {
-                    console.log("website started");
                     resolve(navContext);
                 })
                 .catch(reason => {
@@ -70,8 +69,6 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
 
         if (document.readyState === "complete")
             appStartFunc();
-
-        return current;
     });
 };
 
@@ -95,7 +92,7 @@ interface IWebsiteInstance {
 
 /** Website instance singleton point. */
 const WEBSITE: IWebsiteInstance = {
-    current: current,
+    get current() { return current; },
     run: run
 };
 
