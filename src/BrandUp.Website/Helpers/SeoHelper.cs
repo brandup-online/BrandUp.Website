@@ -7,7 +7,7 @@ namespace BrandUp.Website.Helpers
         [GeneratedRegex("(Google|Yahoo|Rambler|Bot|Yandex|Spider|Snoopy|Crawler|Finder|Mail|bing|Aport|WebAlta|Slurp|curl)", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
         private static partial Regex SearchEngineRegex();
 
-        public static bool IsBot(string userAgent, out SearchBotName searchBot)
+        public static bool IsBot(string? userAgent, out SearchBotName searchBot)
         {
             searchBot = SearchBotName.Unknown;
 

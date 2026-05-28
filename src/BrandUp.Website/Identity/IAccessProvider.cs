@@ -7,7 +7,7 @@
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> GetUserIdAsync(CancellationToken cancellationToken = default);
+        Task<string?> GetUserIdAsync(CancellationToken cancellationToken = default);
         /// <summary>
         /// Check is authenticated.
         /// </summary>

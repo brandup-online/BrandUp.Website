@@ -10,7 +10,7 @@ namespace BrandUp.Website.TagHelpers
         const string LinkClass = "applink";
 
         [HtmlAttributeName("nav-url")]
-        public string NavUrl { get; set; }
+        public string? NavUrl { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

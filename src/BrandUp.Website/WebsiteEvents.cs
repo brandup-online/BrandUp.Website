@@ -42,7 +42,7 @@ namespace BrandUp.Website
 
     public class RenderPageTitleContext(AppPageModel pageModel) : WebsiteEventContext(pageModel)
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
     }
 
     public class WebsiteEventContext(AppPageModel pageModel)

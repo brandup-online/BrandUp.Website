@@ -2,29 +2,29 @@
 {
     public class SingleWebsiteStore : IWebsiteStore
     {
-        readonly SingleWebsite website = null;
+        readonly SingleWebsite website;
 
         public SingleWebsiteStore(string title)
         {
             if (string.IsNullOrEmpty(title))
-                throw new ArgumentException("Title is requiread and not empty.", nameof(title));
+                throw new ArgumentException("Title is required and not empty.", nameof(title));
 
             website = new SingleWebsite(title);
         }
 
-        public Task<IWebsite> FindByIdAsync(string id)
+        public Task<IWebsite?> FindByIdAsync(string id)
         {
-            return Task.FromResult<IWebsite>(website.Id == id ? website : null);
+            return Task.FromResult<IWebsite?>(website.Id == id ? website : null);
         }
 
-        public Task<IWebsite> FindByNameAsync(string name)
+        public Task<IWebsite?> FindByNameAsync(string name)
         {
-            return Task.FromResult<IWebsite>(string.IsNullOrEmpty(name) ? website : null);
+            return Task.FromResult<IWebsite?>(string.IsNullOrEmpty(name) ? website : null);
         }
 
-        public Task<string[]> GetAliasesAsync(IWebsite website)
+        public Task<string[]?> GetAliasesAsync(IWebsite website)
         {
-            return Task.FromResult(Array.Empty<string>());
+            return Task.FromResult<string[]?>(Array.Empty<string>());
         }
 
         public Task<TimeZoneInfo> GetTimeZoneAsync(IWebsite website)

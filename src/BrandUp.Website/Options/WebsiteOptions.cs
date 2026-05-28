@@ -5,8 +5,8 @@ namespace BrandUp.Website
     public class WebsiteOptions
     {
         public string Host { get; set; } = "localhost";
-        public List<string> Aliases { get; set; }
-        public string CookiesPrefix { get; set; }
+        public List<string>? Aliases { get; set; }
+        public string? CookiesPrefix { get; set; }
         public string ProtectionPurpose { get; set; } = "BrandUp.Website";
         public bool RedirectToHttps { get; set; } = true;
 
@@ -32,7 +32,7 @@ namespace BrandUp.Website
 
     sealed class WebsiteOptionsValidator : IValidateOptions<WebsiteOptions>
     {
-        public ValidateOptionsResult Validate(string name, WebsiteOptions options)
+        public ValidateOptionsResult Validate(string? name, WebsiteOptions options)
         {
             var errors = options.GetValidationErrors().ToList();
             if (errors.Count > 0)

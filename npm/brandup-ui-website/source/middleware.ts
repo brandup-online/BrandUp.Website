@@ -142,7 +142,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     return;
                 }
 
-                if (await this.__precessPageResponse(context, response))
+                if (await this.__processPageResponse(context, response))
                     return;
 
                 if (response.type != "html")
@@ -212,7 +212,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     throw new Error(`Submit request response status ${response.status}`);
             }
 
-            if (await this.__precessPageResponse(context, response))
+            if (await this.__processPageResponse(context, response))
                 return;
 
             if (response.type == "html") {
@@ -289,7 +289,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
     // WebsiteMiddleware members
 
-    private async __precessPageResponse(context: NavigateContext, response: AjaxResponse): Promise<boolean> {
+    private async __processPageResponse(context: NavigateContext, response: AjaxResponse): Promise<boolean> {
         const isReload = response.headers.has(pageReloadHeader);
         const redirectUrl = response.headers.get(pageLocationHeader);
         if (redirectUrl) {

@@ -4,9 +4,9 @@ namespace BrandUp.Website.ClientModels
 {
     public class ApplicationModel
     {
-        public string WebsiteId { get; set; }
-        public AntiforgeryModel Antiforgery { get; set; }
+        public string WebsiteId { get; set; } = null!;
+        public AntiforgeryModel? Antiforgery { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, object> Data { get; set; }
+        public Dictionary<string, object> Data { get; set; } = [];
     }
 }

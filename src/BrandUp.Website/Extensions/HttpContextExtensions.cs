@@ -32,7 +32,7 @@ namespace BrandUp.Website
             return false;
         }
 
-        public static void RedirectPage(this HttpResponse response, string pageLocation, bool isPermament = false, bool replace = false, bool reload = false)
+        public static void RedirectPage(this HttpResponse response, string pageLocation, bool isPermanent = false, bool replace = false, bool reload = false)
         {
             ArgumentNullException.ThrowIfNull(response);
             ArgumentNullException.ThrowIfNull(pageLocation);
@@ -40,7 +40,7 @@ namespace BrandUp.Website
             var isNav = response.HttpContext.Request.Headers.ContainsKey(PageConstants.HttpHeaderPageNav);
             if (!isNav)
             {
-                response.StatusCode = (int)(isPermament ? HttpStatusCode.PermanentRedirect : HttpStatusCode.Redirect);
+                response.StatusCode = (int)(isPermanent ? HttpStatusCode.PermanentRedirect : HttpStatusCode.Redirect);
                 response.Headers.Location = pageLocation;
             }
             else

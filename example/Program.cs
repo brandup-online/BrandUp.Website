@@ -149,7 +149,7 @@ namespace ExampleWebSite
 
             services
                 .AddWebsite(options => { options.MapConfiguration(configuration); })
-                .AddWebsiteEvents<ExambleWebsiteEvents>()
+                .AddWebsiteEvents<ExampleWebsiteEvents>()
                 .AddPageEvents<Pages.PageEvents>()
                 .AddUrlMapProvider<BrandUp.Website.Infrastructure.SubdomainUrlMapProvider>()
                 .AddMultyWebsiteFrom<CityRepository>();
@@ -218,7 +218,7 @@ namespace ExampleWebSite
         }
     }
 
-    public class ExambleWebsiteEvents : IWebsiteEvents
+    public class ExampleWebsiteEvents : IWebsiteEvents
     {
         public Task StartAsync(StartWebsiteContext context)
         {

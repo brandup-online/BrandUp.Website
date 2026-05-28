@@ -2,7 +2,7 @@
 {
     public class StartupModel
     {
-        public EnvironmentModel Env { get; set; }
-        public ApplicationModel Model { get; set; }
+        public EnvironmentModel Env { get; set; } = null!;
+        public ApplicationModel Model { get; set; } = null!;
     }
 }

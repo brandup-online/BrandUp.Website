@@ -6,7 +6,7 @@ namespace BrandUp.Website.Pages.Results
     public class PageRedirectResult(string pageUrl) : ActionResult, IActionResult, IKeepTempDataResult
     {
         public string PageUrl { get; } = pageUrl ?? throw new ArgumentNullException(nameof(pageUrl));
-        public bool IsPermament { get; set; }
+        public bool IsPermanent { get; set; }
         public bool Replace { get; set; }
         public bool Reload { get; set; }
 
@@ -14,7 +14,7 @@ namespace BrandUp.Website.Pages.Results
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            context.HttpContext.Response.RedirectPage(PageUrl, IsPermament, Replace, Reload);
+            context.HttpContext.Response.RedirectPage(PageUrl, IsPermanent, Replace, Reload);
 
             return Task.CompletedTask;
         }

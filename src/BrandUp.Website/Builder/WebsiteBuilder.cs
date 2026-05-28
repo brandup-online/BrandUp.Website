@@ -27,7 +27,8 @@ namespace BrandUp.Website.Builder
             services.AddScoped(serviceProvider =>
             {
                 var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
-                return httpContextAccessor.HttpContext.GetWebsiteContext();
+                var httpContext = httpContextAccessor.HttpContext ?? throw new InvalidOperationException("HttpContext is not available outside of a request.");
+                return httpContext.GetWebsiteContext();
             });
 
             services.AddScoped<IWebsiteClock, DefaultWebsiteClock>();

@@ -2,7 +2,7 @@
 {
     public class PageFeature : IPageFeature
     {
-        public AppPageModel PageModel { get; set; }
+        public required AppPageModel PageModel { get; set; }
     }
 
     public interface IPageFeature

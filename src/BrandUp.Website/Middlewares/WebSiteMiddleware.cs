@@ -81,10 +81,7 @@ namespace BrandUp.Website.Middlewares
 
             string websiteName;
             if (!isLocalIp)
-            {
-                websiteName = websiteProvider.ExtractName(context, requestHost);
-                websiteName ??= string.Empty;
-            }
+                websiteName = websiteProvider.ExtractName(context, requestHost) ?? string.Empty;
             else
                 websiteName = string.Empty;
 
@@ -125,8 +122,8 @@ namespace BrandUp.Website.Middlewares
                 return;
             }
 
-            var websitemTimeZone = await websiteStore.GetTimeZoneAsync(website);
-            var websiteContext = new WebsiteContext(context, website, websitemTimeZone);
+            var websiteTimeZone = await websiteStore.GetTimeZoneAsync(website);
+            var websiteContext = new WebsiteContext(context, website, websiteTimeZone);
 
             context.Features.Set<IWebsiteFeature>(new WebsiteFeature(webSiteOptions.Value, websiteContext)
             {

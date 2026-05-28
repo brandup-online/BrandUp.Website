@@ -11,7 +11,7 @@ namespace BrandUp.Website.TagHelpers
     public class PageTagHelper(IJsonHelper jsonHelper) : TagHelper
     {
         [HtmlAttributeNotBound, ViewContext]
-        public ViewContext ViewContext { get; set; }
+        public ViewContext ViewContext { get; set; } = default!;
 
         public override int Order => int.MaxValue;
 

@@ -5,7 +5,7 @@ namespace BrandUp.Website.Infrastructure
 {
     public interface IUrlMapProvider
     {
-        string ExtractName(HttpContext context, string requestHost);
+        string? ExtractName(HttpContext context, string requestHost);
     }
 
     public class SubdomainUrlMapProvider : IUrlMapProvider
@@ -19,7 +19,7 @@ namespace BrandUp.Website.Infrastructure
             webSiteHost = options.Value.Host.ToLower();
         }
 
-        public string ExtractName(HttpContext context, string requestHost)
+        public string? ExtractName(HttpContext context, string requestHost)
         {
             ArgumentNullException.ThrowIfNull(requestHost);
 
@@ -36,18 +36,18 @@ namespace BrandUp.Website.Infrastructure
 
     public class PathUrlMapProvider : IUrlMapProvider
     {
-        public string ExtractName(HttpContext context, string requestHost)
+        public string? ExtractName(HttpContext context, string requestHost)
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string websiteName = null;
+            string? websiteName = null;
             var requestPath = context.Request.Path;
             if (requestPath.HasValue)
             {
-                var path = requestPath.Value.ToLower().Trim(['/']);
-                var firstShlashIndex = path.IndexOf('/', StringComparison.InvariantCultureIgnoreCase);
-                if (firstShlashIndex > 0)
-                    websiteName = path[..firstShlashIndex];
+                var path = requestPath.Value!.ToLower().Trim(['/']);
+                var firstSlashIndex = path.IndexOf('/', StringComparison.InvariantCultureIgnoreCase);
+                if (firstSlashIndex > 0)
+                    websiteName = path[..firstSlashIndex];
                 else
                     websiteName = path;
             }

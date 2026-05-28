@@ -6,19 +6,19 @@ namespace BrandUp.Website.Pages
     public interface IPageEvents
     {
         Task PageRequestAsync(PageRequestContext context);
-        Task PageClientNavigationAsync(PageClientNavidationContext context);
+        Task PageClientNavigationAsync(PageClientNavigationContext context);
         Task PageClientBuildAsync(PageClientBuildContext context);
         Task PageRenderAsync(PageRenderContext context);
     }
 
     public class PageRequestContext(AppPageModel pageModel) : WebsiteEventContext(pageModel)
     {
-        public IActionResult Result { get; set; }
+        public IActionResult? Result { get; set; }
 
         public bool HasResult => Result != null;
     }
 
-    public class PageClientNavidationContext(AppPageModel pageModel, IDictionary<string, object> clientData) : WebsiteEventContext(pageModel)
+    public class PageClientNavigationContext(AppPageModel pageModel, IDictionary<string, object> clientData) : WebsiteEventContext(pageModel)
     {
         public IDictionary<string, object> ClientData { get; } = clientData ?? throw new ArgumentNullException(nameof(clientData));
     }

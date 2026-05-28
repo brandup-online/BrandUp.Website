@@ -1,0 +1,40 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+
+[*.{json,yml,yaml,js,ts,css,less,html,cshtml}]
+indent_style = space
+indent_size = 2
+
+[*.{csproj,props,targets}]
+indent_style = tab
+
+[*.cs]
+indent_style = tab
+indent_size = 4
+
+# Usings
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# 'this.' qualification
+dotnet_style_qualification_for_field = false:silent
+dotnet_style_qualification_for_property = false:silent
+dotnet_style_qualification_for_method = false:silent
+dotnet_style_qualification_for_event = false:silent
+
+# Language features
+csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_prefer_braces = when_multiline:silent
+csharp_style_namespace_declarations = block_scoped:silent
+
+# Style rules are suggestions, not build-breaking
+dotnet_analyzer_diagnostic.category-Style.severity = suggestion

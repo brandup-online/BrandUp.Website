@@ -4,7 +4,7 @@ namespace BrandUp.Website
 {
     public static class IQueryCollectionExtensions
     {
-        public static bool TryGetValue(this IQueryCollection collection, string name, out string value)
+        public static bool TryGetValue(this IQueryCollection collection, string name, out string? value)
         {
             if (collection == null)
                 throw new ArgumentNullException(nameof(collection));
@@ -19,7 +19,7 @@ namespace BrandUp.Website
             return true;
         }
 
-        public static bool TryGetValue(this IHeaderDictionary collection, string name, out string value)
+        public static bool TryGetValue(this IHeaderDictionary collection, string name, out string? value)
         {
             if (collection == null)
                 throw new ArgumentNullException(nameof(collection));
