@@ -2,12 +2,12 @@
 {
     public static class PageRequestContextExtensions
     {
-        public static void PageRedirect(this PageRequestContext context, string pageUrl, bool isPermament = false, bool replaceUrl = false)
+        public static void PageRedirect(this PageRequestContext context, string pageUrl, bool isPermanent = false, bool replaceUrl = false)
         {
             ArgumentNullException.ThrowIfNull(context);
             ArgumentNullException.ThrowIfNull(pageUrl);
 
-            context.Result = context.PageModel.PageRedirect(pageUrl, isPermament, replaceUrl);
+            context.Result = context.PageModel.PageRedirect(pageUrl, isPermanent, replaceUrl);
         }
     }
 }

@@ -2,9 +2,9 @@
 {
     public class PageOpenGraph
     {
-        readonly Dictionary<string, object> items = new Dictionary<string, object>();
+        readonly Dictionary<string, object?> items = [];
 
-        public PageOpenGraph(string type, Uri image, string title, Uri url, string description = null)
+        public PageOpenGraph(string type, Uri image, string title, Uri url, string? description = null)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Image = image ?? throw new ArgumentNullException(nameof(image));
@@ -14,28 +14,28 @@
                 Description = description;
         }
 
-        public string Type { get => Get<string>(OpenGraphProperties.Type); set => Set(OpenGraphProperties.Type, value); }
-        public Uri Image { get => Get<Uri>(OpenGraphProperties.Image); set => Set(OpenGraphProperties.Image, value); }
-        public string Title { get => Get<string>(OpenGraphProperties.Title); set => Set(OpenGraphProperties.Title, value); }
-        public Uri Url { get => Get<Uri>(OpenGraphProperties.Url); set => Set(OpenGraphProperties.Url, value); }
-        public string SiteName { get => Get<string>(OpenGraphProperties.SiteName); set => Set(OpenGraphProperties.SiteName, value); }
-        public string Description { get => Get<string>(OpenGraphProperties.Description); set => Set(OpenGraphProperties.Description, value); }
+        public string Type { get => Get<string>(OpenGraphProperties.Type)!; set => Set(OpenGraphProperties.Type, value); }
+        public Uri Image { get => Get<Uri>(OpenGraphProperties.Image)!; set => Set(OpenGraphProperties.Image, value); }
+        public string Title { get => Get<string>(OpenGraphProperties.Title)!; set => Set(OpenGraphProperties.Title, value); }
+        public Uri Url { get => Get<Uri>(OpenGraphProperties.Url)!; set => Set(OpenGraphProperties.Url, value); }
+        public string? SiteName { get => Get<string>(OpenGraphProperties.SiteName); set => Set(OpenGraphProperties.SiteName, value); }
+        public string? Description { get => Get<string>(OpenGraphProperties.Description); set => Set(OpenGraphProperties.Description, value); }
 
-        public TValue Get<TValue>(string name)
+        public TValue? Get<TValue>(string name)
         {
             ArgumentNullException.ThrowIfNull(name);
 
-            if (items.TryGetValue(NormalizeName(name), out object content))
-                return (TValue)content;
+            if (items.TryGetValue(NormalizeName(name), out object? content))
+                return (TValue?)content;
             return default;
         }
-        public bool TryGet<TValue>(string name, out TValue value)
+        public bool TryGet<TValue>(string name, out TValue? value)
         {
             ArgumentNullException.ThrowIfNull(name);
 
-            if (items.TryGetValue(NormalizeName(name), out object content))
+            if (items.TryGetValue(NormalizeName(name), out object? content))
             {
-                value = (TValue)content;
+                value = (TValue?)content;
                 return true;
             }
 

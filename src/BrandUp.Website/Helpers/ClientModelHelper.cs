@@ -19,7 +19,7 @@ namespace BrandUp.Website.Helpers
                 if (value is Enum)
                     value = value.ToString();
 
-                destinationData.Add(clientProperty.ClientName, value);
+                destinationData.Add(clientProperty.ClientName, value!);
             }
         }
 
@@ -60,8 +60,8 @@ namespace BrandUp.Website.Helpers
 
         class ClientProperty
         {
-            public PropertyInfo ModelProperty { get; set; }
-            public string ClientName { get; set; }
+            public required PropertyInfo ModelProperty { get; init; }
+            public required string ClientName { get; init; }
         }
     }
 }

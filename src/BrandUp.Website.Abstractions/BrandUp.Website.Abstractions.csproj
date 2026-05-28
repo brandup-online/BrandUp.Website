@@ -7,10 +7,10 @@
 		<Product>BrandUp.Website</Product>
 		<RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
-		<Nullable>disable</Nullable>
 		<RootNamespace>BrandUp.Website</RootNamespace>
-		<ImplicitUsings>enable</ImplicitUsings>
 		<PackageIcon>icon.png</PackageIcon>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>NU1900</WarningsNotAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>

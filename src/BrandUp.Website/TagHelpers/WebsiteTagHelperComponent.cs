@@ -15,7 +15,7 @@ namespace BrandUp.Website.TagHelpers
         readonly HtmlEncoder htmlEncoder = htmlEncoder ?? throw new ArgumentNullException(nameof(htmlEncoder));
 
         [HtmlAttributeNotBound, ViewContext]
-        public ViewContext ViewContext { get; set; }
+        public ViewContext ViewContext { get; set; } = default!;
 
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
@@ -62,7 +62,7 @@ namespace BrandUp.Website.TagHelpers
             }
             else if (string.Equals(context.TagName, "body", StringComparison.OrdinalIgnoreCase))
             {
-                string cssClass = null;
+                string? cssClass = null;
                 if (output.Attributes.TryGetAttribute("class", out TagHelperAttribute attribute))
                     cssClass = attribute.Value.ToString();
 
@@ -80,6 +80,6 @@ namespace BrandUp.Website.TagHelpers
             }
         }
 
-        string Encode(string value) => value == null ? string.Empty : htmlEncoder.Encode(value);
+        string Encode(string? value) => value == null ? string.Empty : htmlEncoder.Encode(value);
     }
 }

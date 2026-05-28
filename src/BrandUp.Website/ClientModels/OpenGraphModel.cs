@@ -2,11 +2,11 @@
 {
     public class OpenGraphModel
     {
-        public string Type { get; set; }
-        public Uri Image { get; set; }
-        public string Title { get; set; }
-        public Uri Url { get; set; }
-        public string SiteName { get; set; }
-        public string Description { get; set; }
+        public string Type { get; set; } = null!;
+        public Uri Image { get; set; } = null!;
+        public string Title { get; set; } = null!;
+        public Uri Url { get; set; } = null!;
+        public string? SiteName { get; set; }
+        public string? Description { get; set; }
     }
 }

@@ -163,7 +163,7 @@ public class IndexModel : AppPageModel
     /// <summary>
     /// Выполняется при конструировании контекста навигации для клиента.
     /// </summary>
-    protected override Task OnPageClientNavigationAsync(PageNavidationContext context)
+    protected override Task OnPageClientNavigationAsync(PageClientNavigationContext context)
     {
         return base.OnPageClientNavigationAsync(context);
     }

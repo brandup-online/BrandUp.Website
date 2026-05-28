@@ -11,15 +11,15 @@ namespace BrandUp.Website.Identity
             return Task.FromResult(IsAuthenticated(httpContext));
         }
 
-        public Task<string> GetUserIdAsync(CancellationToken cancellationToken = default)
+        public Task<string?> GetUserIdAsync(CancellationToken cancellationToken = default)
         {
             var httpContext = httpContextAccessor.HttpContext;
             if (!IsAuthenticated(httpContext))
-                return Task.FromResult<string>(null);
-            return Task.FromResult(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return Task.FromResult<string?>(null);
+            return Task.FromResult(httpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
 
-        private static bool IsAuthenticated(HttpContext httpContext)
+        private static bool IsAuthenticated(HttpContext? httpContext)
         {
             if (httpContext == null)
                 throw new ArgumentNullException(nameof(httpContext));

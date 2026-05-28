@@ -12,7 +12,7 @@ namespace BrandUp.Website.TagHelpers
         public bool NavReplace { get; set; }
 
         [HtmlAttributeName("nav-scope")]
-        public string NavScope { get; set; }
+        public string? NavScope { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

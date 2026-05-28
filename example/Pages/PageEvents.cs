@@ -15,7 +15,7 @@ namespace ExampleWebSite.Pages
             return Task.CompletedTask;
         }
 
-        public Task PageClientNavigationAsync(PageClientNavidationContext context)
+        public Task PageClientNavigationAsync(PageClientNavigationContext context)
         {
             return Task.CompletedTask;
         }

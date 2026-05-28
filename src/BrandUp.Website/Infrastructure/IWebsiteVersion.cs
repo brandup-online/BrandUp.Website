@@ -14,15 +14,15 @@ namespace BrandUp.Website.Infrastructure
 
         public AssemblyWebsiteVersion(IHostEnvironment environment)
         {
-            var entryAssembly = Assembly.GetEntryAssembly();
-            if (entryAssembly != null)
-                version = entryAssembly.GetName().Version;
+            var assemblyVersion = Assembly.GetEntryAssembly()?.GetName().Version;
 
-            if (version == null || environment.IsDevelopment())
+            if (assemblyVersion == null || environment.IsDevelopment())
             {
-                var rnd = new Random();
+                var rnd = Random.Shared;
                 version = new Version(rnd.Next(1, 255), rnd.Next(1, 255), rnd.Next(1, 255), rnd.Next(1, 255));
             }
+            else
+                version = assemblyVersion;
         }
 
         public Version GetVersion()

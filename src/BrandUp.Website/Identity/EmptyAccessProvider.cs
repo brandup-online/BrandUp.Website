@@ -7,9 +7,9 @@
             return Task.FromResult(false);
         }
 
-        public Task<string> GetUserIdAsync(CancellationToken cancellationToken = default)
+        public Task<string?> GetUserIdAsync(CancellationToken cancellationToken = default)
         {
-            return Task.FromResult<string>(null);
+            return Task.FromResult<string?>(null);
         }
     }
 }

@@ -9,9 +9,9 @@ namespace BrandUp.Website
             if (routeData == null)
                 throw new ArgumentNullException(nameof(routeData));
 
-            if (routeData.Values.TryGetValue("area", out object areaNameValue))
+            if (routeData.Values.TryGetValue("area", out object? areaNameValue))
             {
-                areaName = (string)areaNameValue;
+                areaName = areaNameValue as string ?? string.Empty;
                 return true;
             }
             else

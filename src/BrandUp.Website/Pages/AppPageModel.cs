@@ -11,15 +11,15 @@ namespace BrandUp.Website.Pages
 {
     public abstract class AppPageModel : PageModel, IPageModel
     {
-        IWebsiteEvents websiteEvents;
-        IPageEvents pageEvents;
+        IWebsiteEvents? websiteEvents;
+        IPageEvents? pageEvents;
 
         public const string NavStateKey_Version = "_version";
         public const string NavStateKey_Area = "_area";
 
         #region Properties
 
-        public WebsiteContext WebsiteContext { get; private set; }
+        public WebsiteContext WebsiteContext { get; private set; } = null!;
         public AppPageRequestMode RequestMode { get; private set; } = AppPageRequestMode.Full;
         public Dictionary<string, object> NavigationState { get; } = [];
         public CancellationToken CancellationToken => HttpContext.RequestAborted;
@@ -29,18 +29,18 @@ namespace BrandUp.Website.Pages
 
         #region OpenGraph members
 
-        public PageOpenGraph OpenGraph { get; set; }
+        public PageOpenGraph? OpenGraph { get; set; }
 
         #endregion
 
         #region IPageModel members
 
-        public Uri Link { get; private set; }
+        public Uri Link { get; private set; } = null!;
         public abstract string Title { get; }
-        public virtual string Description { get; }
-        public virtual string Keywords { get; }
-        public virtual string CssClass { get; }
-        public virtual string ScriptName { get; }
+        public virtual string? Description { get; }
+        public virtual string? Keywords { get; }
+        public virtual string? CssClass { get; }
+        public virtual string? ScriptName { get; }
         public virtual Uri CanonicalLink => Link;
         public virtual string Header => Title;
 
@@ -55,7 +55,7 @@ namespace BrandUp.Website.Pages
 
             httpContext.Features.Set<IPageFeature>(new PageFeature { PageModel = this });
 
-            if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out string navigationData))
+            if (httpRequest.Headers.TryGetValue(PageConstants.HttpHeaderPageNav, out string? navigationData))
                 RequestMode = AppPageRequestMode.Content;
 
             var websiteFeature = HttpContext.Features.Get<IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(IWebsiteFeature)} in HttpContext features.");
@@ -94,7 +94,7 @@ namespace BrandUp.Website.Pages
                                 {
                                     foreach (var kv in requestState)
                                     {
-                                        object value = kv.Value.ValueKind switch
+                                        object? value = kv.Value.ValueKind switch
                                         {
                                             JsonValueKind.String => kv.Value.GetString(),
                                             JsonValueKind.False or JsonValueKind.True => kv.Value.GetBoolean(),
@@ -102,17 +102,17 @@ namespace BrandUp.Website.Pages
                                             JsonValueKind.Number => kv.Value.GetInt64(),
                                             _ => throw new InvalidOperationException("Unknown nav state value type."),
                                         };
-                                        NavigationState.Add(kv.Key, value);
+                                        NavigationState.Add(kv.Key, value!);
                                     }
 
-                                    if (!NavigationState.TryGetValue(NavStateKey_Version, out object versionValue) || versionValue == null || !Version.TryParse(versionValue.ToString(), out var navVersion) || navVersion != websiteVersion.GetVersion())
+                                    if (!NavigationState.TryGetValue(NavStateKey_Version, out object? versionValue) || versionValue == null || !Version.TryParse(versionValue.ToString(), out var navVersion) || navVersion != websiteVersion.GetVersion())
                                         needReloadPage = true;
 
                                     if (!needReloadPage)
                                     {
-                                        string navAreaName = null;
-                                        if (NavigationState.TryGetValue(NavStateKey_Area, out object areaNameValue))
-                                            navAreaName = (string)areaNameValue;
+                                        string? navAreaName = null;
+                                        if (NavigationState.TryGetValue(NavStateKey_Area, out object? areaNameValue))
+                                            navAreaName = (string?)areaNameValue;
 
                                         RouteData.TryGetAreaName(out string curAreaName);
                                         if (navAreaName == null || !string.Equals(navAreaName, curAreaName, StringComparison.InvariantCultureIgnoreCase))
@@ -177,7 +177,7 @@ namespace BrandUp.Website.Pages
             {
                 Env = new ClientModels.EnvironmentModel
                 {
-                    BasePath = httpRequest.PathBase.HasValue ? httpRequest.PathBase.Value : "/"
+                    BasePath = httpRequest.PathBase.HasValue ? httpRequest.PathBase.Value! : "/"
                 },
                 Model = new ClientModels.ApplicationModel
                 {
@@ -210,7 +210,7 @@ namespace BrandUp.Website.Pages
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
             var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-            var websiteFeature = HttpContext.Features.Get<IWebsiteFeature>();
+            var websiteFeature = HttpContext.Features.Get<IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(IWebsiteFeature)} in HttpContext features.");
             var protector = protectionProvider.CreateProtector(websiteFeature.Options.ProtectionPurpose);
 
             var navModel = new ClientModels.NavigationModel
@@ -233,7 +233,7 @@ namespace BrandUp.Website.Pages
             {
                 var value = kv.Value;
                 if (value.Count == 1)
-                    navModel.Query.Add(kv.Key, value[0]);
+                    navModel.Query.Add(kv.Key, value[0]!);
                 else if (value.Count > 1)
                     navModel.Query.Add(kv.Key, value.ToArray());
             }
@@ -247,7 +247,7 @@ namespace BrandUp.Website.Pages
                 navModel.ValidationToken = antiforgeryTokenSet.RequestToken;
             }
 
-            var pageNavigationContext = new PageClientNavidationContext(this, navModel.Data);
+            var pageNavigationContext = new PageClientNavigationContext(this, navModel.Data);
             await OnPageClientNavigationAsync(pageNavigationContext).ConfigureAwait(false);
 
             if (pageEvents != null)
@@ -289,7 +289,7 @@ namespace BrandUp.Website.Pages
             return Task.CompletedTask;
         }
 
-        protected virtual Task OnPageClientNavigationAsync(PageClientNavidationContext context)
+        protected virtual Task OnPageClientNavigationAsync(PageClientNavigationContext context)
         {
             return Task.CompletedTask;
         }
@@ -301,16 +301,16 @@ namespace BrandUp.Website.Pages
 
         #endregion
 
-        public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermament = false, bool replace = false, bool reload = false)
+        public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermanent = false, bool replace = false, bool reload = false)
         {
             ArgumentNullException.ThrowIfNull(pageUrl);
 
-            return new Results.PageRedirectResult(pageUrl) { IsPermament = isPermament, Replace = replace, Reload = reload };
+            return new Results.PageRedirectResult(pageUrl) { IsPermanent = isPermanent, Replace = replace, Reload = reload };
         }
 
-        public Results.PageRedirectResult PageRedirect(Uri pageUrl, bool isPermament = false, bool replace = false, bool reload = false)
+        public Results.PageRedirectResult PageRedirect(Uri pageUrl, bool isPermanent = false, bool replace = false, bool reload = false)
         {
-            return PageRedirect(pageUrl.ToString(), isPermament, replace, reload);
+            return PageRedirect(pageUrl.ToString(), isPermanent, replace, reload);
         }
     }
 }

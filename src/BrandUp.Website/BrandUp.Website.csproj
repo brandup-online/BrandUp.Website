@@ -2,7 +2,6 @@
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 		<Company>BrandUp.online</Company>
 		<Authors>Dmitry Kovyazin</Authors>
@@ -10,6 +9,8 @@
 		<RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
 		<PackageIcon>icon.png</PackageIcon>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>NU1900</WarningsNotAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>

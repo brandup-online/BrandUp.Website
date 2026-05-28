@@ -13,7 +13,7 @@ namespace BrandUp.Website
             var hasCssClass = false;
             if (attributeList.TryGetAttribute("class", out TagHelperAttribute attribute))
             {
-                cssClass = attribute.Value.ToString();
+                cssClass = attribute.Value?.ToString() ?? string.Empty;
                 hasCssClass = cssClass
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                     .Any(token => string.Equals(token, cssClassName, StringComparison.InvariantCultureIgnoreCase));
