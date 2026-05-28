@@ -27,6 +27,9 @@ namespace BrandUp.Website.IntegrationTests
         [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://msk.localhost/", "/", HttpStatusCode.NotFound, null)]
         [InlineData("https://msk.localhost/", "/", HttpStatusCode.NotFound, null)]
+        // hosts that merely end with the configured host but are not real subdomains must not be served
+        [InlineData("https://xlocalhost/", "/", HttpStatusCode.NotFound, null)]
+        [InlineData("https://wwwlocalhost/", "/", HttpStatusCode.NotFound, null)]
         public async Task Redirect_root(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
         {
             factory.ClientOptions.BaseAddress = new Uri(baseAddress);
