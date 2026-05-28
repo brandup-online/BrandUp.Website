@@ -49,33 +49,52 @@ namespace BrandUp.Website.IntegrationTests
             Assert.Equal("true", response.Headers.GetValues(PageConstants.HttpHeaderPageReload).First());
         }
 
-        //[Fact]
-        //public async Task Request_Content()
-        //{
-        //    using var client = factory.CreateClient();
-        //    client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
-        //    using var response = await client.PostAsync("/", new StringContent(string.Empty));
+        [Fact]
+        public async Task Request_Content()
+        {
+            using var client = factory.CreateClient();
+            var navState = await GetNavStateAsync(client, "/");
 
-        //    Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-        //    Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+            client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, navState);
+            using var response = await client.GetAsync("/contacts", TestContext.Current.CancellationToken);
 
-        //    var responseHtml = await response.Content.ReadAsStringAsync();
-        //    Assert.DoesNotContain("</html>", responseHtml);
-        //}
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+            Assert.False(response.Headers.Contains(PageConstants.HttpHeaderPageReload));
 
-        //[Fact]
-        //public async Task Request_Content_Redirect()
-        //{
-        //    using var client = factory.CreateClient();
-        //    client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, "true");
-        //    using var response = await client.PostAsync("/delivery", new StringContent(string.Empty));
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            Assert.DoesNotContain("</html>", responseHtml);
+            Assert.Contains("page-content", responseHtml);
+        }
 
-        //    Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-        //    Assert.Equal("/contacts", response.Headers.GetValues(PageConstants.HttpHeaderPageLocation).First());
+        [Fact]
+        public async Task Request_Content_Redirect()
+        {
+            using var client = factory.CreateClient();
+            var navState = await GetNavStateAsync(client, "/");
 
-        //    var responseHtml = await response.Content.ReadAsStringAsync();
-        //    Assert.Empty(responseHtml);
-        //}
+            client.DefaultRequestHeaders.Add(PageConstants.HttpHeaderPageNav, navState);
+            using var response = await client.GetAsync("/delivery", TestContext.Current.CancellationToken);
+
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("/contacts", response.Headers.GetValues(PageConstants.HttpHeaderPageLocation).First());
+        }
+
+        static async Task<string> GetNavStateAsync(HttpClient client, string url)
+        {
+            using var response = await client.GetAsync(url, TestContext.Current.CancellationToken);
+            var html = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            var markerIndex = html.IndexOf("nav-data", StringComparison.Ordinal);
+            Assert.True(markerIndex >= 0, "nav-data script not found in full page response.");
+
+            var jsonStart = html.IndexOf('{', markerIndex);
+            var jsonEnd = html.IndexOf("</script>", jsonStart, StringComparison.Ordinal);
+            var json = html[jsonStart..jsonEnd];
+
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            return doc.RootElement.GetProperty("state").GetString();
+        }
 
         [Fact]
         public async Task Request_Content_BadNavState()
