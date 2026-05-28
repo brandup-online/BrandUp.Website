@@ -38,7 +38,7 @@ namespace BrandUp.Website.Middlewares
             var isLocalIp = isLocalhost && request.Host.Host.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase);
 
             // Redirect by www subdomain.
-            if (!isLocalIp && requestHost.StartsWith("www", StringComparison.InvariantCultureIgnoreCase))
+            if (!isLocalIp && requestHost.StartsWith("www.", StringComparison.InvariantCultureIgnoreCase))
             {
                 var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
@@ -48,7 +48,7 @@ namespace BrandUp.Website.Middlewares
             }
 
             // Redirect by aliases.
-            if (!isLocalIp && !requestHost.EndsWith(webSiteHost, StringComparison.InvariantCultureIgnoreCase))
+            if (!isLocalIp && !IsSameOrSubdomain(requestHost, webSiteHost))
             {
                 if (webSiteOptions.Value.Aliases != null)
                 {
@@ -153,6 +153,12 @@ namespace BrandUp.Website.Middlewares
                 return new HostString(newHostValue);
 
             return new HostString(newHostValue, current.Port.Value);
+        }
+
+        static bool IsSameOrSubdomain(string requestHost, string host)
+        {
+            return string.Equals(requestHost, host, StringComparison.InvariantCultureIgnoreCase)
+                || requestHost.EndsWith("." + host, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

@@ -21,8 +21,6 @@ namespace ExampleWebSite
 
             #region Configure
 
-            var websiteOptions = builder.Configuration.GetSection("WebSite").Get<WebsiteOptions>();
-
             services
                 .AddWebMarkupMin(options =>
                 {
@@ -84,7 +82,6 @@ namespace ExampleWebSite
             {
                 options.Cookie.Name = "ExampleWebSite_af";
                 options.Cookie.HttpOnly = true;
-                //options.Cookie.Domain = websiteOptions.Host;
                 options.Cookie.Path = "/";
             });
 
@@ -169,6 +166,16 @@ namespace ExampleWebSite
             #region Build
 
             var app = builder.Build();
+
+            app.Use(async (context, next) =>
+            {
+                var headers = context.Response.Headers;
+                headers["X-Content-Type-Options"] = "nosniff";
+                headers["X-Frame-Options"] = "SAMEORIGIN";
+                headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+
+                await next();
+            });
 
             app.UseRequestDecompression();
 

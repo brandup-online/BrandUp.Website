@@ -23,10 +23,14 @@ namespace BrandUp.Website.Infrastructure
         {
             ArgumentNullException.ThrowIfNull(requestHost);
 
-            string websiteName = null;
-            if (!string.Equals(requestHost, webSiteHost, StringComparison.InvariantCultureIgnoreCase))
-                websiteName = requestHost[..(requestHost.Length - webSiteHost.Length - 1)].ToLower();
-            return websiteName;
+            if (string.Equals(requestHost, webSiteHost, StringComparison.InvariantCultureIgnoreCase))
+                return null;
+
+            var suffix = "." + webSiteHost;
+            if (!requestHost.EndsWith(suffix, StringComparison.InvariantCultureIgnoreCase))
+                return null;
+
+            return requestHost[..^suffix.Length].ToLower();
         }
     }
 

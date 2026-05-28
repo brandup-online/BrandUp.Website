@@ -19,7 +19,8 @@ namespace BrandUp.Website.Builder
 
         private static void AddCoreServices(IServiceCollection services)
         {
-            services.AddSingleton<IAccessProvider, EmptyAccessProvider>();
+            services.AddHttpContextAccessor();
+
             services.AddSingleton<IWebsiteVersion, AssemblyWebsiteVersion>();
             services.AddTransient<ITagHelperComponent, TagHelpers.WebsiteTagHelperComponent>();
 

@@ -1,4 +1,6 @@
-﻿namespace BrandUp.Website
+﻿using Microsoft.Extensions.Options;
+
+namespace BrandUp.Website
 {
     public class WebsiteOptions
     {
@@ -10,14 +12,33 @@
 
         public void Validate()
         {
+            var errors = GetValidationErrors().ToList();
+            if (errors.Count > 0)
+                throw new System.InvalidOperationException(string.Join(" ", errors));
+        }
+
+        internal IEnumerable<string> GetValidationErrors()
+        {
             if (string.IsNullOrEmpty(Host))
-                throw new System.InvalidOperationException($"Не задан параметр {nameof(Host)}.");
+                yield return $"Не задан параметр {nameof(Host)}.";
 
             if (string.IsNullOrEmpty(CookiesPrefix))
-                throw new System.InvalidOperationException($"Не задан параметр {nameof(CookiesPrefix)}.");
+                yield return $"Не задан параметр {nameof(CookiesPrefix)}.";
 
             if (string.IsNullOrEmpty(ProtectionPurpose))
-                throw new System.InvalidOperationException($"Не задан параметр {nameof(ProtectionPurpose)}.");
+                yield return $"Не задан параметр {nameof(ProtectionPurpose)}.";
+        }
+    }
+
+    sealed class WebsiteOptionsValidator : IValidateOptions<WebsiteOptions>
+    {
+        public ValidateOptionsResult Validate(string name, WebsiteOptions options)
+        {
+            var errors = options.GetValidationErrors().ToList();
+            if (errors.Count > 0)
+                return ValidateOptionsResult.Fail(errors);
+
+            return ValidateOptionsResult.Success;
         }
     }
 }

@@ -199,7 +199,8 @@ namespace BrandUp.Website.Pages
             }
 
             var startContext = new StartWebsiteContext(this, startupModel.Model.Data);
-            await websiteEvents.StartAsync(startContext).ConfigureAwait(false);
+            if (websiteEvents != null)
+                await websiteEvents.StartAsync(startContext).ConfigureAwait(false);
 
             return startupModel;
         }
@@ -214,7 +215,7 @@ namespace BrandUp.Website.Pages
 
             var navModel = new ClientModels.NavigationModel
             {
-                IsAuthenticated = httpContext.User.Identity.IsAuthenticated,
+                IsAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false,
                 Url = Link,
                 Path = Link.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
                 Query = new Dictionary<string, object>(),

@@ -24,7 +24,7 @@ namespace BrandUp.Website.Identity
             if (httpContext == null)
                 throw new ArgumentNullException(nameof(httpContext));
 
-            return httpContext.User != null && httpContext.User.Identity.IsAuthenticated;
+            return httpContext.User?.Identity?.IsAuthenticated ?? false;
         }
     }
 }

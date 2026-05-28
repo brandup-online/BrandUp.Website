@@ -131,7 +131,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     disableCache: true
                 }, context.abort), this.options.navMinTime, context.abort);
 
-                if (response.status != 200 && response.type != "html") {
+                if (response.status != 200 || response.type != "html") {
                     console.warn(`Nav request response status ${response.status}`);
                     this.__forceNav(context);
                     return;
@@ -478,7 +478,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     2. Если url навигации не поменялся, то перезаписываем состояние.
                 */
 
-                console.log(`nav from popstate`, context.data.popstate);
                 replace = true;
             }
 

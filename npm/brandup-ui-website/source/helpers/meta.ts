@@ -30,7 +30,7 @@ const setOG = (name: "type" | "title" | "image" | "url" | "site_name" | "descrip
     let elem = DOM.getById(elemId);
     if (value) {
         if (!elem)
-            document.head.appendChild(elem = DOM.tag("meta", { id: elemId, property: name, content: value }));
+            document.head.appendChild(elem = DOM.tag("meta", { id: elemId, property: `og:${name}`, content: value }));
 
         elem.setAttribute("content", value);
     }
