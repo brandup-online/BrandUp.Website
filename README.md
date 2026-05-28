@@ -8,7 +8,7 @@
 
 Install NuGet package: [https://www.nuget.org/packages/BrandUp.Website/](https://www.nuget.org/packages/BrandUp.Website/)
 
-Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-ui-website).
+Install NPM package [@brandup/ui-website](https://www.npmjs.com/package/@brandup/ui-website).
 
 ## Конфигурация
 
@@ -19,7 +19,8 @@ Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-u
     "Host": "localhost",
     "Aliases": [ "test.ru" ],
     "CookiesPrefix": "ex",
-    "ProtectionPurpose": "148c26c8-0267-4677-b2f5-dda1256d5947"
+    "ProtectionPurpose": "148c26c8-0267-4677-b2f5-dda1256d5947",
+    "RedirectToHttps": true
   }
 }
 ```
@@ -31,6 +32,10 @@ Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-u
 **Website:CookiesPrefix** - префикс ключей Cookies.
 
 **Website:ProtectionPurpose** - The purpose to be assigned to the newly-created Microsoft.AspNetCore.DataProtection.IDataProtector.
+
+**Website:RedirectToHttps** - выполнять ли автоматический редирект с `http` на `https` (по умолчанию `true`).
+
+Параметры валидируются при старте приложения (fail-fast): если не задан `Host`, `CookiesPrefix` или `ProtectionPurpose`, хост не запустится.
 
 Использование параметров сайта:
 ```
@@ -155,7 +160,7 @@ public class IndexModel : AppPageModel
     /// <summary>
     /// Выполняется при конструировании контекста сайта для клиента.
     /// </summary>
-    protected override Task OnPageClientBuildAsync(PageBuildContext context)
+    protected override Task OnPageClientBuildAsync(PageClientBuildContext context)
     {
         return base.OnPageClientBuildAsync(context);
     }
@@ -195,8 +200,8 @@ public class IndexModel : AppPageModel
 Этот класс для ссылок проставляется автоматически в случаях:
 
 ```
-<a nav-url="@Url.Page("/Catalog")" clasa="item">Каталог</a>
-<a asp-page="@Url.Page("/Catalog")" clasa="item">Каталог</a>
+<a nav-url="@Url.Page("/Catalog")" class="item">Каталог</a>
+<a asp-page="@Url.Page("/Catalog")" class="item">Каталог</a>
 ```
 
 Результатом в обоих случаях будет:
@@ -208,64 +213,155 @@ public class IndexModel : AppPageModel
 Так же во время навигации по ссылке можно перезаписывать текущее состояние навигации:
 
 ```
-<a nav-url="@Url.Page("/Catalog")" nav-replace clasa="item">Каталог</a>
+<a nav-url="@Url.Page("/Catalog")" nav-replace class="item">Каталог</a>
 
 <a href="/catalog" data-nav-replace class="item applink">Каталог</a>
 ```
 
+### Open Graph
+
+Метаданные Open Graph задаются через свойство `OpenGraph` модели страницы и автоматически рендерятся в `<head>`, а также передаются клиенту при навигации.
+
+```
+public override string Title => "Main";
+
+protected override Task OnPageRequestAsync(PageRequestContext context)
+{
+    OpenGraph = new PageOpenGraph(
+        type: "website",
+        image: new Uri("https://example.com/og.jpg"),
+        title: Title,
+        url: Link,
+        description: Description)
+    {
+        SiteName = "Example"
+    };
+
+    return base.OnPageRequestAsync(context);
+}
+```
+
+### Редиректы
+
+Внутри страницы редирект корректно работает как для обычного запроса (HTTP 301/302), так и для клиентской навигации (заголовки `Page-Location`/`Page-Reload`):
+
+```
+protected override Task OnPageRequestAsync(PageRequestContext context)
+{
+    context.PageRedirect("/contacts");
+    // или: context.Result = PageRedirect("/contacts", isPermanent: true, replace: false, reload: false);
+
+    return base.OnPageRequestAsync(context);
+}
+```
+
+Вне страницы (например, в контроллере или событиях аутентификации) используйте расширение ответа:
+
+```
+context.Response.RedirectPage("/contacts");
+```
+
+### Несколько сайтов
+
+Для одного сайта используется `AddSingleWebsite("title")`. Для нескольких сайтов нужно реализовать `IWebsiteStore` (`FindByIdAsync`, `FindByNameAsync`, `GetAliasesAsync`, `GetTimeZoneAsync`) и зарегистрировать его:
+
+```
+services
+    .AddWebsite(options => options.MapConfiguration(Configuration))
+    .AddUrlMapProvider<BrandUp.Website.Infrastructure.SubdomainUrlMapProvider>()
+    .AddMultyWebsite<MyWebsiteStore>(ServiceLifetime.Scoped);
+    // или .AddMultyWebsiteFrom<MyWebsiteStore>() — если стор уже зарегистрирован в DI
+```
+
+Провайдер определения имени сайта из запроса:
+
+- `SubdomainUrlMapProvider` — имя сайта берётся из поддомена (`msk.example.com` → `msk`);
+- `PathUrlMapProvider` — имя сайта берётся из первого сегмента пути (`/msk/catalog` → `msk`).
+
+### События сайта и страниц
+
+`IWebsiteEvents` (регистрируется через `AddWebsiteEvents<T>()`) — наполнение клиентской модели приложения и кастомизация рендеринга `<head>`/`<body>`:
+
+```
+public class MyWebsiteEvents : IWebsiteEvents
+{
+    public Task StartAsync(StartWebsiteContext context)
+    {
+        context.ClientData["key"] = "value"; // попадёт в модель клиентского приложения
+        return Task.CompletedTask;
+    }
+
+    public Task RenderHeadTag(OnRenderTagContext context) => Task.CompletedTask;
+    public Task RenderBodyTag(OnRenderTagContext context) => Task.CompletedTask;
+}
+```
+
+`IPageEvents` (регистрируется через `AddPageEvents<T>()`) — глобальные обработчики жизненного цикла всех страниц: `PageRequestAsync`, `PageRenderAsync`, `PageClientBuildAsync`, `PageClientNavigationAsync`.
+
 ## Клиентское приложение
 
-Install NPM package [brandup-ui-website](https://www.npmjs.com/package/brandup-ui-website).
+Install NPM package [@brandup/ui-website](https://www.npmjs.com/package/@brandup/ui-website).
 
 Read [documentation](/npm/brandup-ui-website/README.md).
 
-```
+Точка входа — `WEBSITE.run(options, configure)`. В `pages`/`components` объявляются ленивые загрузчики скриптов страниц и компонентов (`preload: true` — предзагрузить заранее):
 
-import { host } from "brandup-ui-website";
+```
+import { WEBSITE } from "@brandup/ui-website";
 import { AuthMiddleware } from "./middlewares/auth";
 import "./styles.less";
 
-host.start({
-    pageTypes: {
-        "signin": ()=> import("./pages/signin")
+WEBSITE.run({
+    defaultPage: "base",
+    pages: {
+        "base": { factory: () => import("./pages/base"), preload: true },
+        "signin": { factory: () => import("./pages/signin") }
+    },
+    components: {
+        "test": { factory: () => import("./components/test") }
     }
 }, (builder) => {
-        builder
-            .useMiddleware(new AuthMiddleware());
-    });
+    builder.useMiddleware(() => new AuthMiddleware());
+})
+    .then(() => console.log("website runned"))
+    .catch(reason => console.error(`website run error: ${reason}`));
+```
 
-import { Middleware, ApplicationModel, NavigateContext, StartContext, LoadContext, NavigatingContext } from "brandup-ui-app";
-import { ajaxRequest } from "brandup-ui";
+Middleware реализует интерфейс `Middleware` из `@brandup/ui-app`:
 
-export class AuthMiddleware extends Middleware<ApplicationModel> {
-    start(context: StartContext, next) {
-        this.app.registerCommand("signout", () => {
-            ajaxRequest({
-                url: this.app.uri("api/auth/signout"),
+```
+import { Middleware, MiddlewareNext, StartContext } from "@brandup/ui-app";
+import { WebsiteApplication } from "@brandup/ui-website";
+
+export class AuthMiddleware implements Middleware {
+    readonly name = "auth";
+
+    start(context: StartContext<WebsiteApplication>, next: MiddlewareNext) {
+        context.app.registerCommand("signout", () =>
+            context.app.queue.enque({
+                url: context.app.buildUrl("api/auth/signout"),
                 method: "POST",
-                state: null,
-                success: () => {
-                    this.app.reload();
-                }
-            });
-        });
+                success: () => context.app.reload()
+            }));
 
-        console.log(`website id: ${this.app.model.websiteId}`);
-
-        next();
-    }
-
-    loaded(context: LoadContext, next) {
-        next();
-    }
-
-    navigating(context: NavigatingContext, next) {
-        next();
-    }
-
-    navigate(context: NavigateContext, next) {
-        next();
+        return next();
     }
 }
+```
 
+## Сборка и тесты
+
+Серверная часть (.NET 10):
+
+```
+dotnet build
+dotnet test
+```
+
+Клиентская часть (npm):
+
+```
+npm install        # установка зависимостей корня и пакетов
+npm test           # jest
+cd npm/brandup-ui-website && npm run build   # сборка пакета (rollup)
 ```
