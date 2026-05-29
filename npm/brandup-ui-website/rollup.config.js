@@ -33,12 +33,12 @@ export default [
         extensions: ['.mjs', '.js', '.json', '.node', '.ts', '.mts'],
         preferBuiltins: true
       }),
-      typescript({ tsconfig: "./tsconfig.json" })
+      typescript({ tsconfig: "./tsconfig.build.json" })
     ]
   },
   {
     input: mainFile,
     output: [{ file: pkg.types, format: "es" }],
-    plugins: [dts.default()]
+    plugins: [dts.default({ tsconfig: "./tsconfig.build.json" })]
   }
 ];
