@@ -9,7 +9,6 @@
       "DOM",
       "ESNext"
     ],
-    "outDir": "./out",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "noImplicitAny": true,
