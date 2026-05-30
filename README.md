@@ -218,6 +218,32 @@ public class IndexModel : AppPageModel
 <a href="/catalog" data-nav-replace class="item applink">Каталог</a>
 ```
 
+### Встраивание скриптов (inline-src)
+
+Тег-хелпер `InlineScriptTagHelper` встраивает содержимое скрипта прямо в HTML-страницу вместо внешней ссылки. Это полезно для маленьких критичных файлов (например, webpack-runtime), чтобы избежать лишнего сетевого запроса и не блокировать загрузку остального приложения.
+
+Атрибут `inline-src` указывает путь к файлу внутри `wwwroot` (поддерживается префикс `~`):
+
+```
+<script inline-src="~/dist/runtime.js"></script>
+<script type="text/javascript" src="~/dist/app.js" asp-append-version="true" defer></script>
+```
+
+Результатом будет:
+
+```
+<script>/* содержимое runtime.js */</script>
+<script type="text/javascript" src="/dist/app.js?v=..." defer></script>
+```
+
+Поведение:
+
+- содержимое файла читается из `wwwroot` и кешируется в `IMemoryCache` до изменения файла (инвалидация по `IFileProvider.Watch`);
+- если файл ещё не собран (отсутствует в `wwwroot`), тег-хелпер не падает, а оставляет обычную внешнюю ссылку: `<script src="/dist/runtime.js"></script>`;
+- атрибут `inline-src` из результирующего тега удаляется.
+
+`runtime.js` для примера выделяется в отдельный чанк настройкой `optimization.runtimeChunk: 'single'` в `webpack.config.js`. Встроенный inline-рантайм выполняется при парсинге страницы, а основной бандл `app.js` подключается с `defer` — так гарантируется правильный порядок: рантайм инициализируется до загрузки бандла.
+
 ### Open Graph
 
 Метаданные Open Graph задаются через свойство `OpenGraph` модели страницы и автоматически рендерятся в `<head>`, а также передаются клиенту при навигации.

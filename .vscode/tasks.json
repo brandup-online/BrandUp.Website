@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/example/ExampleWebSite.csproj",
+                "${workspaceFolder}/src/ExampleWebSite/ExampleWebSite.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

@@ -5,7 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CleanCSSPlugin = require("less-plugin-clean-css");
 const TerserPlugin = require("terser-webpack-plugin");
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
-const bundleOutputDir = '../../example/wwwroot/dist';
+const bundleOutputDir = '../../src/ExampleWebSite/wwwroot/dist';
 
 const lessLoaderOptions = { webpackImporter: true, lessOptions: { math: 'always', plugins: [new CleanCSSPlugin({ advanced: false })] } };
 var splitChunks = {
@@ -96,6 +96,7 @@ module.exports = (env) => {
             ]
         },
         optimization: {
+            runtimeChunk: 'single',
             splitChunks: splitChunks,
             minimize: !isDevBuild,
             minimizer: [
