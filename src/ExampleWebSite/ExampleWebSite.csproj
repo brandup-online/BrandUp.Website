@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<IsPackable>false</IsPackable>
 		<Nullable>disable</Nullable>
 		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
 		<UserSecretsId>bcbd8f0f-aa2a-4e71-bbb2-0cc1ca0ab896</UserSecretsId>
@@ -18,7 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\src\BrandUp.Website\BrandUp.Website.csproj" />
+	  <ProjectReference Include="..\BrandUp.Website\BrandUp.Website.csproj" />
 	</ItemGroup>
 
 </Project>

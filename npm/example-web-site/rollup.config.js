@@ -14,7 +14,7 @@ export default [
         input: mainFile,
         output: [
             {
-                file: "../../example/wwwroot/dist/app.js",
+                file: "../../src/ExampleWebSite/wwwroot/dist/app.js",
                 format: "iife",
                 sourcemap: false,
                 inlineDynamicImports: true,

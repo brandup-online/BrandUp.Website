@@ -351,8 +351,8 @@ MigrationBackup/
 
 package-lock.json
 
-/example/wwwroot/dist
-/example/_data/temp
+/src/*/wwwroot/dist
+/src/*/_data/temp
 
 /npm/*/coverage
 /npm/*/dist
@@ -364,4 +364,4 @@ package-lock.json
 /npm/*/src/**/*.js
 /npm/*/src/**/*.d.ts
 /npm/*/src/**/*.js.map
-.claude/settings.json
+.claude/
