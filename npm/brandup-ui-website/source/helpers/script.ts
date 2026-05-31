@@ -33,10 +33,8 @@ const preloadDefinitions = (defs?: { [name: string]: PreloadingDefinition }) => 
             loadings.push(def.factory());
     }
 
-    if (loadings.length) {
-        Promise.allSettled(loadings)
-            .then(() => console.log(`preloaded`));
-    }
+    if (loadings.length)
+        Promise.allSettled(loadings);
 }
 
 export {

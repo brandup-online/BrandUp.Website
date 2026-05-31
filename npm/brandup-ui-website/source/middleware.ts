@@ -23,6 +23,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     private __queue: AjaxQueue;
     private __current?: NavigationEntry;
     private __prepareRequest?: (request: AjaxRequest) => void;
+    private __bodyElem?: HTMLElement;
+    private __invalidHandler?: (event: Event) => void;
+    private __changeHandler?: (event: Event) => void;
+    private __scrollHandler?: () => void;
 
     constructor(options: WebsiteOptions) {
         this.options = options;
@@ -41,12 +45,12 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     // Middleware members
 
     start(context: StartContext<WebsiteApplication>, next: MiddlewareNext) {
-        const bodyElem = document.body;
+        const bodyElem = this.__bodyElem = document.body;
 
         bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
         this.__showNavigationProgress();
 
-        bodyElem.addEventListener("invalid", (event: Event) => {
+        this.__invalidHandler = (event: Event) => {
             event.preventDefault();
 
             const elem = event.target as HTMLElement;
@@ -54,13 +58,15 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             if (elem.hasAttribute("required"))
                 elem.classList.add("invalid-required");
-        }, true);
+        };
+        bodyElem.addEventListener("invalid", this.__invalidHandler, true);
 
-        bodyElem.addEventListener("change", (event: Event) => {
+        this.__changeHandler = (event: Event) => {
             const elem = event.target as HTMLElement;
             elem.classList.remove("invalid");
             elem.classList.remove("invalid-required");
-        });
+        };
+        bodyElem.addEventListener("change", this.__changeHandler);
 
         this.__prepareRequest = (request) => {
             if (!request.headers)
@@ -84,7 +90,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             }
         };
 
-        window.addEventListener("scroll", () => {
+        this.__scrollHandler = () => {
             // Троттлим запись состояния: не чаще одного replaceState на 150 мс,
             // позиция читается в момент срабатывания таймера (актуальная).
             if (scrollSaveScheduled)
@@ -92,7 +98,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             scrollSaveScheduled = true;
             window.setTimeout(saveScrollState, 150);
-        }, { passive: true });
+        };
+        window.addEventListener("scroll", this.__scrollHandler, { passive: true });
 
         return next();
     }
@@ -254,6 +261,22 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
     stop(context: StopContext<WebsiteApplication>, next: MiddlewareNext) {
         context.data.current = this.__current;
+
+        if (this.__bodyElem) {
+            if (this.__invalidHandler)
+                this.__bodyElem.removeEventListener("invalid", this.__invalidHandler, true);
+            if (this.__changeHandler)
+                this.__bodyElem.removeEventListener("change", this.__changeHandler);
+        }
+        if (this.__scrollHandler)
+            window.removeEventListener("scroll", this.__scrollHandler);
+
+        window.clearTimeout(this.__progressShowTimeout);
+        window.clearTimeout(this.__progressTimeout);
+        window.clearTimeout(this.__progressInterval);
+
+        this.__loaderElem?.remove();
+        this.__loaderElem = null;
 
         return next();
     }

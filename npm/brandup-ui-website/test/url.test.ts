@@ -16,4 +16,8 @@ describe("extractHashFromUrl", () => {
     it("treats empty fragment as no hash", () => {
         expect(extractHashFromUrl("/catalog#")).toEqual({ url: "/catalog#", hash: null });
     });
+
+    it("extracts a leading fragment", () => {
+        expect(extractHashFromUrl("#section")).toEqual({ url: "", hash: "section" });
+    });
 });

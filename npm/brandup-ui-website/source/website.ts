@@ -22,7 +22,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
     return new Promise<StartContext<WebsiteApplication>>((resolve, reject) => {
         const appDataElem = <HTMLScriptElement>document.getElementById("app-data");
         if (!appDataElem)
-            throw "Is not defined application startup configuration.";
+            throw new Error("Is not defined application startup configuration.");
         const appData = <StartupModel>JSON.parse(appDataElem.text);
 
         const appBuilder = new ApplicationBuilder<WebsiteApplicationModel>(appData.model);
@@ -34,11 +34,23 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
 
         const app = current = <WebsiteApplication>appBuilder.build(appData.env, options);
 
+        const onReadyStateChange = () => {
+            if (document.readyState === "interactive" || document.readyState === "complete")
+                appStartFunc();
+        };
+        const onLoad = () => appStartFunc();
+        const removeStartListeners = () => {
+            document.removeEventListener("readystatechange", onReadyStateChange);
+            window.removeEventListener("load", onLoad);
+        };
+
         let isStarted = false;
         const appStartFunc = () => {
             if (isStarted)
                 return;
             isStarted = true;
+
+            removeStartListeners();
 
             app.run(context)
                 .then((navContext) => {
@@ -51,22 +63,8 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
                 });
         };
 
-        document.addEventListener("readystatechange", () => {
-            switch (document.readyState) {
-                case "loading":
-                    break;
-                case "interactive":
-                    appStartFunc();
-                    break;
-                case "complete":
-                    appStartFunc();
-                    break;
-            }
-        });
-
-        window.addEventListener("load", () => {
-            appStartFunc();
-        });
+        document.addEventListener("readystatechange", onReadyStateChange);
+        window.addEventListener("load", onLoad);
 
         if (document.readyState === "complete")
             appStartFunc();
