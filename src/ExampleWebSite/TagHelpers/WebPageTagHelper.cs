@@ -9,11 +9,11 @@ namespace ExampleWebSite.TagHelpers
     public class WebPageTagHelper : TagHelper
     {
         [ViewContext, HtmlAttributeNotBound]
-        public ViewContext ViewContext { get; set; }
+        public ViewContext ViewContext { get; set; } = null!;
         [HtmlAttributeName("title")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
         [HtmlAttributeName("header")]
-        public string Header { get; set; }
+        public string? Header { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

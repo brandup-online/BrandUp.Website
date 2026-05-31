@@ -19,7 +19,7 @@
                     <li><a asp-page="/Payment" class="applink">Способы оплаты</a></li>
                     <li><a asp-page="/Delivery" class="applink">Доставка</a></li>
                     <li><a asp-page="/Contacts" class="applink">Контакты</a></li>
-                    @if (User.Identity.IsAuthenticated)
+                    @if (User.Identity?.IsAuthenticated ?? false)
                     {
                         <li><a asp-area="Admin" asp-page="/Index" class="applink">Админка</a></li>
                         <li><a href="#" rel="nofollow" data-command="signout">Выход</a></li>

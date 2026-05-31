@@ -74,19 +74,19 @@ namespace ExampleWebSite.Controllers
         public class SitemapModel
         {
             [XmlElement("url")]
-            public List<SitemapUrl> Urls { get; set; }
+            public required List<SitemapUrl> Urls { get; set; }
         }
 
         public class SitemapUrl
         {
             [XmlElement("loc")]
-            public string Location { get; set; }
+            public required string Location { get; set; }
             [XmlElement("lastmod")]
-            public string LastMod { get; set; }
+            public required string LastMod { get; set; }
             [XmlElement("changefreq")]
-            public string ChangeFreq { get; set; }
+            public required string ChangeFreq { get; set; }
             [XmlElement("priority")]
-            public string Priority { get; set; }
+            public required string Priority { get; set; }
         }
 
         class XmlResult : ActionResult

@@ -6,13 +6,13 @@ namespace ExampleWebSite.Pages
     public class WebPageModel : AppPageModel
     {
         string title = "page";
-        string description = null;
-        string keywords = null;
-        string header = null;
+        string? description = null;
+        string? keywords = null;
+        string? header = null;
 
         public override string Title => title;
-        public override string Description => description;
-        public override string Keywords => keywords;
+        public override string? Description => description;
+        public override string? Keywords => keywords;
         public override string Header => header ?? title;
 
         protected override Task OnPageRequestAsync(PageRequestContext context)

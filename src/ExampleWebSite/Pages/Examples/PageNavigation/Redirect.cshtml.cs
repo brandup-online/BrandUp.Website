@@ -9,7 +9,7 @@ namespace ExampleWebSite.Pages.Examples.PageNavigation
 
         public IActionResult OnGet([FromQuery] bool replace, [FromQuery] bool reload)
         {
-            return PageRedirect(Url.Page("/About"), replace: replace, reload: reload);
+            return PageRedirect(Url.Page("/About") ?? "/", replace: replace, reload: reload);
         }
     }
 }

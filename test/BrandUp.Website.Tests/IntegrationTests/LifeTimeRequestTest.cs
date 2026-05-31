@@ -35,7 +35,7 @@ namespace BrandUp.Website.IntegrationTests
             using var response = await client.GetAsync("/delivery", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.PermanentRedirect, response.StatusCode);
-            Assert.Equal("/contacts", response.Headers.Location.OriginalString);
+            Assert.Equal("/contacts", response.Headers.Location!.OriginalString);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace BrandUp.Website.IntegrationTests
             using var response = await client.GetAsync("/contacts", TestContext.Current.CancellationToken);
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("text/html", response.Content.Headers.ContentType!.MediaType);
             Assert.False(response.Headers.Contains(PageConstants.HttpHeaderPageReload));
 
             var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -93,7 +93,7 @@ namespace BrandUp.Website.IntegrationTests
             var json = html[jsonStart..jsonEnd];
 
             using var doc = System.Text.Json.JsonDocument.Parse(json);
-            return doc.RootElement.GetProperty("state").GetString();
+            return doc.RootElement.GetProperty("state").GetString()!;
         }
 
         [Fact]

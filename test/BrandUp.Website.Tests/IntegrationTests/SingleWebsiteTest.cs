@@ -30,7 +30,7 @@ namespace BrandUp.Website.IntegrationTests
         // hosts that merely end with the configured host but are not real subdomains must not be served
         [InlineData("https://xlocalhost/", "/", HttpStatusCode.NotFound, null)]
         [InlineData("https://wwwlocalhost/", "/", HttpStatusCode.NotFound, null)]
-        public async Task Redirect_root(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
+        public async Task Redirect_root(string baseAddress, string path, HttpStatusCode statusCode, string? redirectUrl)
         {
             factory.ClientOptions.BaseAddress = new Uri(baseAddress);
             factory.ClientOptions.AllowAutoRedirect = false;
