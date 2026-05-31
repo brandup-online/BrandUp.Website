@@ -12,8 +12,8 @@ namespace BrandUp.Website
 
         public void Validate()
         {
-            var errors = GetValidationErrors().ToList();
-            if (errors.Count > 0)
+            var errors = GetValidationErrors().ToArray();
+            if (errors.Length > 0)
                 throw new System.InvalidOperationException(string.Join(" ", errors));
         }
 

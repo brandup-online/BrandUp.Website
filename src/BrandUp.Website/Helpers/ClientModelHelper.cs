@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace BrandUp.Website.Helpers
@@ -15,7 +16,7 @@ namespace BrandUp.Website.Helpers
             var clientProperties = types.GetOrAdd(sourceModel.GetType(), GetClientProperties);
             foreach (var clientProperty in clientProperties)
             {
-                var value = clientProperty.ModelProperty.GetValue(sourceModel);
+                var value = clientProperty.Getter(sourceModel);
                 if (value is Enum)
                     value = value.ToString();
 
@@ -30,7 +31,7 @@ namespace BrandUp.Website.Helpers
             var clientProperties = new List<ClientProperty>();
             var sourceByClientName = new Dictionary<string, string>(StringComparer.Ordinal);
 
-            var modelProperties = model.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty);
+            var modelProperties = model.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var propertyInfo in modelProperties)
             {
                 var attr = propertyInfo.GetCustomAttribute<ClientPropertyAttribute>();
@@ -47,12 +48,37 @@ namespace BrandUp.Website.Helpers
 
                 clientProperties.Add(new ClientProperty
                 {
-                    ModelProperty = propertyInfo,
+                    Getter = BuildGetter(propertyInfo),
                     ClientName = clientName
                 });
             }
 
             return clientProperties;
+        }
+
+        static Func<object, object?> BuildGetter(PropertyInfo property)
+        {
+            // Для доступных публичных свойств компилируем делегат (быстрее рефлексии),
+            // иначе (приватные/internal-типы) откатываемся на PropertyInfo.GetValue.
+            if (property.GetMethod is { IsPublic: true } && IsAccessible(property.DeclaringType))
+            {
+                var instance = Expression.Parameter(typeof(object), "instance");
+                var body = Expression.Convert(Expression.Property(Expression.Convert(instance, property.DeclaringType!), property), typeof(object));
+                return Expression.Lambda<Func<object, object?>>(body, instance).Compile();
+            }
+
+            return property.GetValue;
+        }
+
+        static bool IsAccessible(Type? type)
+        {
+            for (var current = type; current != null; current = current.DeclaringType)
+            {
+                if (current.IsNested ? !current.IsNestedPublic : !current.IsPublic)
+                    return false;
+            }
+
+            return true;
         }
 
         static string NormalizeName(string value)
@@ -65,7 +91,7 @@ namespace BrandUp.Website.Helpers
 
         class ClientProperty
         {
-            public required PropertyInfo ModelProperty { get; init; }
+            public required Func<object, object?> Getter { get; init; }
             public required string ClientName { get; init; }
         }
     }

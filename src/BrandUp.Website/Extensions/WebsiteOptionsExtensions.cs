@@ -16,7 +16,7 @@ namespace BrandUp.Website
             var section = configuration.GetSection(key);
 
             if (!section.Exists())
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Configuration section '{key}' is not found.");
 
             section.Bind(options);
 

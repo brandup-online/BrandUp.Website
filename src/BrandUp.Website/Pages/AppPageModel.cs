@@ -99,7 +99,7 @@ namespace BrandUp.Website.Pages
                                             JsonValueKind.String => kv.Value.GetString(),
                                             JsonValueKind.False or JsonValueKind.True => kv.Value.GetBoolean(),
                                             JsonValueKind.Null => null,
-                                            JsonValueKind.Number => kv.Value.GetInt64(),
+                                            JsonValueKind.Number => kv.Value.TryGetInt64(out var longValue) ? longValue : kv.Value.GetDouble(),
                                             _ => throw new InvalidOperationException("Unknown nav state value type."),
                                         };
                                         NavigationState.Add(kv.Key, value!);
