@@ -27,7 +27,7 @@ export interface NavigationModel {
     bodyClass: string | null;
     openGraph: PageOpenGraph | null;
     page: PageModel;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /** Свойства Open Graph: плоский словарь "имя свойства og:* → значение" (включая пользовательские). */
@@ -37,7 +37,7 @@ export interface PageOpenGraph {
 
 export interface PageModel {
     type: string | null;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface WebsiteNavigateData extends ContextData {
@@ -76,13 +76,13 @@ export interface PageDefinition extends PreloadingDefinition<PageScript> {
 export interface ComponentDefinition extends PreloadingDefinition<ComponentScript> {
 }
 
-export interface PreloadingDefinition<T = { default: any }> {
+export interface PreloadingDefinition<T = { default: unknown }> {
     factory: () => Promise<T>;
     preload?: boolean;
 }
 
-export type PageScript = { default: typeof Page | any };
-export type ComponentScript = { default: typeof UIElement | any };
+export type PageScript = { default: new (...args: any[]) => Page };
+export type ComponentScript = { default: new (...args: any[]) => UIElement };
 
 /** Состояние навигации в window.history.state */
 export interface HistoryState {
