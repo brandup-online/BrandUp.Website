@@ -1,4 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿using System.Text;
+using System.Text.Encodings.Web;
 using BrandUp.Website.Pages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -26,33 +27,41 @@ namespace BrandUp.Website.TagHelpers
             {
                 var outputContent = output.PreContent;
 
-                outputContent.AppendHtml($"{Environment.NewLine}    <meta charset=\"utf-8\" />{Environment.NewLine}");
+                var head = new StringBuilder();
 
-                outputContent.AppendHtml($"    <title>{Encode(appPageModel.Title)}</title>{Environment.NewLine}");
+                head.Append(Environment.NewLine).Append("    <meta charset=\"utf-8\" />").Append(Environment.NewLine);
+                head.Append("    <title>").Append(Encode(appPageModel.Title)).Append("</title>").Append(Environment.NewLine);
 
                 if (!string.IsNullOrEmpty(appPageModel.Description))
-                    outputContent.AppendHtml($"    <meta id=\"page-meta-description\" name=\"description\" content=\"{Encode(appPageModel.Description)}\">{Environment.NewLine}");
+                    head.Append("    <meta id=\"page-meta-description\" name=\"description\" content=\"").Append(Encode(appPageModel.Description)).Append("\">").Append(Environment.NewLine);
 
                 if (!string.IsNullOrEmpty(appPageModel.Keywords))
-                    outputContent.AppendHtml($"    <meta id=\"page-meta-keywords\" name=\"keywords\" content=\"{Encode(appPageModel.Keywords)}\">{Environment.NewLine}");
+                    head.Append("    <meta id=\"page-meta-keywords\" name=\"keywords\" content=\"").Append(Encode(appPageModel.Keywords)).Append("\">").Append(Environment.NewLine);
 
-                var canonicalLink = appPageModel.CanonicalLink;
-                if (canonicalLink == null)
-                    canonicalLink = appPageModel.Link;
-                outputContent.AppendHtml($"    <link id=\"page-link-canonical\" rel=\"canonical\" href=\"{Encode(canonicalLink?.ToString())}\">{Environment.NewLine}");
+                var canonicalLink = appPageModel.CanonicalLink ?? appPageModel.Link;
+                head.Append("    <link id=\"page-link-canonical\" rel=\"canonical\" href=\"").Append(Encode(canonicalLink?.ToString())).Append("\">").Append(Environment.NewLine);
 
                 var og = appPageModel.OpenGraph;
                 if (og != null)
                 {
-                    outputContent.AppendHtml($"    <meta id=\"og-type\" property=\"og:{OpenGraphProperties.Type}\" content=\"{Encode(og.Type)}\">{Environment.NewLine}");
-                    outputContent.AppendHtml($"    <meta id=\"og-image\" property=\"og:{OpenGraphProperties.Image}\" content=\"{Encode(og.Image?.ToString())}\">{Environment.NewLine}");
-                    outputContent.AppendHtml($"    <meta id=\"og-title\" property=\"og:{OpenGraphProperties.Title}\" content=\"{Encode(og.Title)}\">{Environment.NewLine}");
-                    outputContent.AppendHtml($"    <meta id=\"og-url\" property=\"og:{OpenGraphProperties.Url}\" content=\"{Encode(og.Url?.ToString())}\">{Environment.NewLine}");
-                    if (og.SiteName != null)
-                        outputContent.AppendHtml($"    <meta id=\"og-site_name\" property=\"og:{OpenGraphProperties.SiteName}\" content=\"{Encode(og.SiteName)}\" />{Environment.NewLine}");
-                    if (og.Description != null)
-                        outputContent.AppendHtml($"    <meta id=\"og-description\" property=\"og:{OpenGraphProperties.Description}\" content=\"{Encode(og.Description)}\" />{Environment.NewLine}");
+                    // Рендерим все свойства Open Graph, включая пользовательские, единообразно проверяя непустоту.
+                    foreach (var (name, value) in og.Items)
+                    {
+                        var content = value switch
+                        {
+                            null => null,
+                            Uri uri => uri.ToString(),
+                            _ => value.ToString()
+                        };
+                        if (string.IsNullOrEmpty(content))
+                            continue;
+
+                        var ogName = Encode(name);
+                        head.Append("    <meta id=\"og-").Append(ogName).Append("\" property=\"og:").Append(ogName).Append("\" content=\"").Append(Encode(content)).Append("\">").Append(Environment.NewLine);
+                    }
                 }
+
+                outputContent.AppendHtml(head.ToString());
 
                 var startupModel = await appPageModel.GetStartupClientModelAsync();
 

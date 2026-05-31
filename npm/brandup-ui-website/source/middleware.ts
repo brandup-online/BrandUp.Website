@@ -464,12 +464,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             MetaHelper.setMetadata("description", newNav.description);
             MetaHelper.setMetadata("keywords", newNav.keywords);
             MetaHelper.setCanonical(newNav.canonicalLink);
-            MetaHelper.setOG("type", newNav.openGraph?.type);
-            MetaHelper.setOG("title", newNav.openGraph?.title);
-            MetaHelper.setOG("image", newNav.openGraph?.image);
-            MetaHelper.setOG("url", newNav.openGraph?.url);
-            MetaHelper.setOG("site_name", newNav.openGraph?.siteName);
-            MetaHelper.setOG("description", newNav.openGraph?.description);
+            MetaHelper.setOpenGraph(newNav.openGraph);
 
             if (current?.model.bodyClass)
                 document.body.classList.remove(current.model.bodyClass);

@@ -14,6 +14,9 @@
                 Description = description;
         }
 
+        /// <summary>Все свойства Open Graph, включая пользовательские (ключ — нормализованное имя).</summary>
+        public IEnumerable<KeyValuePair<string, object?>> Items => items;
+
         public string Type { get => Get<string>(OpenGraphProperties.Type)!; set => Set(OpenGraphProperties.Type, value); }
         public Uri Image { get => Get<Uri>(OpenGraphProperties.Image)!; set => Set(OpenGraphProperties.Image, value); }
         public string Title { get => Get<string>(OpenGraphProperties.Title)!; set => Set(OpenGraphProperties.Title, value); }
@@ -61,17 +64,26 @@
             return items.Remove(NormalizeName(name));
         }
 
-        public ClientModels.OpenGraphModel CreateClientModel()
+        /// <summary>
+        /// Клиентская модель — плоский словарь "имя OG-свойства → значение", включая пользовательские свойства.
+        /// </summary>
+        public Dictionary<string, string> CreateClientModel()
         {
-            return new ClientModels.OpenGraphModel
+            var model = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            foreach (var (name, value) in items)
             {
-                Type = Type,
-                Image = Image,
-                Title = Title,
-                Url = Url,
-                SiteName = SiteName,
-                Description = Description
-            };
+                var content = value switch
+                {
+                    null => null,
+                    Uri uri => uri.ToString(),
+                    _ => value.ToString()
+                };
+                if (!string.IsNullOrEmpty(content))
+                    model[name] = content;
+            }
+
+            return model;
         }
 
         static string NormalizeName(string name)

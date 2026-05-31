@@ -30,13 +30,9 @@ export interface NavigationModel {
     [key: string]: any;
 }
 
+/** Свойства Open Graph: плоский словарь "имя свойства og:* → значение" (включая пользовательские). */
 export interface PageOpenGraph {
-    type: string;
-    image: string;
-    title: string;
-    url: string;
-    siteName: string;
-    description: string;
+    [name: string]: string;
 }
 
 export interface PageModel {
