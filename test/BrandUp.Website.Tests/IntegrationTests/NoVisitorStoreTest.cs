@@ -23,8 +23,11 @@ namespace BrandUp.Website.IntegrationTests
         [InlineData("https://www.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
-        [InlineData("https://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
-        [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        // www-strip removes only the "www." prefix; alias canonicalization is a separate hop
+        [InlineData("https://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://alias.ru/")]
+        [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://alias.ru/")]
+        // www-strip preserves nested subdomains instead of collapsing to the base host
+        [InlineData("https://www.msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://msk.localhost/")]
         public async Task Redirect_root(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
         {
             factory.ClientOptions.BaseAddress = new Uri(baseAddress);

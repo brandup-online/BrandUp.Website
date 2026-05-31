@@ -74,8 +74,12 @@ namespace BrandUp.Website.IntegrationTests
         [InlineData("https://www.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
-        [InlineData("https://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
-        [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        // www-strip removes only the "www." prefix; alias canonicalization is a separate hop
+        [InlineData("https://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://alias.ru/")]
+        [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://alias.ru/")]
+        // www-strip preserves nested subdomains instead of collapsing to the base host
+        [InlineData("https://www.msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://msk.localhost/")]
+        [InlineData("http://www.msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://msk.localhost/")]
         [InlineData("http://msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         public async Task Redirect_root(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
@@ -96,8 +100,9 @@ namespace BrandUp.Website.IntegrationTests
         [InlineData("https://www.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
         [InlineData("https://alias.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
         [InlineData("http://alias.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
-        [InlineData("https://www.alias.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
-        [InlineData("http://www.alias.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
+        [InlineData("https://www.alias.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://alias.ru/catalog/elki/")]
+        [InlineData("http://www.alias.ru/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://alias.ru/catalog/elki/")]
+        [InlineData("https://www.msk.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://msk.localhost/catalog/elki/")]
         [InlineData("http://msk.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
         [InlineData("https://msk.localhost/", "/catalog/elki/", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/")]
         public async Task Redirect_path(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)
@@ -118,8 +123,8 @@ namespace BrandUp.Website.IntegrationTests
         [InlineData("https://www.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
         [InlineData("https://alias.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
         [InlineData("http://alias.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
-        [InlineData("https://www.alias.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
-        [InlineData("http://www.alias.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
+        [InlineData("https://www.alias.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://alias.ru/catalog/elki/?page=10")]
+        [InlineData("http://www.alias.ru/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://alias.ru/catalog/elki/?page=10")]
         [InlineData("http://msk.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
         [InlineData("https://msk.localhost/", "/catalog/elki/?page=10", HttpStatusCode.MovedPermanently, "https://localhost/catalog/elki/?page=10")]
         public async Task Redirect_path_and_query(string baseAddress, string path, HttpStatusCode statusCode, string redirectUrl)

@@ -23,8 +23,13 @@ namespace BrandUp.Website.IntegrationTests
         [InlineData("https://www.localhost/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("https://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
         [InlineData("http://alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
-        [InlineData("https://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
-        [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://localhost/")]
+        // www-strip only removes the "www." prefix; alias canonicalization happens on the next hop
+        [InlineData("https://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://alias.ru/")]
+        [InlineData("http://www.alias.ru/", "/", HttpStatusCode.MovedPermanently, "https://alias.ru/")]
+        // www-strip must preserve nested subdomains (www.msk.localhost → msk.localhost), not collapse to the base host
+        [InlineData("https://www.msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://msk.localhost/")]
+        [InlineData("http://www.msk.localhost/", "/", HttpStatusCode.MovedPermanently, "https://msk.localhost/")]
+        [InlineData("https://www.msk.localhost/", "/catalog?page=2", HttpStatusCode.MovedPermanently, "https://msk.localhost/catalog?page=2")]
         [InlineData("http://msk.localhost/", "/", HttpStatusCode.NotFound, null)]
         [InlineData("https://msk.localhost/", "/", HttpStatusCode.NotFound, null)]
         // hosts that merely end with the configured host but are not real subdomains must not be served
