@@ -28,6 +28,7 @@ namespace BrandUp.Website.Helpers
             ArgumentNullException.ThrowIfNull(model);
 
             var clientProperties = new List<ClientProperty>();
+            var sourceByClientName = new Dictionary<string, string>(StringComparer.Ordinal);
 
             var modelProperties = model.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty);
             foreach (var propertyInfo in modelProperties)
@@ -40,10 +41,14 @@ namespace BrandUp.Website.Helpers
                 if (!string.IsNullOrEmpty(attr.Name))
                     name = attr.Name;
 
+                var clientName = NormalizeName(name);
+                if (!sourceByClientName.TryAdd(clientName, propertyInfo.Name))
+                    throw new InvalidOperationException($"Client property name '{clientName}' on type '{model.FullName}' is defined by both '{sourceByClientName[clientName]}' and '{propertyInfo.Name}'.");
+
                 clientProperties.Add(new ClientProperty
                 {
                     ModelProperty = propertyInfo,
-                    ClientName = NormalizeName(name)
+                    ClientName = clientName
                 });
             }
 
@@ -55,7 +60,7 @@ namespace BrandUp.Website.Helpers
             if (string.IsNullOrEmpty(value))
                 throw new ArgumentNullException(nameof(value));
 
-            return value[..1].ToLower() + value[1..];
+            return value[..1].ToLowerInvariant() + value[1..];
         }
 
         class ClientProperty

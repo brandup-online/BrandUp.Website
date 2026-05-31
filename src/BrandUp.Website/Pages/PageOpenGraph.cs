@@ -76,7 +76,7 @@
 
         static string NormalizeName(string name)
         {
-            return name.Trim().ToLower();
+            return name.Trim().ToLowerInvariant();
         }
     }
 
