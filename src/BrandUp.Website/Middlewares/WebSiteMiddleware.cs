@@ -37,10 +37,12 @@ namespace BrandUp.Website.Middlewares
             var requestHost = request.Host.Host.ToLower();
             var isLocalIp = isLocalhost && request.Host.Host.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase);
 
-            // Redirect by www subdomain.
+            // Redirect by www subdomain. Срезаем только префикс "www.", сохраняя
+            // остальные поддомены (www.msk.example.com → msk.example.com); каноникализация
+            // алиаса/схемы выполняется на следующем проходе пайплайна.
             if (!isLocalIp && requestHost.StartsWith("www.", StringComparison.InvariantCultureIgnoreCase))
             {
-                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, requestHost[4..]), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                 context.Response.StatusCode = 301;
                 context.Response.Headers.Location = redirectUrl;
