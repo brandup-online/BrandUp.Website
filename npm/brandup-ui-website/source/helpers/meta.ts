@@ -38,8 +38,26 @@ const setOG = (name: "type" | "title" | "image" | "url" | "site_name" | "descrip
         elem.remove();
 }
 
+const setOpenGraph = (props: { [name: string]: string } | null | undefined) => {
+    // Удаляем все управляемые нами og-теги и проставляем новый набор —
+    // так поддерживаются произвольные (в т.ч. пользовательские) свойства Open Graph.
+    document.head.querySelectorAll("meta[property^=\"og:\"]").forEach(elem => elem.remove());
+
+    if (!props)
+        return;
+
+    for (const name in props) {
+        const value = props[name];
+        if (!value)
+            continue;
+
+        document.head.appendChild(DOM.tag("meta", { id: `og-${name}`, property: `og:${name}`, content: value }));
+    }
+}
+
 export {
     setMetadata,
     setCanonical,
-    setOG
+    setOG,
+    setOpenGraph
 }
