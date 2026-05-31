@@ -22,7 +22,7 @@ namespace ExampleWebSite.Repositories
                 using var dataFileStream = dataFile.CreateReadStream();
                 using var streamReader = new StreamReader(dataFileStream);
                 using var jsonReader = new JsonTextReader(streamReader);
-                foreach (var item in serializer.Deserialize<City[]>(jsonReader))
+                foreach (var item in serializer.Deserialize<City[]>(jsonReader) ?? [])
                     AddWebsite(item);
             }
         }
@@ -51,27 +51,27 @@ namespace ExampleWebSite.Repositories
 
         #region IWebsiteStore members
 
-        Task<IWebsite> IWebsiteStore.FindByIdAsync(string id)
+        Task<IWebsite?> IWebsiteStore.FindByIdAsync(string id)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
             if (!ids.TryGetValue(NormalizeIdentifier(id), out int index))
-                return Task.FromResult<IWebsite>(null);
+                return Task.FromResult<IWebsite?>(null);
 
-            return Task.FromResult<IWebsite>(items[index]);
+            return Task.FromResult<IWebsite?>(items[index]);
         }
-        Task<IWebsite> IWebsiteStore.FindByNameAsync(string name)
+        Task<IWebsite?> IWebsiteStore.FindByNameAsync(string name)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
 
             if (!names.TryGetValue(NormalizeIdentifier(name), out int index))
-                return Task.FromResult<IWebsite>(null);
+                return Task.FromResult<IWebsite?>(null);
 
-            return Task.FromResult<IWebsite>(items[index]);
+            return Task.FromResult<IWebsite?>(items[index]);
         }
-        Task<string[]> IWebsiteStore.GetAliasesAsync(IWebsite website)
+        Task<string[]?> IWebsiteStore.GetAliasesAsync(IWebsite website)
         {
             if (website == null)
                 throw new ArgumentNullException(nameof(website));
@@ -84,8 +84,8 @@ namespace ExampleWebSite.Repositories
             var w = website as City ?? throw new ArgumentException();
             var timeZone = w.TimeZone ?? "Europe/Moscow";
 
-            if (!TimeZoneConverter.TZConvert.TryIanaToWindows(timeZone, out string windowsTimeZoneId))
-                return Task.FromResult<TimeZoneInfo>(null);
+            if (!TimeZoneConverter.TZConvert.TryIanaToWindows(timeZone, out var windowsTimeZoneId))
+                throw new InvalidOperationException($"Unknown IANA time zone '{timeZone}'.");
 
             return Task.FromResult(TimeZoneConverter.TZConvert.GetTimeZoneInfo(windowsTimeZoneId));
         }
@@ -99,9 +99,9 @@ namespace ExampleWebSite.Repositories
         public string Id { get; set; }
         public string Name { get; set; }
         public string Title { get; set; }
-        public string[] NameAliases { get; set; }
-        public string TitleWhere { get; set; }
-        public string TitleWherePre { get; set; }
+        public string[]? NameAliases { get; set; }
+        public string? TitleWhere { get; set; }
+        public string? TitleWherePre { get; set; }
         public string TimeZone { get; set; }
 
         public City(string id, string name, string title, string timeZone)

@@ -10,10 +10,10 @@ namespace ExampleWebSite.Pages.Examples.PageSubmit
         public override string ScriptName => "example-submit";
 
         [BindProperty, Required]
-        public string Key { get; set; }
+        public string Key { get; set; } = null!;
 
         [BindProperty]
-        public string Value { get; set; }
+        public string? Value { get; set; }
 
         public bool IsSaved { get; private set; }
 
@@ -38,12 +38,12 @@ namespace ExampleWebSite.Pages.Examples.PageSubmit
 
         public IActionResult OnPostInternalRedirect()
         {
-            return PageRedirect(Url.Page("/Index"));
+            return PageRedirect(Url.Page("/Index") ?? "/");
         }
 
         public IActionResult OnPostInternalRedirectReload()
         {
-            return PageRedirect(Url.Page("/Index"), reload: true);
+            return PageRedirect(Url.Page("/Index") ?? "/", reload: true);
         }
 
         public IActionResult OnPostExtenalRedirect()

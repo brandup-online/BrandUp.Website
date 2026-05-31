@@ -12,14 +12,14 @@ namespace ExampleWebSite.Pages
         public override string Keywords => Title;
 
         [FromQuery]
-        public string ReturnUrl { get; set; }
+        public string? ReturnUrl { get; set; }
         [BindProperty]
-        public string Value { get; set; }
+        public string? Value { get; set; }
 
         public IActionResult OnPostRedirect()
         {
             if (string.IsNullOrEmpty(ReturnUrl))
-                ReturnUrl = Url.Page("/Contacts");
+                ReturnUrl = Url.Page("/Contacts") ?? "/";
 
             return PageRedirect(ReturnUrl);
         }

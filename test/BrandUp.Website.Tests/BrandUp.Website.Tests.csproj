@@ -6,8 +6,6 @@
     <IsPackable>false</IsPackable>
 
     <RootNamespace>BrandUp.Website</RootNamespace>
-
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

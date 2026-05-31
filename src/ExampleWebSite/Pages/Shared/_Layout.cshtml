@@ -33,7 +33,7 @@
 
         </ul>
         <ul class="user">
-          @if (User.Identity.IsAuthenticated)
+          @if (User.Identity?.IsAuthenticated ?? false)
           {
             <li><a href="#" rel="nofollow" data-command="signout" class="button">Sign out</a></li>
           }

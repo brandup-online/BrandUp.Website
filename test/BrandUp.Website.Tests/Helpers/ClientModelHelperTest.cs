@@ -72,10 +72,10 @@
             public TestColor Color { get; set; }
 
             [ClientProperty(Name = "CustomName")]
-            public string Renamed { get; set; }
+            public string? Renamed { get; set; }
 
             [ClientProperty]
-            public string Text { get; set; } = "value";
+            public string? Text { get; set; } = "value";
 
             public string Ignored { get; set; } = "x";
         }
