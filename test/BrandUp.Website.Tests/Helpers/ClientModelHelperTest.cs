@@ -94,6 +94,28 @@
             Assert.Contains("name", ex.Message);
         }
 
+        [Fact]
+        public void PublicProperty_IsCopiedViaCompiledGetter()
+        {
+            var model = new PublicClientModel { Number = 7 };
+            var properties = new Dictionary<string, object>();
+
+            ClientModelHelper.CopyProperties(model, properties);
+
+            Assert.Equal(7, properties["number"]);
+        }
+
+        [Fact]
+        public void NonPublicProperty_IsCopiedViaReflectionFallback()
+        {
+            var model = new NonPublicPropModel(42);
+            var properties = new Dictionary<string, object>();
+
+            ClientModelHelper.CopyProperties(model, properties);
+
+            Assert.Equal(42, properties["secret"]);
+        }
+
         enum TestColor { Red, Green }
 
         class InvariantNameModel
@@ -127,5 +149,18 @@
 
             public string Ignored { get; set; } = "x";
         }
+
+        class NonPublicPropModel(int secret)
+        {
+            [ClientProperty]
+            internal int Secret { get; } = secret;
+        }
+    }
+
+    // Публичный тип верхнего уровня — для проверки скомпилированного геттера (не fallback).
+    public class PublicClientModel
+    {
+        [ClientProperty]
+        public int Number { get; set; }
     }
 }

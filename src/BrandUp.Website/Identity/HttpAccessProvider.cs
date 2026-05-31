@@ -20,11 +20,6 @@ namespace BrandUp.Website.Identity
         }
 
         private static bool IsAuthenticated(HttpContext? httpContext)
-        {
-            if (httpContext == null)
-                throw new ArgumentNullException(nameof(httpContext));
-
-            return httpContext.User?.Identity?.IsAuthenticated ?? false;
-        }
+            => httpContext?.User?.Identity?.IsAuthenticated ?? false;
     }
 }
