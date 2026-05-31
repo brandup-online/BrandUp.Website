@@ -70,8 +70,11 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 request.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
         };
 
-        window.addEventListener("scroll", () => {
-            let state: HistoryState | null = window.history.state;
+        let scrollSaveScheduled = false;
+        const saveScrollState = () => {
+            scrollSaveScheduled = false;
+
+            const state: HistoryState | null = window.history.state;
             if (!this.__current || !state?.brandup_website)
                 return;
 
@@ -79,6 +82,16 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 state.brandup_website.scroll = { x: window.scrollX, y: window.scrollY };
                 window.history.replaceState(state, "");
             }
+        };
+
+        window.addEventListener("scroll", () => {
+            // Троттлим запись состояния: не чаще одного replaceState на 150 мс,
+            // позиция читается в момент срабатывания таймера (актуальная).
+            if (scrollSaveScheduled)
+                return;
+
+            scrollSaveScheduled = true;
+            window.setTimeout(saveScrollState, 150);
         }, { passive: true });
 
         return next();
@@ -154,7 +167,9 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 fixElem.insertAdjacentHTML("beforebegin", response.data);
                 fixElem.remove();
 
-                const navJsonElem = <HTMLScriptElement>navContent.getElementById(navDataElemId);
+                const navJsonElem = <HTMLScriptElement | null>navContent.getElementById(navDataElemId);
+                if (!navJsonElem)
+                    throw new Error('Not found navigation data.');
                 navModel = JSON.parse(navJsonElem.text);
                 navJsonElem.remove();
 
@@ -371,8 +386,11 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             if (newNav)
                 this.__setNavigation(context, current, newNav, page);
-            else if (current)
+            else if (current) {
+                if (current.page !== page)
+                    current.page.destroy();
                 current.page = page;
+            }
         }
         catch (reason) {
             if (page)
@@ -499,8 +517,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     private __loaderElem: HTMLElement | null = null;
     private __progressInterval: number = 0;
     private __progressTimeout: number = 0;
+    private __progressShowTimeout: number = 0;
     private __progressStart: number = 0;
     private __showNavigationProgress() {
+        window.clearTimeout(this.__progressShowTimeout);
         window.clearTimeout(this.__progressTimeout);
         window.clearTimeout(this.__progressInterval);
 
@@ -510,7 +530,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         this.__loaderElem.classList.remove("show", "finish");
         this.__loaderElem.style.width = "0%";
 
-        window.setTimeout(() => {
+        this.__progressShowTimeout = window.setTimeout(() => {
             if (!this.__loaderElem)
                 return;
 
@@ -534,6 +554,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         if (d < 0)
             d = 0;
 
+        window.clearTimeout(this.__progressShowTimeout);
         window.clearTimeout(this.__progressTimeout);
         this.__progressTimeout = window.setTimeout(() => {
             window.clearTimeout(this.__progressInterval);

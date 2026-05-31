@@ -45,6 +45,7 @@ const run = (options: WebsiteOptions, configure: (builder: ApplicationBuilder<We
                     resolve(navContext);
                 })
                 .catch(reason => {
+                    current = null;
                     console.error(`website run error: ${reason}`);
                     reject(reason);
                 });
