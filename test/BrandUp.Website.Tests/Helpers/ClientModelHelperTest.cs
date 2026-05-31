@@ -61,7 +61,55 @@
             Assert.Null(properties["text"]);
         }
 
+        [Fact]
+        public void Name_IsCamelCasedWithInvariantCulture()
+        {
+            // В культуре tr-TR "I".ToLower() даёт "ı"; нормализация имени должна быть инвариантной.
+            var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("tr-TR");
+
+                var model = new InvariantNameModel();
+                var properties = new Dictionary<string, object>();
+
+                ClientModelHelper.CopyProperties(model, properties);
+
+                Assert.True(properties.ContainsKey("id"));
+                Assert.False(properties.ContainsKey("ıd"));
+            }
+            finally
+            {
+                System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+            }
+        }
+
+        [Fact]
+        public void DuplicateClientName_Throws()
+        {
+            var model = new DuplicateNameModel();
+            var properties = new Dictionary<string, object>();
+
+            var ex = Assert.Throws<InvalidOperationException>(() => ClientModelHelper.CopyProperties(model, properties));
+            Assert.Contains("name", ex.Message);
+        }
+
         enum TestColor { Red, Green }
+
+        class InvariantNameModel
+        {
+            [ClientProperty]
+            public int Id { get; set; }
+        }
+
+        class DuplicateNameModel
+        {
+            [ClientProperty]
+            public string? Name { get; set; }
+
+            [ClientProperty(Name = "name")]
+            public string? Other { get; set; }
+        }
 
         class TestClientModel
         {

@@ -135,7 +135,7 @@ namespace BrandUp.Website.Pages
                         NavigationState.Add(NavStateKey_Version, websiteVersion.GetVersion().ToString());
 
                         RouteData.TryGetAreaName(out string areaName);
-                        NavigationState.Add(NavStateKey_Area, areaName?.ToLower() ?? string.Empty);
+                        NavigationState.Add(NavStateKey_Area, areaName?.ToLowerInvariant() ?? string.Empty);
 
                         break;
                     }

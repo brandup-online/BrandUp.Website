@@ -21,7 +21,7 @@ namespace BrandUp.Website.Middlewares
             this.next = next ?? throw new ArgumentNullException(nameof(next));
             this.webSiteOptions = webSiteOptions ?? throw new ArgumentNullException(nameof(webSiteOptions));
 
-            webSiteHost = this.webSiteOptions.Value.Host.ToLower();
+            webSiteHost = this.webSiteOptions.Value.Host.ToLowerInvariant();
             isLocalhost = webSiteHost.Equals(Localhost, StringComparison.InvariantCultureIgnoreCase);
         }
 
@@ -34,7 +34,7 @@ namespace BrandUp.Website.Middlewares
             var websiteProvider = context.RequestServices.GetRequiredService<IUrlMapProvider>();
 
             var request = context.Request;
-            var requestHost = request.Host.Host.ToLower();
+            var requestHost = request.Host.Host.ToLowerInvariant();
             var isLocalIp = isLocalhost && request.Host.Host.Equals("127.0.0.1", StringComparison.InvariantCultureIgnoreCase);
 
             // Redirect by www subdomain. Срезаем только префикс "www.", сохраняя
@@ -42,7 +42,7 @@ namespace BrandUp.Website.Middlewares
             // алиаса/схемы выполняется на следующем проходе пайплайна.
             if (!isLocalIp && requestHost.StartsWith("www.", StringComparison.InvariantCultureIgnoreCase))
             {
-                var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, requestHost[4..]), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                var redirectUrl = UriHelper.BuildAbsolute(scheme: ResolveScheme(request), host: ReplaceHost(request.Host, requestHost[4..]), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                 context.Response.StatusCode = 301;
                 context.Response.Headers.Location = redirectUrl;
@@ -66,7 +66,7 @@ namespace BrandUp.Website.Middlewares
                                 return;
                             }
 
-                            var redirectUrl = UriHelper.BuildAbsolute(scheme: "https", host: ReplaceHost(request.Host, webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                            var redirectUrl = UriHelper.BuildAbsolute(scheme: ResolveScheme(request), host: ReplaceHost(request.Host, webSiteHost), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                             context.Response.StatusCode = 301;
                             context.Response.Headers.Location = redirectUrl;
@@ -101,12 +101,8 @@ namespace BrandUp.Website.Middlewares
                 {
                     if (string.Equals(websiteName, alias, StringComparison.OrdinalIgnoreCase))
                     {
-                        var scheme = request.Scheme;
-                        if (needRedirectToHttps && webSiteOptions.Value.RedirectToHttps)
-                            scheme = "https";
-
                         var newHostValue = (!string.IsNullOrEmpty(website.Name) ? website.Name + "." : "") + webSiteHost;
-                        var redirectUrl = UriHelper.BuildAbsolute(scheme: scheme, host: ReplaceHost(request.Host, newHostValue), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
+                        var redirectUrl = UriHelper.BuildAbsolute(scheme: ResolveScheme(request), host: ReplaceHost(request.Host, newHostValue), pathBase: request.PathBase, path: request.Path, query: request.QueryString);
 
                         context.Response.StatusCode = 301;
                         context.Response.Headers.Location = redirectUrl;
@@ -145,6 +141,9 @@ namespace BrandUp.Website.Middlewares
 
             await next(context);
         }
+
+        string ResolveScheme(HttpRequest request)
+            => request.Scheme == "http" && webSiteOptions.Value.RedirectToHttps ? "https" : request.Scheme;
 
         static HostString ReplaceHost(HostString current, string newHostValue)
         {

@@ -15,7 +15,7 @@ namespace BrandUp.Website
                 return false;
             }
 
-            value = values[0];
+            value = values.Count > 0 ? values[0] : null;
             return true;
         }
 
@@ -30,7 +30,7 @@ namespace BrandUp.Website
                 return false;
             }
 
-            value = values[0];
+            value = values.Count > 0 ? values[0] : null;
             return true;
         }
     }
