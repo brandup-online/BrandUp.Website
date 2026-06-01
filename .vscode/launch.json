@@ -8,7 +8,7 @@
             "name": ".NET: ExampleWebSite",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build-example",
+            "preLaunchTask": "launch-example",
             "program": "${workspaceFolder}/src/ExampleWebSite/bin/Debug/net10.0/ExampleWebSite.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/ExampleWebSite",
