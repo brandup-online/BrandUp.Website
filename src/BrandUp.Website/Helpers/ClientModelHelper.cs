@@ -6,14 +6,14 @@ namespace BrandUp.Website.Helpers
 {
     public static class ClientModelHelper
     {
-        readonly static ConcurrentDictionary<Type, List<ClientProperty>> types = new();
+        readonly static ConcurrentDictionary<Type, Lazy<List<ClientProperty>>> types = new();
 
         public static void CopyProperties(object sourceModel, IDictionary<string, object> destinationData)
         {
             ArgumentNullException.ThrowIfNull(sourceModel);
             ArgumentNullException.ThrowIfNull(destinationData);
 
-            var clientProperties = types.GetOrAdd(sourceModel.GetType(), GetClientProperties);
+            var clientProperties = types.GetOrAdd(sourceModel.GetType(), static t => new Lazy<List<ClientProperty>>(() => GetClientProperties(t))).Value;
             foreach (var clientProperty in clientProperties)
             {
                 var value = clientProperty.Getter(sourceModel);

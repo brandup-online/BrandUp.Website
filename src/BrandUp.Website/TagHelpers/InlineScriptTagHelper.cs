@@ -44,12 +44,16 @@ namespace BrandUp.Website.TagHelpers
 
 		string? ReadCached(string relativePath)
 		{
+			var cacheKey = CacheKeyPrefix + relativePath;
+			if (cache.TryGetValue(cacheKey, out string? cached))
+				return cached;
+
 			var fileProvider = environment.WebRootFileProvider;
 			var fileInfo = fileProvider.GetFileInfo(relativePath);
 			if (!fileInfo.Exists)
 				return null;
 
-			return cache.GetOrCreate(CacheKeyPrefix + relativePath, entry =>
+			return cache.GetOrCreate(cacheKey, entry =>
 			{
 				// Сбрасываем запись, как только файл изменится или будет удалён.
 				entry.AddExpirationToken(fileProvider.Watch(relativePath));

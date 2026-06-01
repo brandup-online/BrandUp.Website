@@ -13,6 +13,7 @@ namespace BrandUp.Website.Pages
     {
         IWebsiteEvents? websiteEvents;
         IPageEvents? pageEvents;
+        IDataProtector? _protector;
 
         public const string NavStateKey_Version = "_version";
         public const string NavStateKey_Area = "_area";
@@ -84,8 +85,7 @@ namespace BrandUp.Website.Pages
 
                         if (navigationData != null)
                         {
-                            var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-                            var protector = protectionProvider.CreateProtector(webSiteOptions.Value.ProtectionPurpose);
+                            var protector = GetProtector();
 
                             try
                             {
@@ -102,7 +102,8 @@ namespace BrandUp.Website.Pages
                                             JsonValueKind.Number => kv.Value.TryGetInt64(out var longValue) ? longValue : kv.Value.GetDouble(),
                                             _ => throw new InvalidOperationException("Unknown nav state value type."),
                                         };
-                                        NavigationState.Add(kv.Key, value!);
+                                        if (value is not null)
+                                            NavigationState.Add(kv.Key, value);
                                     }
 
                                     if (!NavigationState.TryGetValue(NavStateKey_Version, out object? versionValue) || versionValue == null || !Version.TryParse(versionValue.ToString(), out var navVersion) || navVersion != websiteVersion.GetVersion())
@@ -209,9 +210,8 @@ namespace BrandUp.Website.Pages
         {
             var httpContext = HttpContext;
             var httpRequest = httpContext.Request;
-            var protectionProvider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
             var websiteFeature = HttpContext.Features.Get<IWebsiteFeature>() ?? throw new InvalidOperationException($"Is not defined {nameof(IWebsiteFeature)} in HttpContext features.");
-            var protector = protectionProvider.CreateProtector(websiteFeature.Options.ProtectionPurpose);
+            var protector = GetProtector();
 
             var navModel = new ClientModels.NavigationModel
             {
@@ -300,6 +300,17 @@ namespace BrandUp.Website.Pages
         }
 
         #endregion
+
+        IDataProtector GetProtector()
+        {
+            if (_protector is null)
+            {
+                var provider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
+                var options = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
+                _protector = provider.CreateProtector(options.Value.ProtectionPurpose);
+            }
+            return _protector;
+        }
 
         public Results.PageRedirectResult PageRedirect(string pageUrl, bool isPermanent = false, bool replace = false, bool reload = false)
         {
