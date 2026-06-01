@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -7,24 +7,11 @@ const TerserPlugin = require("terser-webpack-plugin");
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const bundleOutputDir = '../../src/ExampleWebSite/wwwroot/dist';
 
-const lessLoaderOptions = { webpackImporter: true, lessOptions: { math: 'always', plugins: [new CleanCSSPlugin({ advanced: false })] } };
-var splitChunks = {
-    cacheGroups: {
-        vendors: {
-            test: /[\\/]node_modules[\\/]/,
-            reuseExistingChunk: false,
-            enforce: true
-        },
-        styles: {
-            test: /\.(css|scss|less)$/, // нужно чтобы import`ы на одинаковые файла less не дублировались на выходе
-            reuseExistingChunk: false,
-            enforce: true
-        },
-        images: {
-            test: /\.(svg|jpg|png)$/,
-            reuseExistingChunk: false,
-            enforce: true
-        }
+const lessLoaderOptions = {
+    webpackImporter: true,
+    lessOptions: {
+        math: 'always',
+        plugins: [new CleanCSSPlugin({ advanced: false })]
     }
 };
 
@@ -35,13 +22,14 @@ module.exports = (env) => {
     console.log(`isDevBuild: ${isDevBuild}`);
 
     return [{
+        mode: isDevBuild ? 'development' : 'production',
         entry: {
             app: path.resolve(__dirname, 'src', 'index.ts')
         },
         resolve: {
             cache: true,
             extensions: ['.js', '.jsx', '.ts', '.tsx', '.less'],
-            modules: [path.resolve(__dirname, 'node_modules')]
+            modules: [path.resolve(__dirname, 'node_modules'), 'node_modules']
         },
         output: {
             path: path.join(__dirname, bundleOutputDir),
@@ -74,30 +62,43 @@ module.exports = (env) => {
                 {
                     test: /\.html$/,
                     include: /pages/,
-                    use: [{ loader: "raw-loader" }]
+                    type: 'asset/source'
                 },
                 {
                     test: /\.svg$/,
-                    use: [
-                        { loader: "raw-loader" },
-                        {
-                            loader: "svgo-loader",
-                            options: {
-                                configFile: __dirname + "/svgo.config.mjs",
-                                floatPrecision: 2,
-                            }
-                        }
-                    ]
+                    type: 'asset/source'
                 },
                 {
                     test: /\.(png|jpg|jpeg|gif)$/,
-                    use: 'url-loader?limit=25000'
+                    type: 'asset',
+                    parser: {
+                        dataUrlCondition: { maxSize: 25000 }
+                    }
                 }
             ]
         },
         optimization: {
             runtimeChunk: 'single',
-            splitChunks: splitChunks,
+            splitChunks: {
+                chunks: 'all',
+                cacheGroups: {
+                    vendors: {
+                        test: /[\\/]node_modules[\\/]/,
+                        reuseExistingChunk: false,
+                        enforce: true
+                    },
+                    styles: {
+                        test: /\.(css|scss|less)$/,
+                        reuseExistingChunk: false,
+                        enforce: true
+                    },
+                    images: {
+                        test: /\.(svg|jpg|png)$/,
+                        reuseExistingChunk: false,
+                        enforce: true
+                    }
+                }
+            },
             minimize: !isDevBuild,
             minimizer: [
                 new TerserPlugin({
@@ -107,15 +108,12 @@ module.exports = (env) => {
                         keep_fnames: false,
                         format: {
                             comments: false
-                        },
-                        sourceMap: false
+                        }
                     },
                     extractComments: false
                 })
             ],
-            removeAvailableModules: false,
             removeEmptyChunks: true,
-            providedExports: false,
             usedExports: true
         },
         plugins: [

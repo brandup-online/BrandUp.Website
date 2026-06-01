@@ -14,7 +14,7 @@ module.exports = {
     [
       "@babel/preset-env", {
         useBuiltIns: "usage",
-        corejs: "3.37.1",
+        corejs: "3",
         // targets берётся из .browserslistrc (единый источник истины)
         debug: false
       }

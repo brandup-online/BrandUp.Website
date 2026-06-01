@@ -3,18 +3,17 @@ const plugins = [
     '@babel/plugin-transform-runtime', {
       absoluteRuntime: false,
       corejs: false,
-      helpers: true,
-      useESModules: true
+      helpers: true
     }
   ]
-]; // '@babel/plugin-transform-runtime'
+];
 
 module.exports = {
   presets: [
     [
       "@babel/preset-env", {
         useBuiltIns: "usage",
-        corejs: "3.37.1",
+        corejs: "3",
         // targets берётся из .browserslistrc (единый источник истины)
         debug: false
       }

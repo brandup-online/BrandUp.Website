@@ -3,9 +3,9 @@ import FormPage from "../form";
 import "./navigation.less";
 
 class ExampleNavigationPage extends FormPage<PageModel> {
-    get typeName(): string { return "Example.SubmitPage" }
+    override get typeName(): string { return "Example.SubmitPage" }
 
-    protected async onRenderContent() {
+    protected override async onRenderContent() {
         await super.onRenderContent();
 
         this.registerCommand("reload", () => {
