@@ -1,11 +1,11 @@
-﻿import { PageHashAction, PageHashChangedEvent, PageModel, PAGE_HASHCHANGED_EVENT } from "@brandup/ui-website";
+import { PageHashChangedEvent, PageModel, PAGE_HASHCHANGED_EVENT } from "@brandup/ui-website";
 import PageBase from "../base";
 import "./navigation.less";
 
 class ExampleNavigationPage extends PageBase<PageModel> {
-    get typeName(): string { return "Example.NavigationPage" }
+    override get typeName(): string { return "Example.NavigationPage" }
 
-    protected async onRenderContent() {
+    protected override async onRenderContent() {
         await super.onRenderContent();
 
         console.log("render page");

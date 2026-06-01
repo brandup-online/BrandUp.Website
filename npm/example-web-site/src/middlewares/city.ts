@@ -3,7 +3,7 @@
 export class CityMiddleware implements Middleware {
     readonly name: string = "city";
 
-    async start(context: StartContext, next: MiddlewareNext) {
+    async start(_context: StartContext, next: MiddlewareNext) {
         await next();
     }
 }

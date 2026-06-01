@@ -1,18 +1,14 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "target": "ESNext",
-    "sourceMap": false,
+    "noEmit": true,
     "strict": true,
     "lib": [
       "ESNext",
       "DOM"
     ],
-    "rootDir": "./src",
-    "outDir": "./out",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "noImplicitAny": true,
     "noEmitOnError": true,
     "noImplicitOverride": true,
@@ -27,7 +23,6 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "type": "module",
   "include": [
     "src"
   ],

@@ -363,5 +363,6 @@ package-lock.json
 /npm/*/source/**/*.js.map
 /npm/*/src/**/*.js
 /npm/*/src/**/*.d.ts
+!/npm/*/src/global.d.ts
 /npm/*/src/**/*.js.map
 .claude/

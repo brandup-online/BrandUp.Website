@@ -9,7 +9,7 @@ export class ExampleMiddleware implements Middleware {
         console.log("start", context.data);
     }
 
-    loaded(context: StartContext, next: MiddlewareNext) {
+    loaded(_context: StartContext, next: MiddlewareNext) {
         return next();
     }
 

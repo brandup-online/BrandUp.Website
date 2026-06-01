@@ -3,7 +3,7 @@ import PageBase from "./base";
 import "./form.less";
 
 class FormPage<T extends PageModel> extends PageBase<T> {
-    get typeName(): string { return "Example.FormPage" }
+    override get typeName(): string { return "Example.FormPage" }
 }
 
 export default FormPage;

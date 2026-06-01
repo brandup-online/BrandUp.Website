@@ -11,7 +11,7 @@ class TestElem extends UIElement {
         elem.innerHTML = "test component";
     }
 
-    destroy() {
+    override destroy() {
         super.destroy();
     }
 }
