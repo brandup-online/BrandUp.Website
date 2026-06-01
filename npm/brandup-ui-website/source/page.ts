@@ -8,7 +8,11 @@ import { NavigateContext, QueryParams } from "@brandup/ui-app";
 
 export const PAGE_HASHCHANGED_EVENT = "hash-changed";
 
-export class Page<TApplication extends WebsiteApplication = WebsiteApplication, TModel extends PageModel = PageModel> extends UIElement {
+export interface PageEvents {
+    "hash-changed": (event: PageHashChangedEvent) => void;
+}
+
+export class Page<TApplication extends WebsiteApplication = WebsiteApplication, TModel extends PageModel = PageModel> extends UIElement<PageEvents> {
     private __context: NavigateContext<TApplication>;
     private __hash: string | null;
     readonly website: TApplication;
