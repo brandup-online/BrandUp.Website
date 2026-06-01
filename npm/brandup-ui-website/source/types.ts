@@ -86,7 +86,7 @@ export type ComponentScript = { default: new (...args: any[]) => UIElement };
 
 /** Состояние навигации в window.history.state */
 export interface HistoryState {
-    [key: string]: any;
+    [key: string]: unknown;
     brandup_website?: {
         id: string;
         scroll?: { x: number; y: number; }

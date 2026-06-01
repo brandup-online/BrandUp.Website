@@ -44,20 +44,9 @@ namespace BrandUp.Website.TagHelpers
                 var og = appPageModel.OpenGraph;
                 if (og != null)
                 {
-                    // Рендерим все свойства Open Graph, включая пользовательские, единообразно проверяя непустоту.
-                    foreach (var (name, value) in og.Items)
+                    foreach (var (name, content) in og.CreateClientModel())
                     {
-                        var content = value switch
-                        {
-                            null => null,
-                            Uri uri => uri.ToString(),
-                            _ => value.ToString()
-                        };
-                        if (string.IsNullOrEmpty(content))
-                            continue;
-
-                        var ogName = Encode(name);
-                        head.Append("    <meta id=\"og-").Append(ogName).Append("\" property=\"og:").Append(ogName).Append("\" content=\"").Append(Encode(content)).Append("\">").Append(Environment.NewLine);
+                        head.Append("    <meta id=\"og-").Append(Encode(name)).Append("\" property=\"og:").Append(Encode(name)).Append("\" content=\"").Append(Encode(content)).Append("\">").Append(Environment.NewLine);
                     }
                 }
 

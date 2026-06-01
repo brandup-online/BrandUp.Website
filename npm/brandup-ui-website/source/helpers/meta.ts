@@ -39,9 +39,9 @@ const setOG = (name: "type" | "title" | "image" | "url" | "site_name" | "descrip
 }
 
 const setOpenGraph = (props: { [name: string]: string } | null | undefined) => {
-    // Удаляем все управляемые нами og-теги и проставляем новый набор —
-    // так поддерживаются произвольные (в т.ч. пользовательские) свойства Open Graph.
-    document.head.querySelectorAll("meta[property^=\"og:\"]").forEach(elem => elem.remove());
+    // Удаляем только управляемые нами og-теги (по id-префиксу),
+    // не трогая og:-теги, добавленные сторонним кодом или сервером без id.
+    document.head.querySelectorAll("meta[id^=\"og-\"]").forEach(elem => elem.remove());
 
     if (!props)
         return;
