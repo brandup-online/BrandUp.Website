@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/net/" />
+  <Folder Name="/net/src/">
+    <Project Path="src/BrandUp.Website.Abstractions/BrandUp.Website.Abstractions.csproj" />
+    <Project Path="src/BrandUp.Website/BrandUp.Website.csproj" />
+    <Project Path="src/ExampleWebSite/ExampleWebSite.csproj" />
+  </Folder>
+  <Folder Name="/net/test/">
+    <Project Path="test/BrandUp.Website.Tests/BrandUp.Website.Tests.csproj" />
+  </Folder>
+  <Folder Name="/_solution/">
+    <File Path=".dockerignore" />
+    <File Path=".gitignore" />
+    <File Path="azure-pipelines.yml" />
+    <File Path="package.json" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>
