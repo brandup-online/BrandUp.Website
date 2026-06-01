@@ -302,7 +302,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     throw new Error(`Component ${componentName} is not set default export.`);
 
                 const component: UIElement = new scriptType.default(elem, container);
-                container.onDestroy(component);
+                container.on("destroy", () => component.destroy());
             }
         }
     }
