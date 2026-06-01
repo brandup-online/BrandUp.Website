@@ -16,6 +16,40 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "npm-watch: example-web-site",
+            "type": "shell",
+            "command": "npm run watch",
+            "options": {
+                "cwd": "${workspaceFolder}/npm/example-web-site"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "webpack",
+                "pattern": {
+                    "regexp": "ERROR in (.+)",
+                    "file": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "compiled (successfully|with \\d+ warning)"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "watchers"
+            }
+        },
+        {
+            "label": "launch-example",
+            "dependsOn": [
+                "npm-watch: example-web-site",
+                "build-example"
+            ],
+            "dependsOrder": "parallel"
         }
     ]
 }
