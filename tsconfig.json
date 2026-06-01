@@ -1,9 +1,9 @@
 {
 	"compilerOptions": {
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
 		"target": "ESNext",
-		"sourceMap": false,
+		"noEmit": true,
 		"strict": true,
 		"lib": [
 			"DOM",
