@@ -1,4 +1,4 @@
-import { DOM } from "@brandup/ui-dom";
+import { DOM } from "@brandup/ui";
 import { WEBSITE, NavigationModel, WebsiteApplication } from "../source/index";
 
 const buildNav = (over: Partial<NavigationModel>): NavigationModel => ({

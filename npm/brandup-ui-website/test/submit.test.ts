@@ -1,4 +1,4 @@
-import { DOM } from "@brandup/ui-dom";
+import { DOM } from "@brandup/ui";
 import { WEBSITE, NavigationModel } from "../source/index";
 
 const firstNav: NavigationModel = {
