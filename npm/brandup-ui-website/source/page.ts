@@ -1,5 +1,4 @@
-import { DOM } from "@brandup/ui-dom";
-import { UIElement } from "@brandup/ui";
+import { DOM, UIElement } from "@brandup/ui";
 import { AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
 import { PageModel, NavigationModel, WebsiteMiddleware } from "./types";
 import { WebsiteApplication } from "./app";

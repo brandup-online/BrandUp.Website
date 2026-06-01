@@ -1,5 +1,4 @@
-import { DOM } from "@brandup/ui-dom";
-import { UIElement } from "@brandup/ui";
+import { DOM, UIElement } from "@brandup/ui";
 import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
 import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";

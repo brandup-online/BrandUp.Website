@@ -3,7 +3,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ESNext",
-    "sourceMap": true,
+    "noEmit": true,
     "strict": true,
     "lib": [
       "DOM",
@@ -26,8 +26,7 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "source",
-    "test"
+    "source"
   ],
   "exclude": [
     "node_modules",

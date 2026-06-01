@@ -1,4 +1,4 @@
-import { DOM } from "@brandup/ui-dom";
+import { DOM } from "@brandup/ui";
 
 const setMetadata = (name: "description" | "keywords", value: string | null | undefined) => {
     const elemId = `page-meta-${name}`;
