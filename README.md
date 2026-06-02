@@ -398,5 +398,5 @@ dotnet test
 ```
 npm install        # установка зависимостей корня и пакетов
 npm test           # jest
-cd npm/brandup-ui-website && npm run build   # сборка пакета (rollup)
+cd npm/brandup-ui-website && npm run build   # проверка пакета (tsc; пакет публикуется как TypeScript-исходники)
 ```
