@@ -1,6 +1,6 @@
 import { PreloadingDefinition } from "../types";
 
-const scriptReplace = (node: Node) => {
+const scriptReplace = (node: Node): void => {
     if ((node as Element).tagName === "SCRIPT") {
         const source = <HTMLScriptElement>node;
         if (source.type.toLowerCase().includes("json"))
@@ -18,8 +18,6 @@ const scriptReplace = (node: Node) => {
         while (i < children.length)
             scriptReplace(children[i++]);
     }
-
-    return node;
 };
 
 const preloadDefinitions = (defs?: { [name: string]: PreloadingDefinition }) => {
