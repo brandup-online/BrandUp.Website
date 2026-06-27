@@ -78,26 +78,10 @@ module.exports = (env) => {
             ]
         },
         optimization: {
-            runtimeChunk: 'single',
+            // Точка входа собирается в самодостаточный app.js (runtime + vendors внутри),
+            // т.к. layout'ы подключают только app.js. Делим лишь ленивые (async) чанки страниц.
             splitChunks: {
-                chunks: 'all',
-                cacheGroups: {
-                    vendors: {
-                        test: /[\\/]node_modules[\\/]/,
-                        reuseExistingChunk: false,
-                        enforce: true
-                    },
-                    styles: {
-                        test: /\.(css|scss|less)$/,
-                        reuseExistingChunk: false,
-                        enforce: true
-                    },
-                    images: {
-                        test: /\.(svg|jpg|png)$/,
-                        reuseExistingChunk: false,
-                        enforce: true
-                    }
-                }
+                chunks: 'async'
             },
             minimize: !isDevBuild,
             minimizer: [
