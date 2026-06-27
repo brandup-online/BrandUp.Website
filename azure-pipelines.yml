@@ -129,6 +129,11 @@ stages:
             clean: "true"
             persistCredentials: "true"
 
+          - task: NodeTool@0
+            displayName: "use node 24.x"
+            inputs:
+              versionSpec: "24.18.0"
+
           - task: "Npm@1"
             displayName: "npm install"
             inputs:
