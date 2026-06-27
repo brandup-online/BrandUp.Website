@@ -7,7 +7,7 @@ namespace ExampleWebSite.Pages
     {
         protected override Task OnPageRequestAsync(PageRequestContext context)
         {
-            context.PageRedirect(Url.Page("/Contacts") ?? "/", true, true);
+            context.PageRedirect(Url.Page("/Contacts") ?? "/");
 
             return Task.CompletedTask;
         }

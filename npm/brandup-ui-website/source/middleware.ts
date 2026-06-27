@@ -150,7 +150,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     disableCache: true
                 }, context.abort), this.options.navMinTime, context.abort);
 
-                if (response.status != 200 || response.type != "html") {
+                if (response.status != 200) {
                     console.warn(`Nav request response status ${response.status}`);
                     this.__forceNav(context);
                     return;
@@ -161,6 +161,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                     return;
                 }
 
+                // Редирект (page-location) приходит со статусом 200, но без html-тела,
+                // поэтому обрабатываем его до проверки response.type на html.
                 if (await this.__processPageResponse(context, response))
                     return;
 

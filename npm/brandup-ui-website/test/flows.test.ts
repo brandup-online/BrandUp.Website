@@ -40,7 +40,8 @@ beforeAll(async () => {
         if (url.includes("/bad"))
             return Promise.resolve(new Response("error", { status: 500, headers: { "content-type": "text/html" } }));
         if (url.includes("/old"))
-            return Promise.resolve(new Response("", { status: 200, headers: { "content-type": "text/html", "page-location": "/target" } }));
+            // PageRedirect отвечает 200 с заголовком page-location и без html-тела
+            return Promise.resolve(new Response("", { status: 200, headers: { "page-location": "/target" } }));
         if (url.includes("/target"))
             return Promise.resolve(new Response(pageHtml("TARGET", { url: "http://localhost/target", path: "/target", title: "Target" }), { status: 200, headers: { "content-type": "text/html" } }));
         return Promise.resolve(new Response("{}", { status: 200, headers: { "content-type": "application/json" } }));
