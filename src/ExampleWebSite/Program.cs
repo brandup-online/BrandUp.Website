@@ -172,7 +172,6 @@ namespace ExampleWebSite
                 var headers = context.Response.Headers;
                 headers["X-Content-Type-Options"] = "nosniff";
                 headers["X-Frame-Options"] = "SAMEORIGIN";
-                headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
                 await next();
             });

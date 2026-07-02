@@ -15,6 +15,7 @@ namespace BrandUp.Website.Middlewares
         readonly IOptions<WebsiteOptions> webSiteOptions;
         readonly string webSiteHost;
         readonly bool isLocalhost;
+        readonly string? referrerPolicy;
 
         public WebsiteMiddleware(RequestDelegate next, IOptions<WebsiteOptions> webSiteOptions)
         {
@@ -23,12 +24,16 @@ namespace BrandUp.Website.Middlewares
 
             webSiteHost = this.webSiteOptions.Value.Host.ToLowerInvariant();
             isLocalhost = webSiteHost.Equals(Localhost, StringComparison.InvariantCultureIgnoreCase);
+            referrerPolicy = this.webSiteOptions.Value.ReferrerPolicy.ToHeaderValue();
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
+
+            if (!string.IsNullOrEmpty(referrerPolicy))
+                context.Response.Headers["Referrer-Policy"] = referrerPolicy;
 
             var websiteStore = context.RequestServices.GetRequiredService<IWebsiteStore>();
             var websiteProvider = context.RequestServices.GetRequiredService<IUrlMapProvider>();

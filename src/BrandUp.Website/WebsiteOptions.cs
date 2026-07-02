@@ -10,6 +10,11 @@ namespace BrandUp.Website
         public string ProtectionPurpose { get; set; } = "BrandUp.Website";
         public bool RedirectToHttps { get; set; } = true;
 
+        /// <summary>
+        /// Политика для заголовка ответа Referrer-Policy. <see cref="ReferrerPolicy.None"/> — заголовок не отправляется.
+        /// </summary>
+        public ReferrerPolicy ReferrerPolicy { get; set; } = ReferrerPolicy.StrictOriginWhenCrossOrigin;
+
         public void Validate()
         {
             var errors = GetValidationErrors().ToArray();
