@@ -5,7 +5,7 @@ namespace BrandUp.Website.Pages
         [Fact]
         public void Items_IncludeKnownAndCustomProperties()
         {
-            var og = new PageOpenGraph("website", new Uri("https://example.com/og.jpg"), "Title", new Uri("https://example.com/"))
+            var og = new PageOpenGraph(OpenGraphType.Website, new Uri("https://example.com/og.jpg"), "Title", new Uri("https://example.com/"))
             {
                 SiteName = "Example"
             };
@@ -14,6 +14,7 @@ namespace BrandUp.Website.Pages
             var items = og.Items.ToDictionary(it => it.Key, it => it.Value);
 
             Assert.Equal("website", items["type"]);
+            Assert.Equal(OpenGraphType.Website, og.Type);
             Assert.Equal("Title", items["title"]);
             Assert.Equal("Example", items["site_name"]);
             Assert.Equal("value", items["custom_prop"]);
@@ -22,7 +23,7 @@ namespace BrandUp.Website.Pages
         [Fact]
         public void Set_CustomName_IsNormalized()
         {
-            var og = new PageOpenGraph("website", new Uri("https://example.com/og.jpg"), "Title", new Uri("https://example.com/"));
+            var og = new PageOpenGraph(OpenGraphType.Website, new Uri("https://example.com/og.jpg"), "Title", new Uri("https://example.com/"));
             og.Set("  Custom_Prop  ", "value");
 
             Assert.True(og.Contains("custom_prop"));

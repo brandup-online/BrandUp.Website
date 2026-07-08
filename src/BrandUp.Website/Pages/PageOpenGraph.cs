@@ -4,9 +4,9 @@
     {
         readonly Dictionary<string, object?> items = [];
 
-        public PageOpenGraph(string type, Uri image, string title, Uri url, string? description = null)
+        public PageOpenGraph(OpenGraphType type, Uri image, string title, Uri url, string? description = null)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Type = type;
             Image = image ?? throw new ArgumentNullException(nameof(image));
             Title = title ?? throw new ArgumentNullException(nameof(title));
             Url = url ?? throw new ArgumentNullException(nameof(url));
@@ -17,7 +17,7 @@
         /// <summary>Все свойства Open Graph, включая пользовательские (ключ — нормализованное имя).</summary>
         public IEnumerable<KeyValuePair<string, object?>> Items => items;
 
-        public string Type { get => Get<string>(OpenGraphProperties.Type)!; set => Set(OpenGraphProperties.Type, value); }
+        public OpenGraphType Type { get => OpenGraphTypeExtensions.ParseOpenGraphType(Get<string>(OpenGraphProperties.Type)!); set => Set(OpenGraphProperties.Type, value.ToOpenGraphString()); }
         public Uri Image { get => Get<Uri>(OpenGraphProperties.Image)!; set => Set(OpenGraphProperties.Image, value); }
         public string Title { get => Get<string>(OpenGraphProperties.Title)!; set => Set(OpenGraphProperties.Title, value); }
         public Uri Url { get => Get<Uri>(OpenGraphProperties.Url)!; set => Set(OpenGraphProperties.Url, value); }

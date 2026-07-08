@@ -17,7 +17,7 @@ namespace ExampleWebSite.Pages
 
         protected override Task OnPageRequestAsync(PageRequestContext context)
         {
-            OpenGraph = new PageOpenGraph("website", Url.ContentLink("~/images/og.jpg"), Title, Link, Description);
+            OpenGraph = new PageOpenGraph(OpenGraphType.Website, Url.ContentLink("~/images/og.jpg"), Title, Link, Description);
 
             return base.OnPageRequestAsync(context);
         }

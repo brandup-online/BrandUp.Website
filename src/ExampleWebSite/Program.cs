@@ -195,6 +195,7 @@ namespace ExampleWebSite
 
             app.UseRequestLocalization();
             app.UseWebsite();
+            app.UseNormalizeUrl("/dist/");
             app.UseResponseCompression();
             app.UseResponseCaching();
             app.UseStaticFiles();

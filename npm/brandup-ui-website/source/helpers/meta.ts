@@ -38,13 +38,18 @@ const setOG = (name: "type" | "title" | "image" | "url" | "site_name" | "descrip
         elem.remove();
 }
 
+const twitterCardElemId = "twitter-card";
+
 const setOpenGraph = (props: { [name: string]: string } | null | undefined) => {
     // Удаляем только управляемые нами og-теги (по id-префиксу),
     // не трогая og:-теги, добавленные сторонним кодом или сервером без id.
     document.head.querySelectorAll("meta[id^=\"og-\"]").forEach(elem => elem.remove());
 
-    if (!props)
+    if (!props) {
+        // Нет Open Graph — убираем и Twitter Card.
+        DOM.getById(twitterCardElemId)?.remove();
         return;
+    }
 
     for (const name in props) {
         const value = props[name];
@@ -53,6 +58,10 @@ const setOpenGraph = (props: { [name: string]: string } | null | undefined) => {
 
         document.head.appendChild(DOM.tag("meta", { id: `og-${name}`, property: `og:${name}`, content: value }));
     }
+
+    // При наличии Open Graph гарантируем наличие Twitter Card (name=, а не property=).
+    if (!DOM.getById(twitterCardElemId))
+        document.head.appendChild(DOM.tag("meta", { id: twitterCardElemId, name: "twitter:card", content: "summary_large_image" }));
 }
 
 export {

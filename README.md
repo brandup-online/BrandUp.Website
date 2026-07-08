@@ -254,7 +254,7 @@ public override string Title => "Main";
 protected override Task OnPageRequestAsync(PageRequestContext context)
 {
     OpenGraph = new PageOpenGraph(
-        type: "website",
+        type: OpenGraphType.Website,
         image: new Uri("https://example.com/og.jpg"),
         title: Title,
         url: Link,
@@ -267,6 +267,22 @@ protected override Task OnPageRequestAsync(PageRequestContext context)
 }
 ```
 
+Тип задаётся перечислением `OpenGraphType` (`Website`, `Article`, `Profile`, `Book`, `MusicSong`, `MusicAlbum`, `MusicPlaylist`, `MusicRadioStation`, `VideoMovie`, `VideoEpisode`, `VideoTvShow`, `VideoOther`) — оно маппится в строковое значение og:type (например, `MusicSong` → `music.song`).
+
+Для типовых случаев есть extension-методы `AppPageModel`, которые сами берут `Title`/`Url`/`Description` со страницы. Параметр `image` можно передать строкой: путь с префиксом `~` резолвится в абсолютный URL, иначе трактуется как готовый абсолютный URL.
+
+```
+// website
+page.SetOpenGraphWebsite("~/images/og.jpg");
+
+// article + свойства article:*
+page.SetOpenGraphArticle("~/images/article-og.jpg",
+    publishedTime: post.PublishedDate,
+    section: "News",
+    author: authorUrl,
+    tag: "asp.net");
+```
+
 Кроме шести стандартных свойств (`type`, `image`, `title`, `url`, `site_name`, `description`) можно задать произвольные через `Set` — имя нормализуется (trim + lower):
 
 ```
@@ -275,6 +291,8 @@ OpenGraph.Set("video", "https://example.com/promo.mp4");
 ```
 
 Любое OG-свойство (стандартное или пользовательское) рендерится тегом `<meta id="og-{name}" property="og:{name}" content="...">` при полной загрузке и переживает клиентскую навигацию: при переходе между страницами набор `og:*`-тегов целиком заменяется на свойства новой страницы (устаревшие удаляются). Пустые значения не рендерятся.
+
+При наличии `OpenGraph` автоматически добавляется тег `<meta name="twitter:card" content="summary_large_image">` — X (Twitter) использует `og:*` как fallback для заголовка/описания/картинки, а этот тег задаёт крупный формат карточки. Он так же синхронизируется при клиентской навигации: появляется на страницах с OG и удаляется на страницах без него.
 
 ### Редиректы
 
@@ -295,6 +313,21 @@ protected override Task OnPageRequestAsync(PageRequestContext context)
 ```
 context.Response.RedirectPage("/contacts");
 ```
+
+### Нормализация URL
+
+Middleware `UseNormalizeUrl` приводит URL GET-запросов к канонической форме через 301-редирект: убирает завершающий `/` и приводит путь к нижнему регистру.
+
+```
+app.UseWebsite();
+app.UseNormalizeUrl("/dist/"); // после UseWebsite, до статики и роутинга
+app.UseStaticFiles();
+app.UseRouting();
+```
+
+Аргументы — префиксы путей, которые нормализовать не нужно (сравнение по началу пути, регистронезависимо). Типичное исключение — `/dist/`: имена чанков webpack чувствительны к регистру, и приведение к нижнему регистру сломало бы поиск файла в манифесте static web assets (404). Если исключения не переданы, нормализуются все пути.
+
+Middleware ставится **после** `UseWebsite()` — так канонизация схемы/хоста (`http`→`https`, алиасы, www) выполняется первой, а нормализация пути применяется уже к каноническому адресу.
 
 ### Несколько сайтов
 

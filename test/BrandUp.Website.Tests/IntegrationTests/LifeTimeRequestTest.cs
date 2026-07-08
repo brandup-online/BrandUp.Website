@@ -29,6 +29,22 @@ namespace BrandUp.Website.IntegrationTests
         }
 
         [Fact]
+        public async Task Request_Full_TwitterCard()
+        {
+            using var client = factory.CreateClient();
+            using var response = await client.GetAsync("/", TestContext.Current.CancellationToken);
+
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+
+            var responseHtml = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            // Домашняя страница задаёт OpenGraph — значит рядом должен появиться Twitter Card.
+            // HTML минифицируется (кавычки атрибутов могут срезаться), поэтому проверяем токены.
+            Assert.Contains("og:title", responseHtml);
+            Assert.Contains("twitter:card", responseHtml);
+            Assert.Contains("summary_large_image", responseHtml);
+        }
+
+        [Fact]
         public async Task Request_Full_Redirect()
         {
             using var client = factory.CreateClient();

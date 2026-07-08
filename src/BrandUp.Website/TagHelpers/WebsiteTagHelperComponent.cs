@@ -48,6 +48,10 @@ namespace BrandUp.Website.TagHelpers
                     {
                         head.Append("    <meta id=\"og-").Append(Encode(name)).Append("\" property=\"og:").Append(Encode(name)).Append("\" content=\"").Append(Encode(content)).Append("\">").Append(Environment.NewLine);
                     }
+
+                    // При наличии Open Graph добавляем Twitter Card: X использует og:* как fallback,
+                    // а этот тег задаёт крупный формат карточки (name=, а не property=).
+                    head.Append("    <meta id=\"twitter-card\" name=\"twitter:card\" content=\"summary_large_image\">").Append(Environment.NewLine);
                 }
 
                 outputContent.AppendHtml(head.ToString());
