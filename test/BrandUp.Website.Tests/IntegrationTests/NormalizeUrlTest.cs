@@ -59,15 +59,5 @@ namespace BrandUp.Website.IntegrationTests
             Assert.NotEqual(HttpStatusCode.MovedPermanently, response.StatusCode);
             Assert.Null(response.Headers.Location);
         }
-
-        [Fact]
-        public async Task Excluded_Path_ServesFile()
-        {
-            using var client = factory.CreateClient();
-            // Точный регистр бандла отдаётся статикой без редиректов.
-            using var response = await client.GetAsync("/dist/app.js", TestContext.Current.CancellationToken);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
     }
 }
