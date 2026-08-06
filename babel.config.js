@@ -5,7 +5,7 @@ const plugins = [
     // инъекция полифилов core-js вынесена в отдельный плагин.
     'polyfill-corejs3', {
       method: 'usage-global',
-      version: '3.49'
+      version: '3.50'
     }
   ]
 ];

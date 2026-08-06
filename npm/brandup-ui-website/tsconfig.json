@@ -9,8 +9,6 @@
       "DOM",
       "ESNext"
     ],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "noImplicitAny": true,
     "noEmitOnError": true,
     "noImplicitOverride": true,

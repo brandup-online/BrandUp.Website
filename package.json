@@ -12,13 +12,13 @@
 		"@types/jest": "^30.0.0",
 		"babel-jest": "^30.4.1",
 		"babel-plugin-polyfill-corejs3": "^1.0.0",
-		"core-js": "^3.49.0",
+		"core-js": "^3.50.0",
 		"cross-env": "^10.1.0",
 		"jest": "^30.4.2",
-		"jest-clipboard": "^0.0.11-beta.0",
+		"jest-clipboard": "^0.0.11-beta.1",
 		"jest-environment-jsdom": "^30.4.1",
 		"jest-transform-stub": "^2.0.0",
-		"ts-node": "^10.9.2"
+		"typescript": "^7.0.2"
 	},
 	"scripts": {
 		"i": "npm i && npm run npm:install",

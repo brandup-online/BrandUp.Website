@@ -144,7 +144,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             else {
                 // continue navigation
 
-                const response: AjaxResponse = await FuncHelper.minWaitAsync(() => this.__queue.enque({
+                const response: AjaxResponse = await FuncHelper.minWaitAsync(() => this.__queue.enqueue({
                     method: "GET", url: context.url, query: { "_": new Date().getTime().toString() },
                     headers: { "page-nav": current?.model.state || "" },
                     disableCache: true
@@ -221,7 +221,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             for (var key in current.model.query)
                 query[key] = current.model.query[key];
 
-            const response: AjaxResponse = await FuncHelper.minWaitAsync(() => current.page.queue.enque({
+            const response: AjaxResponse = await FuncHelper.minWaitAsync(() => current.page.queue.enqueue({
                 method, url, query,
                 headers: { "page-nav": current.model.state || "", "page-submit": "true" },
                 data: new FormData(form)

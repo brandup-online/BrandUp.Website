@@ -7,11 +7,15 @@
 		"strict": true,
 		"lib": [
 			"DOM",
-			"ES2020"
+			"ESNext"
+		],
+		"types": [
+			"jest"
 		],
 		"esModuleInterop": true,
 		"noImplicitAny": true,
 		"noEmitOnError": true,
+		"skipLibCheck": true,
 		"declaration": false,
 		"declarationMap": false,
 		"removeComments": false

@@ -7,7 +7,7 @@ export class AuthMiddleware implements Middleware {
     start(context: StartContext<WebsiteApplication>, next: MiddlewareNext) {
         context.app.registerCommand("signout", () => {
             context.app.queue.reset();
-            return context.app.queue.enque({
+            return context.app.queue.enqueue({
                 url: context.app.buildUrl("api/auth/signout"),
                 method: "POST",
                 state: null,

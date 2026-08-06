@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<IsPackable>false</IsPackable>
-		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
 		<UserSecretsId>bcbd8f0f-aa2a-4e71-bbb2-0cc1ca0ab896</UserSecretsId>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -14,7 +13,7 @@
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="TimeZoneConverter" Version="7.2.0" />
-		<PackageReference Include="WebMarkupMin.AspNetCoreLatest" Version="2.21.0" />
+		<PackageReference Include="WebMarkupMin.AspNetCoreLatest" Version="2.22.1" />
 	</ItemGroup>
 
 	<ItemGroup>
