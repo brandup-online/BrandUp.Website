@@ -1,5 +1,7 @@
 export * from "./types"
 export * from "./page"
+export * from "./loader"
+export * from "./scroll"
 export * from "./website"
 export * from "./app"
 export * from "./constants"

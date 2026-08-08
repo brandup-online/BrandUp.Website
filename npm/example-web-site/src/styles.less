@@ -201,7 +201,9 @@ input, textarea, button {
     }
 
     &.finish {
-        transition: width ease-in-out 180ms, opacity ease 300ms;
+        // 180ms — столько же ждёт NavigationLoader перед сбросом полосы в исходное состояние:
+        // затухание должно закончиться ровно к этому моменту, иначе полоса пропадает скачком.
+        transition: width ease-in-out 180ms, opacity ease 180ms;
         opacity: 0;
     }
 }

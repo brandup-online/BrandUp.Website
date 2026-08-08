@@ -5,6 +5,8 @@ import { FuncHelper } from "@brandup/ui-helpers";
 import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript, HistoryState } from "./types";
 import { WebsiteApplication } from "./app";
 import { Page } from "./page";
+import { NavigationLoader } from "./loader";
+import { NavigationScroll } from "./scroll";
 import * as ScriptHelper from "./helpers/script";
 import * as MetaHelper from "./helpers/meta";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
@@ -25,7 +27,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     private __bodyElem?: HTMLElement;
     private __invalidHandler?: (event: Event) => void;
     private __changeHandler?: (event: Event) => void;
-    private __scrollHandler?: () => void;
+    private __loader?: NavigationLoader;
+    private __scroll?: NavigationScroll;
 
     constructor(options: WebsiteOptions) {
         this.options = options;
@@ -46,8 +49,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     start(context: StartContext<WebsiteApplication>, next: MiddlewareNext) {
         const bodyElem = this.__bodyElem = document.body;
 
-        bodyElem.appendChild(this.__loaderElem = DOM.tag("div", { class: "bp-page-loader" }));
-        this.__showNavigationProgress();
+        this.__loader = new NavigationLoader(bodyElem);
+        this.__loader.begin();
 
         this.__invalidHandler = (event: Event) => {
             event.preventDefault();
@@ -75,30 +78,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 request.headers[context.app.model.antiforgery.headerName] = this.__current.model.validationToken;
         };
 
-        let scrollSaveScheduled = false;
-        const saveScrollState = () => {
-            scrollSaveScheduled = false;
-
-            const state: HistoryState | null = window.history.state;
-            if (!this.__current || !state?.brandup_website)
-                return;
-
-            if (state.brandup_website.id === this.__current.context.id) {
-                state.brandup_website.scroll = { x: window.scrollX, y: window.scrollY };
-                window.history.replaceState(state, "");
-            }
-        };
-
-        this.__scrollHandler = () => {
-            // Троттлим запись состояния: не чаще одного replaceState на 150 мс,
-            // позиция читается в момент срабатывания таймера (актуальная).
-            if (scrollSaveScheduled)
-                return;
-
-            scrollSaveScheduled = true;
-            window.setTimeout(saveScrollState, 150);
-        };
-        window.addEventListener("scroll", this.__scrollHandler, { passive: true });
+        this.__scroll = new NavigationScroll(() => this.__current?.context.id);
 
         return next();
     }
@@ -106,6 +86,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     async navigate(context: NavigateContext<WebsiteApplication, WebsiteNavigateData>, next: MiddlewareNext) {
         if (!this.__queue)
             throw new Error('Website is not initialized.');
+
+        // Уходим со страницы — дописываем её позицию прокрутки в состояние истории: во время
+        // набора текста запись отложена, а иначе возврат назад восстановил бы устаревшую.
+        this.__scroll?.save();
 
         if (context.external || !allowHistory) {
             this.__forceNav(context);
@@ -121,7 +105,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             return;
         }
 
-        this.__showNavigationProgress();
+        const progressToken = this.__loader?.begin();
         this.__queue.reset(true);
 
         const isFirst = context.source === "first";
@@ -200,7 +184,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             throw reason;
         }
         finally {
-            this.__hideNavigationProgress();
+            this.__loader?.end(progressToken);
         }
     }
 
@@ -213,7 +197,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
         const current = context.data.current = this.__current;
 
-        this.__showNavigationProgress();
+        const progressToken = this.__loader?.begin();
         current.page.queue.reset(true);
 
         try {
@@ -256,7 +240,7 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             await next();
         }
         finally {
-            this.__hideNavigationProgress();
+            this.__loader?.end(progressToken);
         }
     }
 
@@ -269,15 +253,11 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             if (this.__changeHandler)
                 this.__bodyElem.removeEventListener("change", this.__changeHandler);
         }
-        if (this.__scrollHandler)
-            window.removeEventListener("scroll", this.__scrollHandler);
+        this.__scroll?.destroy();
+        this.__scroll = undefined;
 
-        window.clearTimeout(this.__progressShowTimeout);
-        window.clearTimeout(this.__progressTimeout);
-        window.clearTimeout(this.__progressInterval);
-
-        this.__loaderElem?.remove();
-        this.__loaderElem = null;
+        this.__loader?.destroy();
+        this.__loader = undefined;
 
         return next();
     }
@@ -335,6 +315,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             const replace = response.headers.has(pageReplaceHeader);
 
             if (isReload) {
+                this.__loader?.keep();
+
                 if (replace)
                     window.location.replace(redirectUrl);
                 else
@@ -345,13 +327,17 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             return true;
         }
-        else if (isReload)
+        else if (isReload) {
+            this.__loader?.keep();
             window.location.reload();
+        }
 
         return false;
     }
 
     private __forceNav(context: NavigateContext) {
+        this.__loader?.keep();
+
         if (context.replace && !context.external)
             window.location.replace(context.url);
         else
@@ -435,11 +421,8 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
             await page.__rendered();
         }
         finally {
-            if (context.data.popstate) {
-                const state: HistoryState = context.data.popstate;
-                if (state?.brandup_website?.id === context.id && state.brandup_website?.scroll)
-                    window.scroll({ top: state.brandup_website.scroll.y, left: state.brandup_website.scroll.x, behavior: "instant" });
-            }
+            if (context.data.popstate)
+                this.__scroll?.restore(context.data.popstate);
         }
 
         return page;
@@ -520,8 +503,12 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
 
             if (replace)
                 window.history.replaceState(state, "", navUrl);
-            else
+            else {
+                // Новая запись истории заводится от состояния предыдущей, поэтому позицию прокрутки
+                // нужно убрать: иначе страница унаследует чужую и восстановит её при возврате.
+                delete state.brandup_website.scroll;
                 window.history.pushState(state, "", navUrl);
+            }
 
             if (changedPage && !isHashChanged)
                 document.title = title;
@@ -531,66 +518,5 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         }
         else
             window.history.replaceState(state, "", navUrl);
-    }
-
-    private __loaderElem: HTMLElement | null = null;
-    private __progressInterval: number = 0;
-    private __progressTimeout: number = 0;
-    private __progressShowTimeout: number = 0;
-    private __progressStart: number = 0;
-    private __showNavigationProgress() {
-        window.clearTimeout(this.__progressShowTimeout);
-        window.clearTimeout(this.__progressTimeout);
-        window.clearTimeout(this.__progressInterval);
-
-        if (!this.__loaderElem)
-            return;
-
-        this.__loaderElem.classList.remove("show", "finish");
-        this.__loaderElem.style.width = "0%";
-
-        this.__progressShowTimeout = window.setTimeout(() => {
-            if (!this.__loaderElem)
-                return;
-
-            this.__loaderElem.classList.add("show");
-            this.__loaderElem.style.width = "70%";
-        }, 10);
-
-        this.__progressTimeout = window.setTimeout(() => {
-            if (!this.__loaderElem)
-                return;
-
-            this.__loaderElem.classList.add("show");
-            this.__loaderElem.style.width = "100%";
-        }, 1700);
-
-        this.__progressStart = Date.now();
-    }
-
-    private __hideNavigationProgress() {
-        let d = 500 - (Date.now() - this.__progressStart);
-        if (d < 0)
-            d = 0;
-
-        window.clearTimeout(this.__progressShowTimeout);
-        window.clearTimeout(this.__progressTimeout);
-        this.__progressTimeout = window.setTimeout(() => {
-            window.clearTimeout(this.__progressInterval);
-
-            if (!this.__loaderElem)
-                return;
-
-            this.__loaderElem.classList.add("finish");
-            this.__loaderElem.style.width = "100%";
-
-            this.__progressInterval = window.setTimeout(() => {
-                if (!this.__loaderElem)
-                    return;
-
-                this.__loaderElem.classList.remove("show", "finish");
-                this.__loaderElem.style.width = "0%";
-            }, 180);
-        }, d);
     }
 }
