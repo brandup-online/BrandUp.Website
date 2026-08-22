@@ -366,3 +366,5 @@ package-lock.json
 !/npm/*/src/global.d.ts
 /npm/*/src/**/*.js.map
 .claude/
+
+/coverage

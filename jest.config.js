@@ -7,6 +7,9 @@ const config = {
 		".+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$": "jest-transform-stub",
 	},
 	moduleFileExtensions: ["js", "ts"],
+	coverageDirectory: "coverage",
+	coverageReporters: ["text-summary", "cobertura", "lcov"],
+	collectCoverageFrom: ["npm/*/source/**/*.ts"],
 	//moduleDirectories: ["node_modules", "bower_components", "shared"],
 	//transformIgnorePatterns: ["/node_modules/(?!(brandup-ui?([a-z,-])*)/)"]
 };
