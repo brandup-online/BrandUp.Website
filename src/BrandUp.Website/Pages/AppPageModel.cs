@@ -17,6 +17,7 @@ namespace BrandUp.Website.Pages
 
         public const string NavStateKey_Version = "_version";
         public const string NavStateKey_Area = "_area";
+        public const string NavStateKey_Layout = "_layout";
 
         #region Properties
 
@@ -160,6 +161,28 @@ namespace BrandUp.Website.Pages
         }
 
         #endregion
+
+        /// <summary>
+        /// Stores the layout of the rendered page in the navigation state. In content mode it also
+        /// compares the layout with the one the client came from: the response carries only the page
+        /// content, so a different layout cannot be applied and the page has to be reloaded.
+        /// </summary>
+        internal void ApplyLayout(string? layoutPath)
+        {
+            layoutPath ??= string.Empty;
+
+            if (RequestMode == AppPageRequestMode.Content)
+            {
+                NavigationState.TryGetValue(NavStateKey_Layout, out object? navLayoutValue);
+
+                // The page content is buffered, so the response has not started yet. It only can
+                // if the page flushed it explicitly, and then the header cannot be written anymore.
+                if (!string.Equals(navLayoutValue as string, layoutPath, StringComparison.OrdinalIgnoreCase) && !HttpContext.Response.HasStarted)
+                    HttpContext.Response.Headers[PageConstants.HttpHeaderPageReload] = "true";
+            }
+
+            NavigationState[NavStateKey_Layout] = layoutPath;
+        }
 
         internal async Task RaiseRenderPageAsync(PageRenderContext renderContext)
         {

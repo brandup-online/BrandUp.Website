@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 namespace BrandUp.Website.TagHelpers
 {
     [HtmlTargetElement("page", TagStructure = TagStructure.NormalOrSelfClosing)]
-    public class PageTagHelper(IJsonHelper jsonHelper) : TagHelper
+    public class PageTagHelper(IJsonHelper jsonHelper, IRazorViewEngine viewEngine) : TagHelper
     {
         [HtmlAttributeNotBound, ViewContext]
         public ViewContext ViewContext { get; set; } = default!;
@@ -19,6 +19,8 @@ namespace BrandUp.Website.TagHelpers
         {
             if (ViewContext.ViewData.Model is not AppPageModel appPageModel || ViewContext.View is not RazorView razorView)
                 throw new InvalidOperationException($"Tag helper ${typeof(PageTagHelper).FullName} require page model {typeof(AppPageModel).FullName}.");
+
+            appPageModel.ApplyLayout(ResolveLayoutPath(razorView.RazorPage));
 
             if (appPageModel.RequestMode == AppPageRequestMode.Content)
                 razorView.RazorPage.Layout = null;
@@ -42,6 +44,22 @@ namespace BrandUp.Website.TagHelpers
             output.PreContent.AppendHtml(pageModelScriptTag);
 
             #endregion
+        }
+
+        /// <summary>
+        /// Resolves the layout name of the page to the path of the layout file, the same way
+        /// <see cref="RazorView"/> does it. Different pages may refer to different layout files
+        /// by the same relative name, so only the resolved path identifies a layout.
+        /// </summary>
+        string ResolveLayoutPath(IRazorPage razorPage)
+        {
+            var layoutName = razorPage.Layout;
+            if (string.IsNullOrEmpty(layoutName))
+                return string.Empty;
+
+            var layoutPage = viewEngine.GetPage(razorPage.Path, layoutName).Page ?? viewEngine.FindPage(ViewContext, layoutName).Page;
+
+            return layoutPage?.Path ?? layoutName;
         }
     }
 }

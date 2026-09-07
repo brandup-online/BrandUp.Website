@@ -1,0 +1,15 @@
+@page
+@model ExampleWebSite.Pages.Examples.AltLayoutModel
+@{
+    Layout = "_LayoutAlt";
+}
+
+<page title="Alternative layout">
+    <header class="page-header">
+        <h1>@Model.Header</h1>
+    </header>
+
+    <section>
+        <p>This page uses another layout, so navigation to it reloads the document.</p>
+    </section>
+</page>

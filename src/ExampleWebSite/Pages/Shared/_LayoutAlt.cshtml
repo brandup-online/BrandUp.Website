@@ -1,0 +1,18 @@
+@model AppPageModel
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+
+<head>
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link type="text/css" rel="stylesheet" href="~/dist/app.css" asp-append-version="true" async>
+</head>
+
+<body>
+  <script type="text/javascript" src="~/dist/app.js" asp-append-version="true" defer></script>
+
+  <div class="app app-alt">
+    @RenderBody()
+  </div>
+</body>
+
+</html>
