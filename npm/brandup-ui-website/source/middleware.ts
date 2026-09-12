@@ -24,9 +24,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     private __queue: AjaxQueue;
     private __current?: NavigationEntry;
     private __prepareRequest?: (request: AjaxRequest) => void;
-    private __bodyElem?: HTMLElement;
-    private __invalidHandler?: (event: Event) => void;
-    private __changeHandler?: (event: Event) => void;
     private __loader?: NavigationLoader;
     private __scroll?: NavigationScroll;
 
@@ -47,28 +44,10 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     // Middleware members
 
     start(context: StartContext<WebsiteApplication>, next: MiddlewareNext) {
-        const bodyElem = this.__bodyElem = document.body;
+        const bodyElem = document.body;
 
         this.__loader = new NavigationLoader(bodyElem);
         this.__loader.begin();
-
-        this.__invalidHandler = (event: Event) => {
-            event.preventDefault();
-
-            const elem = event.target as HTMLElement;
-            elem.classList.add("invalid");
-
-            if (elem.hasAttribute("required"))
-                elem.classList.add("invalid-required");
-        };
-        bodyElem.addEventListener("invalid", this.__invalidHandler, true);
-
-        this.__changeHandler = (event: Event) => {
-            const elem = event.target as HTMLElement;
-            elem.classList.remove("invalid");
-            elem.classList.remove("invalid-required");
-        };
-        bodyElem.addEventListener("change", this.__changeHandler);
 
         this.__prepareRequest = (request) => {
             if (!request.headers)
@@ -247,12 +226,6 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
     stop(context: StopContext<WebsiteApplication>, next: MiddlewareNext) {
         context.data.current = this.__current;
 
-        if (this.__bodyElem) {
-            if (this.__invalidHandler)
-                this.__bodyElem.removeEventListener("invalid", this.__invalidHandler, true);
-            if (this.__changeHandler)
-                this.__bodyElem.removeEventListener("change", this.__changeHandler);
-        }
         this.__scroll?.destroy();
         this.__scroll = undefined;
 
