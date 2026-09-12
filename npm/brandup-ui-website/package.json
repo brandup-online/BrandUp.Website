@@ -28,10 +28,10 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "dependencies": {
-    "@brandup/ui": "^2.0.11",
-    "@brandup/ui-ajax": "^2.0.11",
-    "@brandup/ui-app": "^2.0.11",
-    "@brandup/ui-helpers": "^2.0.11"
+    "@brandup/ui": "^2.0.12",
+    "@brandup/ui-ajax": "^2.0.12",
+    "@brandup/ui-app": "^2.0.12",
+    "@brandup/ui-helpers": "^2.0.12"
   },
   "devDependencies": {
     "typescript": "^7.0.2"
