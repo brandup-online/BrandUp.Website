@@ -150,10 +150,10 @@ stages:
             clean: "true"
             persistCredentials: "true"
 
-          - task: NodeTool@0
+          - task: UseNode@1
             displayName: "use node 24.x"
             inputs:
-              versionSpec: "24.18.0"
+              version: "24.18.0"
 
           - task: "Npm@1"
             displayName: "npm install"
