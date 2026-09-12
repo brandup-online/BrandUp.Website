@@ -1,7 +1,7 @@
-import { ApplicationModel, ContextData, Middleware, NavigateContext } from "@brandup/ui-app";
-import { Page } from "./page";
-import { UIElement } from "@brandup/ui";
-import { AjaxRequest } from "@brandup/ui-ajax";
+import type { ApplicationModel, ContextData, Middleware, NavigateContext } from "@brandup/ui-app";
+import type { Page } from "./page";
+import type { UIElement } from "@brandup/ui";
+import type { AjaxRequest } from "@brandup/ui-ajax";
 
 export interface WebsiteApplicationModel extends ApplicationModel {
     websiteId: string;

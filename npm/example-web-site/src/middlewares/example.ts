@@ -1,4 +1,4 @@
-﻿import { Middleware, MiddlewareNext, NavigateContext, StartContext, SubmitContext } from "@brandup/ui-app";
+﻿import type { Middleware, MiddlewareNext, NavigateContext, StartContext, SubmitContext } from "@brandup/ui-app";
 
 export class ExampleMiddleware implements Middleware {
     readonly name: string = "example";

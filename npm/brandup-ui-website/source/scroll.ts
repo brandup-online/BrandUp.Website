@@ -1,4 +1,4 @@
-import { HistoryState } from "./types";
+import type { HistoryState } from "./types";
 
 /** Не чаще одной записи в историю за это время при непрерывной прокрутке. */
 const SAVE_THROTTLE = 150;

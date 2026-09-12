@@ -1,7 +1,7 @@
-import { ApplicationBuilder, EnvironmentModel, ContextData, StartContext } from "@brandup/ui-app";
+import { ApplicationBuilder, type EnvironmentModel, type ContextData, type StartContext } from "@brandup/ui-app";
 import { WebsiteMiddlewareImpl } from "./middleware";
 import { WebsiteApplication } from "./app";
-import { WebsiteApplicationModel, WebsiteOptions } from "./types";
+import type { WebsiteApplicationModel, WebsiteOptions } from "./types";
 import * as ScriptHelper from "./helpers/script";
 import { DEFAULT_OPTIONS } from "./constants";
 

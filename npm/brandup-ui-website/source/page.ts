@@ -1,9 +1,9 @@
 import { DOM, UIElement } from "@brandup/ui";
-import { AjaxQueue, AjaxResponse } from "@brandup/ui-ajax";
-import { PageModel, NavigationModel, WebsiteMiddleware } from "./types";
+import { AjaxQueue, type AjaxResponse } from "@brandup/ui-ajax";
+import type { PageModel, NavigationModel, WebsiteMiddleware } from "./types";
 import { WebsiteApplication } from "./app";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
-import { NavigateContext, QueryParams } from "@brandup/ui-app";
+import type { NavigateContext, QueryParams } from "@brandup/ui-app";
 
 export const PAGE_HASHCHANGED_EVENT = "hash-changed";
 

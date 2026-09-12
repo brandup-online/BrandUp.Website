@@ -1,4 +1,4 @@
-import { PageModel } from "@brandup/ui-website";
+import type { PageModel } from "@brandup/ui-website";
 import PageBase from "./base";
 
 class SignInPage extends PageBase<PageModel> {

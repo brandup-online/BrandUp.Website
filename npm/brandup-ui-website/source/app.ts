@@ -1,6 +1,6 @@
-import { AjaxQueue, AjaxRequest, request } from "@brandup/ui-ajax";
-import { Application, ContextData, EnvironmentModel, StopContext } from "@brandup/ui-app";
-import { WebsiteApplicationModel, WebsiteMiddleware, WebsiteOptions } from "./types";
+import { AjaxQueue, type AjaxRequest, request } from "@brandup/ui-ajax";
+import { Application, type ContextData, type EnvironmentModel, type StopContext } from "@brandup/ui-app";
+import type { WebsiteApplicationModel, WebsiteMiddleware, WebsiteOptions } from "./types";
 import { WEBSITE_MIDDLEWARE_NAME } from "./constants";
 
 export class WebsiteApplication<TModel extends WebsiteApplicationModel = WebsiteApplicationModel> extends Application<TModel> {

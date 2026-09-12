@@ -1,8 +1,8 @@
 import { DOM, UIElement } from "@brandup/ui";
-import { AJAXMethod, AjaxQueue, AjaxRequest, AjaxResponse } from "@brandup/ui-ajax";
-import { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
+import { type AJAXMethod, AjaxQueue, type AjaxRequest, type AjaxResponse } from "@brandup/ui-ajax";
+import type { NavigateContext, StartContext, StopContext, SubmitContext, MiddlewareNext } from "@brandup/ui-app";
 import { FuncHelper } from "@brandup/ui-helpers";
-import { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript, HistoryState } from "./types";
+import type { NavigationModel, NavigationEntry, WebsiteMiddleware, WebsiteNavigateData, WebsiteOptions, PageDefinition, ComponentScript, PageScript, HistoryState } from "./types";
 import { WebsiteApplication } from "./app";
 import { Page } from "./page";
 import { NavigationLoader } from "./loader";

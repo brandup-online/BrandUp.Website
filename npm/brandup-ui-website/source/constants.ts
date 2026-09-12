@@ -1,4 +1,4 @@
-import { WebsiteOptions } from "./types";
+import type { WebsiteOptions } from "./types";
 
 export const WEBSITE_MIDDLEWARE_NAME = "website-pages";
 

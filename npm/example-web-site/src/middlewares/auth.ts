@@ -1,4 +1,4 @@
-﻿import { Middleware, MiddlewareNext, StartContext } from "@brandup/ui-app";
+﻿import type { Middleware, MiddlewareNext, StartContext } from "@brandup/ui-app";
 import { WebsiteApplication } from "@brandup/ui-website";
 
 export class AuthMiddleware implements Middleware {

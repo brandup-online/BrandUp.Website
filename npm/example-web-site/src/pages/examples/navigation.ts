@@ -1,4 +1,4 @@
-import { PageHashChangedEvent, PageModel, PAGE_HASHCHANGED_EVENT } from "@brandup/ui-website";
+import { type PageHashChangedEvent, type PageModel, PAGE_HASHCHANGED_EVENT } from "@brandup/ui-website";
 import PageBase from "../base";
 import "./navigation.less";
 
