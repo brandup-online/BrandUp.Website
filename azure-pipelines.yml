@@ -9,8 +9,6 @@ resources:
 variables:
   - group: public-npm
   - group: public-nuget
-  - name: vmImageName
-    value: "ubuntu-latest"
   - name: restore-projects
     value: "**/*.csproj"
   - name: test-projects
@@ -31,7 +29,7 @@ variables:
 name: $(version-major).$(version-minor).$(rev:r)
 
 pool:
-  vmImage: $(vmImageName)
+  name: Test
 
 stages:
   - stage: Build
@@ -40,7 +38,7 @@ stages:
       - job: BuildNet
         displayName: Build NET
         pool:
-          vmImage: $(vmImageName)
+          name: Test
           workspace:
             clean: all
         steps:
@@ -50,6 +48,7 @@ stages:
             displayName: "print variables"
 
           - checkout: self
+            fetchDepth: 1
             clean: "true"
             persistCredentials: "true"
 
@@ -59,12 +58,14 @@ stages:
               packageType: "sdk"
               version: "10.x"
 
+          # Sources come from the repository's nuget.config (nuget.org only), the same ones a local restore uses.
           - task: DotNetCoreCLI@2
             displayName: "dotnet restore"
             inputs:
               command: "restore"
               projects: $(restore-projects)
-              feedRestore: "BrandUp"
+              feedsToUse: "config"
+              nugetConfigPath: "nuget.config"
 
           - task: DotNetCoreCLI@2
             displayName: "dotnet build"
@@ -84,7 +85,7 @@ stages:
               projects: $(test-projects)
               arguments: >
                 --configuration $(buildConfiguration) --no-build --no-restore
-                --results-directory $(testResultsDirectory)
+                --results-directory "$(testResultsDirectory)"
                 --report-trx
                 --coverage --coverage-output-format cobertura
               publishTestResults: false
@@ -110,23 +111,13 @@ stages:
               pathToSources: $(Build.SourcesDirectory)
               failIfCoverageEmpty: true
 
-          #- task: DotNetCoreCLI@2
-          #  displayName: "dotnet pack"
-          #  inputs:
-          #    command: pack
-          #    nobuild: true
-          #    arguments: /p:Version=$(Build.BuildNumber)
-          #    packagesToPack: "src/*/*.csproj"
-          #    #versioningScheme: byBuildNumber
-          #    packDirectory: $(Build.ArtifactStagingDirectory)
-
           - task: DotNetCoreCLI@2
             displayName: "dotnet pack"
             inputs:
               command: "custom"
               projects: "src/*/*.csproj"
               custom: "pack"
-              arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)"
+              arguments: '--configuration $(buildConfiguration) --output "$(Build.ArtifactStagingDirectory)" /p:Version=$(Build.BuildNumber)'
 
           - publish: $(build.artifactstagingdirectory)
             displayName: publish artifact
@@ -137,7 +128,7 @@ stages:
         displayName: Build NPM
         dependsOn: [BuildNet]
         pool:
-          vmImage: $(vmImageName)
+          name: Test
           workspace:
             clean: all
         steps:
@@ -147,6 +138,7 @@ stages:
             displayName: "print variables"
 
           - checkout: self
+            fetchDepth: 1
             clean: "true"
             persistCredentials: "true"
 
@@ -155,25 +147,16 @@ stages:
             inputs:
               version: "24.18.0"
 
-          - task: "Npm@1"
+          - script: npm run i
             displayName: "npm install"
-            inputs:
-              command: "custom"
-              customCommand: "run i"
 
-          - task: "Npm@1"
+          - script: npm run build
             displayName: "packages npm build"
-            inputs:
-              command: "custom"
-              customCommand: "run build"
 
           # test:ci adds --coverage and the jest-junit reporter; both report paths are configured in
           # package.json / jest.config.js and are consumed by the two tasks below.
-          - task: "Npm@1"
+          - script: npm run test:ci
             displayName: "packages npm test"
-            inputs:
-              command: "custom"
-              customCommand: "run test:ci"
 
           - task: PublishTestResults@2
             displayName: "publish npm test results"
@@ -194,44 +177,19 @@ stages:
               pathToSources: $(Build.SourcesDirectory)
               failIfCoverageEmpty: true
 
-          - task: "Npm@1"
+          - script: npm run npm:version $(Build.BuildNumber)
             displayName: "packages npm version"
-            inputs:
-              command: "custom"
-              customCommand: "run npm:version $(Build.BuildNumber)"
 
-          - task: "Npm@1"
+          - script: npm run npm:cleanup
             displayName: "packages npm cleanup"
-            inputs:
-              command: "custom"
-              customCommand: "run npm:cleanup"
 
-          - task: "Npm@1"
+          - script: npm run npm:pack --pack-destination "$(Build.ArtifactStagingDirectory)"
             displayName: "packages npm pack"
-            inputs:
-              command: custom
-              customCommand: "run npm:pack --pack-destination $(Build.ArtifactStagingDirectory)"
 
           - publish: $(build.artifactstagingdirectory)
             displayName: publish artifact
             condition: succeededOrFailed()
             artifact: npm
-
-      - job: GitTag
-        displayName: Add git tag
-        dependsOn: [BuildNet, BuildNpm]
-        condition: succeeded()
-        steps:
-          - checkout: self
-            clean: "true"
-            persistCredentials: "true"
-
-          - pwsh: |
-              git config --global user.name "AzureDevOps Agent"
-              git tag "$(Build.BuildNumber)" --force
-              git push origin "$(Build.BuildNumber)" --force
-              Write-Output "Tagging $(Build.Repository.Name) with $(Build.BuildNumber)"
-            displayName: set git tag
 
   - stage: Production
     displayName: Deploy stage
@@ -241,7 +199,7 @@ stages:
         condition: succeeded()
         displayName: Production
         pool:
-          vmImage: $(vmImageName)
+          name: Test
         environment: $(envName)
         strategy:
           runOnce:
@@ -255,12 +213,30 @@ stages:
                     cleanDestinationFolder: true
                     overwriteExistingFiles: true
 
-                - task: Npm@1
-                  displayName: "publish npm brandup-ui-website"
+                - task: UseNode@1
+                  displayName: "use node 24.x"
                   inputs:
-                    command: publish
-                    workingDir: "$(Pipeline.Workspace)/npm/brandup-ui-website/package"
-                    publishEndpoint: "$(publish-npm-credentials)"
+                    version: "24.18.0"
+
+                # npmAuthenticate adds the token of the service connection to this file.
+                - script: echo registry=https://registry.npmjs.org/> "$(Pipeline.Workspace)/.npmrc"
+                  displayName: "create .npmrc"
+
+                - task: npmAuthenticate@0
+                  displayName: "npm authenticate"
+                  inputs:
+                    workingFile: "$(Pipeline.Workspace)/.npmrc"
+                    customEndpoint: "$(publish-npm-credentials)"
+
+                - script: npm publish --userconfig "$(Pipeline.Workspace)/.npmrc"
+                  displayName: "publish npm brandup-ui-website"
+                  workingDirectory: "$(Pipeline.Workspace)/npm/brandup-ui-website/package"
+
+                - task: UseDotNet@2
+                  displayName: "use dotnet 10.x"
+                  inputs:
+                    packageType: "sdk"
+                    version: "10.x"
 
                 - task: DotNetCoreCLI@2
                   displayName: "publish nuget"
@@ -268,6 +244,23 @@ stages:
                     command: custom
                     custom: nuget
                     arguments: >
-                      push $(Pipeline.Workspace)/net/*.nupkg
+                      push "$(Pipeline.Workspace)/net/*.nupkg"
                       -s $(nuget-api-url)
                       -k $(nuget-api-key)
+
+      - job: GitTag
+        displayName: Add git tag
+        dependsOn: [Production]
+        condition: succeeded()
+        steps:
+          - checkout: self
+            fetchDepth: 1
+            clean: "true"
+            persistCredentials: "true"
+
+          - script: |
+              echo Tagging $(Build.Repository.Name) with $(Build.BuildNumber)
+              git config user.name "AzureDevOps Agent"
+              git tag "$(Build.BuildNumber)" --force
+              git push origin "$(Build.BuildNumber)" --force
+            displayName: set git tag
