@@ -1,0 +1,25 @@
+<Project>
+
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+	<!--
+	  Shared NuGet package metadata for the library projects under src.
+	  Web applications (ExampleWebSite) are not packages and are left untouched.
+	  IsPackable from the .csproj is not visible yet at this point, so the Web SDK marker is used instead.
+	-->
+	<PropertyGroup Condition="'$(UsingMicrosoftNETSdkWeb)' != 'true'">
+		<Company>BrandUp.online</Company>
+		<Authors>Dmitry Kovyazin</Authors>
+		<Product>BrandUp.Website</Product>
+		<RepositoryUrl>https://github.com/brandup-online/BrandUp.Website</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/brandup-online/BrandUp.Website</PackageProjectUrl>
+		<PackageIcon>icon.png</PackageIcon>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>NU1900</WarningsNotAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' != 'true'">
+		<None Include="$(MSBuildThisFileDirectory)..\icon.png" Pack="True" PackagePath="\" Visible="false" />
+	</ItemGroup>
+
+</Project>
