@@ -80,6 +80,11 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
                 await this.__current.page.__changedHash(context);
             }
 
+            // Назад или вперёд между записями одной страницы, отличающимися только hash: страница
+            // не перерисовывается, а браузер позицию не восстанавливает (см. NavigationScroll).
+            if (context.data.popstate)
+                this.__scroll?.restore(context.data.popstate);
+
             await next();
             return;
         }
@@ -396,6 +401,11 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         finally {
             if (context.data.popstate)
                 this.__scroll?.restore(context.data.popstate);
+            else if (context.source === "first") {
+                // Перезагрузка или возврат на документ без bfcache: браузер позицию не восстанавливает
+                // (см. NavigationScroll), а состояние записи с ней пережило выгрузку.
+                this.__scroll?.restore(window.history.state);
+            }
         }
 
         return page;
