@@ -55,5 +55,30 @@
             Assert.True(isBot);
             Assert.Equal(SearchBotName.Bing, searchBot);
         }
+
+        [Theory]
+        [InlineData("https://example.com/?_gl=1*r0v4yt*_ga*NzMz", "https://example.com/")]
+        [InlineData("https://example.com/max?utm_source=yandex&utm_medium=cpc&yclid=123", "https://example.com/max")]
+        [InlineData("https://example.com/blog?page=2&utm_source=tg", "https://example.com/blog?page=2")]
+        [InlineData("https://example.com/blog?utm_source=tg&page=2&_gl=1*x", "https://example.com/blog?page=2")]
+        public void RemoveQueryParameters_Removes(string url, string expected)
+        {
+            var result = SeoHelper.RemoveQueryParameters(new Uri(url), new WebsiteOptions().TrackingQueryParameters);
+
+            Assert.Equal(expected, result.ToString());
+        }
+
+        [Theory]
+        [InlineData("https://example.com/")]
+        [InlineData("https://example.com/blog?page=2")]
+        [InlineData("https://example.com/search?q=%D0%BC%D0%B0%D0%BA%D1%81&utm=1")]
+        // имена сравниваются с учётом регистра
+        [InlineData("https://example.com/?UTM_SOURCE=x")]
+        public void RemoveQueryParameters_NothingToRemove_SameInstance(string url)
+        {
+            var uri = new Uri(url);
+
+            Assert.Same(uri, SeoHelper.RemoveQueryParameters(uri, new WebsiteOptions().TrackingQueryParameters));
+        }
     }
 }

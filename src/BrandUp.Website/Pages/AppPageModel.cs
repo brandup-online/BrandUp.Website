@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using BrandUp.Website.Helpers;
 using BrandUp.Website.Infrastructure;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
@@ -14,6 +15,13 @@ namespace BrandUp.Website.Pages
         IWebsiteEvents? websiteEvents;
         IPageEvents? pageEvents;
         IDataProtector? _protector;
+        WebsiteOptions websiteOptions = null!;
+        Uri? defaultCanonicalLink;
+
+        /// <summary>
+        /// Query parameter the client adds to navigation requests to bypass the cache.
+        /// </summary>
+        const string NoCacheQueryKey = "_";
 
         public const string NavStateKey_Version = "_version";
         public const string NavStateKey_Area = "_area";
@@ -43,7 +51,13 @@ namespace BrandUp.Website.Pages
         public virtual string? Keywords { get; }
         public virtual string? CssClass { get; }
         public virtual string? ScriptName { get; }
-        public virtual Uri CanonicalLink => Link;
+        /// <summary>
+        /// Канонический адрес страницы. По умолчанию — <see cref="Link"/> без параметров рекламы
+        /// и аналитики (<see cref="WebsiteOptions.TrackingQueryParameters"/>) и без параметра <c>_</c>,
+        /// которым клиент обходит кэш при навигации.
+        /// </summary>
+        public virtual Uri CanonicalLink => defaultCanonicalLink ??=
+            SeoHelper.RemoveQueryParameters(Link, websiteOptions.TrackingQueryParameters.Append(NoCacheQueryKey));
         public virtual string Header => Title;
 
         #endregion
@@ -66,8 +80,9 @@ namespace BrandUp.Website.Pages
             pageEvents = HttpContext.RequestServices.GetService<IPageEvents>();
             Link = new Uri(HttpContext.Request.GetDisplayUrl());
 
+            websiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>().Value;
+
             var request = Request;
-            var webSiteOptions = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
             var websiteVersion = HttpContext.RequestServices.GetRequiredService<IWebsiteVersion>();
 
             #region Navigation
@@ -261,7 +276,7 @@ namespace BrandUp.Website.Pages
                     navModel.Query.Add(kv.Key, value.ToArray());
             }
 
-            navModel.Query.Remove("_");
+            navModel.Query.Remove(NoCacheQueryKey);
 
             var antiforgery = httpContext.RequestServices.GetService<IAntiforgery>();
             if (antiforgery != null)
@@ -329,8 +344,7 @@ namespace BrandUp.Website.Pages
             if (_protector is null)
             {
                 var provider = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>();
-                var options = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<WebsiteOptions>>();
-                _protector = provider.CreateProtector(options.Value.ProtectionPurpose);
+                _protector = provider.CreateProtector(websiteOptions.ProtectionPurpose);
             }
             return _protector;
         }

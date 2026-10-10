@@ -142,6 +142,12 @@ namespace BrandUp.Website.IntegrationTests
 
     public class CustomWebApplicationFactory : WebApplicationFactory<ExampleWebSite.Program>
     {
+        public CustomWebApplicationFactory()
+        {
+            ClientOptions.BaseAddress = new Uri("https://localhost/");
+            ClientOptions.AllowAutoRedirect = false;
+        }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder

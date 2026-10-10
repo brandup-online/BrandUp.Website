@@ -11,9 +11,6 @@ namespace BrandUp.Website.IntegrationTests
             this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
 
             this.factory.Server.BaseAddress = new Uri("https://localhost/");
-
-            this.factory.ClientOptions.BaseAddress = new Uri("https://localhost/");
-            this.factory.ClientOptions.AllowAutoRedirect = false;
         }
 
         [Theory]

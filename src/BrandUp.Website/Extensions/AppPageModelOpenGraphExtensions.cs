@@ -4,10 +4,7 @@ namespace BrandUp.Website
 {
     public static class AppPageModelOpenGraphExtensions
     {
-        /// <summary>
-        /// Устанавливает Open Graph типа "website".
-        /// Title по умолчанию берётся со страницы, Url всегда равен адресу текущей страницы.
-        /// </summary>
+        /// <inheritdoc cref="SetOpenGraphWebsite(AppPageModel, Uri, string, string)"/>
         /// <param name="image">
         /// Путь к изображению. Если начинается с "~", резолвится через <see cref="IUrlHelperExtensions.ContentLink"/>
         /// в абсолютный URL; иначе трактуется как готовый абсолютный URL.
@@ -17,7 +14,7 @@ namespace BrandUp.Website
 
         /// <summary>
         /// Устанавливает Open Graph типа "website".
-        /// Title по умолчанию берётся со страницы, Url всегда равен адресу текущей страницы.
+        /// Title по умолчанию берётся со страницы, Url — канонический адрес страницы (<see cref="AppPageModel.CanonicalLink"/>).
         /// </summary>
         public static PageOpenGraph SetOpenGraphWebsite(this AppPageModel page, Uri image, string? title = null, string? description = null)
         {
@@ -28,17 +25,14 @@ namespace BrandUp.Website
                 type: OpenGraphType.Website,
                 image: image,
                 title: title ?? page.Title,
-                url: page.Link,
+                url: page.CanonicalLink,
                 description: description ?? page.Description);
 
             page.OpenGraph = og;
             return og;
         }
 
-        /// <summary>
-        /// Устанавливает Open Graph типа "article" вместе с namespace-свойствами article:*.
-        /// Title и Url по умолчанию берутся со страницы.
-        /// </summary>
+        /// <inheritdoc cref="SetOpenGraphArticle(AppPageModel, Uri, string, string, DateTimeOffset?, DateTimeOffset?, string, string, string)"/>
         /// <param name="image">
         /// Путь к изображению. Если начинается с "~", резолвится через <see cref="IUrlHelperExtensions.ContentLink"/>
         /// в абсолютный URL; иначе трактуется как готовый абсолютный URL.
@@ -49,7 +43,7 @@ namespace BrandUp.Website
 
         /// <summary>
         /// Устанавливает Open Graph типа "article" вместе с namespace-свойствами article:*.
-        /// Title и Url по умолчанию берутся со страницы.
+        /// Title по умолчанию берётся со страницы, Url — канонический адрес страницы (<see cref="AppPageModel.CanonicalLink"/>).
         /// </summary>
         /// <remarks>
         /// article:author и article:tag по спецификации допускают несколько значений, но текущее
@@ -66,7 +60,7 @@ namespace BrandUp.Website
                 type: OpenGraphType.Article,
                 image: image,
                 title: title ?? page.Title,
-                url: page.Link,
+                url: page.CanonicalLink,
                 description: description ?? page.Description);
 
             if (publishedTime.HasValue)

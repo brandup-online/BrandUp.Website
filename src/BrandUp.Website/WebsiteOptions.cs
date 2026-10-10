@@ -15,6 +15,32 @@ namespace BrandUp.Website
         /// </summary>
         public ReferrerPolicy ReferrerPolicy { get; set; } = ReferrerPolicy.StrictOriginWhenCrossOrigin;
 
+        /// <summary>
+        /// Параметры query, которые добавляют реклама и аналитика: метки кампаний, идентификаторы кликов,
+        /// кросс-доменный <c>_gl</c> Google-тега. Страницу они не меняют, поэтому в канонический адрес
+        /// (<see cref="Pages.AppPageModel.CanonicalLink"/>) и <c>og:url</c> не попадают. Имена сравниваются
+        /// с учётом регистра — так их пишут счётчики. Из конфигурации значения добавляются к списку
+        /// по умолчанию, а не заменяют его; убрать значения по умолчанию можно только из кода.
+        /// </summary>
+        public List<string> TrackingQueryParameters { get; set; } =
+        [
+            "_gl",
+            "_openstat",
+            "utm_id",
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "utm_content",
+            "utm_term",
+            "gclid",
+            "gbraid",
+            "wbraid",
+            "msclkid",
+            "yclid",
+            "ysclid",
+            "fbclid"
+        ];
+
         public void Validate()
         {
             var errors = GetValidationErrors().ToArray();

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+
 namespace BrandUp.Website
 {
     public class WebsiteOptionsTest
@@ -35,6 +37,25 @@ namespace BrandUp.Website
 
             var ex = Assert.Throws<InvalidOperationException>(options.Validate);
             Assert.Contains(nameof(WebsiteOptions.ProtectionPurpose), ex.Message);
+        }
+
+        [Fact]
+        public void MapConfiguration_TrackingQueryParameters_AppendsToDefaults()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Website:Host"] = "localhost",
+                    ["Website:CookiesPrefix"] = "ex",
+                    ["Website:TrackingQueryParameters:0"] = "from"
+                })
+                .Build();
+            var defaults = new WebsiteOptions().TrackingQueryParameters;
+            var options = new WebsiteOptions();
+
+            options.MapConfiguration(configuration);
+
+            Assert.Equal([.. defaults, "from"], options.TrackingQueryParameters);
         }
     }
 }

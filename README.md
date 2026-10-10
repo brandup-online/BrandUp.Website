@@ -35,6 +35,8 @@ Install NPM package [@brandup/ui-website](https://www.npmjs.com/package/@brandup
 
 **Website:RedirectToHttps** - выполнять ли автоматический редирект с `http` на `https` (по умолчанию `true`).
 
+**Website:TrackingQueryParameters** - параметры query, которые добавляют реклама и аналитика. Страницу они не меняют, поэтому не попадают в канонический адрес (`<link rel="canonical">`) и `og:url`. По умолчанию: `_gl`, `_openstat`, `utm_id`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `gclid`, `gbraid`, `wbraid`, `msclkid`, `yclid`, `ysclid`, `fbclid`. Значения из конфигурации добавляются к этому списку, а не заменяют его; убрать значения по умолчанию можно только из кода (`options.TrackingQueryParameters.Clear()` или `Remove(...)` после `MapConfiguration`). Имена сравниваются с учётом регистра. Параметр `_`, которым клиент обходит кэш при навигации, из канонического адреса убирается всегда. Тот же список удобно отдать Яндексу директивой `Clean-param` в `robots.txt`.
+
 Параметры валидируются при старте приложения (fail-fast): если не задан `Host`, `CookiesPrefix` или `ProtectionPurpose`, хост не запустится.
 
 Использование параметров сайта:
@@ -279,7 +281,7 @@ protected override Task OnPageRequestAsync(PageRequestContext context)
         type: OpenGraphType.Website,
         image: new Uri("https://example.com/og.jpg"),
         title: Title,
-        url: Link,
+        url: CanonicalLink,
         description: Description)
     {
         SiteName = "Example"
@@ -291,7 +293,7 @@ protected override Task OnPageRequestAsync(PageRequestContext context)
 
 Тип задаётся перечислением `OpenGraphType` (`Website`, `Article`, `Profile`, `Book`, `MusicSong`, `MusicAlbum`, `MusicPlaylist`, `MusicRadioStation`, `VideoMovie`, `VideoEpisode`, `VideoTvShow`, `VideoOther`) — оно маппится в строковое значение og:type (например, `MusicSong` → `music.song`).
 
-Для типовых случаев есть extension-методы `AppPageModel`, которые сами берут `Title`/`Url`/`Description` со страницы. Параметр `image` можно передать строкой: путь с префиксом `~` резолвится в абсолютный URL, иначе трактуется как готовый абсолютный URL.
+Для типовых случаев есть extension-методы `AppPageModel`, которые сами берут `Title`/`Description` со страницы, а `Url` — из её канонического адреса (`CanonicalLink`). Параметр `image` можно передать строкой: путь с префиксом `~` резолвится в абсолютный URL, иначе трактуется как готовый абсолютный URL.
 
 ```
 // website

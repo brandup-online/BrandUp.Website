@@ -26,6 +26,42 @@ namespace BrandUp.Website.Helpers
 
             return match.Success;
         }
+
+        /// <summary>
+        /// Адрес без перечисленных параметров query. Остальной запрос сохраняется в исходном порядке
+        /// и кодировании; если убирать нечего, возвращается тот же экземпляр.
+        /// </summary>
+        public static Uri RemoveQueryParameters(Uri url, IEnumerable<string> names)
+        {
+            ArgumentNullException.ThrowIfNull(url);
+            ArgumentNullException.ThrowIfNull(names);
+
+            if (url.Query.Length <= 1)
+                return url;
+
+            var kept = new List<string>();
+            var removed = false;
+
+            foreach (var pair in url.Query[1..].Split('&', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (names.Contains(QueryParameterName(pair), StringComparer.Ordinal))
+                    removed = true;
+                else
+                    kept.Add(pair);
+            }
+
+            if (!removed)
+                return url;
+
+            return new UriBuilder(url) { Query = string.Join('&', kept) }.Uri;
+        }
+
+        static string QueryParameterName(string pair)
+        {
+            var separator = pair.IndexOf('=');
+
+            return Uri.UnescapeDataString(separator < 0 ? pair : pair[..separator]);
+        }
     }
 
     public enum SearchBotName
