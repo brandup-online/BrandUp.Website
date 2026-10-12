@@ -1,7 +1,16 @@
 import type { HistoryState } from "./types";
 
-/** Не чаще одной записи в историю за это время при непрерывной прокрутке. */
-const SAVE_THROTTLE = 150;
+/**
+ * Пауза в прокрутке, после которой позиция записывается в историю. Там, где есть `scrollend`,
+ * запись случается раньше — как только прокрутка закончилась.
+ */
+const SAVE_DELAY = 200;
+/**
+ * Дольше этого запись при непрерывной прокрутке не откладывается. На `popstate` позицию уходящей
+ * записи уже не записать — состояние истории принадлежит новой, — поэтому «назад» посреди долгой
+ * прокрутки иначе потерял бы её целиком.
+ */
+const SAVE_MAX_DELAY = 1000;
 /** Пауза после ухода фокуса: за это время фокус успевает устояться, а клавиатура — закрыться. */
 const FOCUS_OUT_DELAY = 300;
 /** Как часто проверять, дорос ли документ до сохранённой позиции. */
@@ -15,10 +24,13 @@ const USER_SCROLL_EVENTS = ["wheel", "touchstart", "keydown", "mousedown"];
  * Позиция прокрутки в состоянии истории: сохраняется для текущей записи и восстанавливается,
  * когда пользователь возвращается к ней кнопкой «назад».
  *
- * Запись идёт через `history.replaceState`, а он на мобильных заставляет браузер пересчитать
- * вьюпорт. Пока поднята экранная клавиатура, это выглядит как её мигание, поэтому во время
- * ввода текста запись откладывается: позицию всё равно запишет уход фокуса, переход на другую
- * страницу или выгрузка документа.
+ * Запись идёт через `history.replaceState`, и каждая — навигация внутри документа: на неё
+ * реагируют браузер, расширения и DevTools (последние перечитывают манифест приложения). Поэтому
+ * позиция пишется, когда прокрутка закончилась, а по ходу долгой прокрутки — не чаще раза
+ * в `SAVE_MAX_DELAY`. Кроме того, на мобильных
+ * `replaceState` заставляет браузер пересчитать вьюпорт, и пока поднята экранная клавиатура, это
+ * выглядит как её мигание, поэтому во время ввода текста запись откладывается: позицию всё равно
+ * запишет уход фокуса, переход на другую страницу или выгрузка документа.
  *
  * Собственное восстановление браузера (`history.scrollRestoration = "auto"`) отключается: оно
  * срабатывает на `popstate` раньше, чем отрисована страница записи, и применяет её позицию к
@@ -38,12 +50,17 @@ const USER_SCROLL_EVENTS = ["wheel", "touchstart", "keydown", "mousedown"];
 export class NavigationScroll {
     private readonly __getNavigationId: () => string | undefined;
     private readonly __scrollHandler: () => void;
+    private readonly __scrollEndHandler: () => void;
     private readonly __focusOutHandler: () => void;
     private readonly __pageHideHandler: () => void;
     private readonly __prevRestoration: ScrollRestoration;
     private __saveTimeout = 0;
     private __focusOutTimeout = 0;
     private __saveScheduled = false;
+    /** Позже этого момента отложенная запись не выполняется, даже если прокрутка продолжается. */
+    private __saveDeadline = 0;
+    /** Кадр, до которого события scroll не ставят запись; задан сразу после остановки восстановления. */
+    private __skipScrollFrame = 0;
     /** Прекращает идущее восстановление позиции; задан, пока документ до неё не дорос. */
     private __stopRestore?: () => void;
 
@@ -58,19 +75,28 @@ export class NavigationScroll {
         window.history.scrollRestoration = "manual";
 
         this.__scrollHandler = () => {
-            if (this.__saveScheduled)
+            if (this.__skipScrollFrame)
                 return;
 
-            this.__saveScheduled = true;
-            this.__saveTimeout = window.setTimeout(() => {
-                this.__saveScheduled = false;
-
-                // Позиция читается в момент срабатывания таймера, поэтому она актуальная.
-                if (!this.__isEditing() && !this.__stopRestore)
-                    this.__write();
-            }, SAVE_THROTTLE);
+            window.clearTimeout(this.__saveTimeout);
+            if (!this.__saveScheduled) {
+                this.__saveScheduled = true;
+                this.__saveDeadline = Date.now() + SAVE_MAX_DELAY;
+            }
+            const delay = Math.min(SAVE_DELAY, this.__saveDeadline - Date.now());
+            this.__saveTimeout = window.setTimeout(() => this.__saveScrolled(), delay);
         };
         window.addEventListener("scroll", this.__scrollHandler, { passive: true });
+
+        // scrollend только досрочно выполняет уже отложенную запись. Писать по нему самому нельзя:
+        // событие от нашей же прокрутки при восстановлении может прийти после остановки
+        // восстановления и записать позицию, до которой документ не дорос, — а отложенную запись
+        // остановка снимает и не даёт поставить запоздалому scroll (см. __skipScroll).
+        this.__scrollEndHandler = () => {
+            if (this.__saveScheduled)
+                this.__saveScrolled();
+        };
+        window.addEventListener("scrollend", this.__scrollEndHandler, { passive: true });
 
         this.__focusOutHandler = () => {
             // focusout срабатывает и при переходе фокуса между полями, когда клавиатура остаётся
@@ -122,7 +148,7 @@ export class NavigationScroll {
         // Документ ещё короче сохранённой позиции: повторяем, пока он растёт. Таймер, а не
         // ResizeObserver: при `html, body { height: 100% }` их размер не меняется, хотя
         // прокручиваемая высота растёт.
-        const stop = () => {
+        const stop = (userInput?: Event) => {
             window.clearInterval(interval);
             window.clearTimeout(timeout);
             for (const type of USER_SCROLL_EVENTS)
@@ -131,15 +157,16 @@ export class NavigationScroll {
 
             // Отложенную запись поставили наши же повторы: сработав после остановки, она записала
             // бы позицию, до которой документ успел дорасти. Прокрутка пользователя поставит новую.
-            window.clearTimeout(this.__saveTimeout);
-            this.__saveScheduled = false;
+            this.__cancelSave();
+            if (!userInput)
+                this.__skipScroll();
         };
         const interval = window.setInterval(() => {
             apply();
             if (reached())
                 stop();
         }, RESTORE_INTERVAL);
-        const timeout = window.setTimeout(stop, RESTORE_TIMEOUT);
+        const timeout = window.setTimeout(() => stop(), RESTORE_TIMEOUT);
         // На погружении: компонент, который глушит ввод через stopPropagation (редактор, выпадающий
         // список, попап), иначе не остановил бы восстановление, и окно до таймаута прыгало бы назад.
         for (const type of USER_SCROLL_EVENTS)
@@ -151,21 +178,47 @@ export class NavigationScroll {
     /** Отписаться от событий и снять отложенные записи. */
     destroy() {
         window.removeEventListener("scroll", this.__scrollHandler);
+        window.removeEventListener("scrollend", this.__scrollEndHandler);
         window.removeEventListener("focusout", this.__focusOutHandler);
         window.removeEventListener("pagehide", this.__pageHideHandler);
 
         window.history.scrollRestoration = this.__prevRestoration;
 
-        window.clearTimeout(this.__saveTimeout);
-        window.clearTimeout(this.__focusOutTimeout);
         this.__stopRestore?.();
+        this.__cancelSave();
+        window.clearTimeout(this.__focusOutTimeout);
+        window.cancelAnimationFrame(this.__skipScrollFrame);
+        this.__skipScrollFrame = 0;
+    }
+
+    /** Прокрутка закончилась: записать позицию, если не мешают ввод текста и идущее восстановление. */
+    private __saveScrolled() {
+        if (this.__isEditing() || this.__stopRestore)
+            this.__cancelSave();
+        else
+            this.__write();
+    }
+
+    private __cancelSave() {
+        window.clearTimeout(this.__saveTimeout);
+        this.__saveScheduled = false;
+    }
+
+    /**
+     * Не ставить запись по событиям scroll до следующего кадра. Событие от последнего `window.scroll`
+     * восстановления браузер присылает в следующем кадре, уже после остановки, и оно поставило бы
+     * запись позиции, до которой документ не дорос. Колбэк кадра выполняется после рассылки событий
+     * scroll этого кадра. При остановке вводом пользователя не пропускаем: его прокрутку надо записать.
+     */
+    private __skipScroll() {
+        window.cancelAnimationFrame(this.__skipScrollFrame);
+        this.__skipScrollFrame = window.requestAnimationFrame(() => this.__skipScrollFrame = 0);
     }
 
     private __write() {
         // Снимаем отложенную запись: метод вызывается и напрямую (уход фокуса, навигация,
-        // выгрузка), и по таймеру троттлинга — второй проход ничего не добавит.
-        window.clearTimeout(this.__saveTimeout);
-        this.__saveScheduled = false;
+        // выгрузка), и по окончании прокрутки — второй проход ничего не добавит.
+        this.__cancelSave();
 
         const navigationId = this.__getNavigationId();
         const state: HistoryState | null = window.history.state;

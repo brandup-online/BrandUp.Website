@@ -169,6 +169,49 @@ describe("restore on a document still growing", () => {
         }
     });
 
+    it("ignores the scroll event of its last step that arrives after the timeout", () => {
+        const scroll = new NavigationScroll(() => "growing");
+        try {
+            scroll.restore(window.history.state);
+
+            // Последний шаг сдвинул окно, а событие scroll от него браузер пришлёт уже после таймаута.
+            jest.advanceTimersByTime(4850);
+            maxY = 2000;
+            jest.advanceTimersByTime(150);
+            expect(window.scrollY).toEqual(2000);
+            window.dispatchEvent(new Event("scroll"));
+            window.dispatchEvent(new Event("scrollend"));
+
+            jest.advanceTimersByTime(1000);
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 3000 });
+
+            // В следующих кадрах прокрутка записывается как обычно.
+            window.dispatchEvent(new Event("scroll"));
+            jest.advanceTimersByTime(200);
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 2000 });
+        }
+        finally {
+            scroll.destroy();
+        }
+    });
+
+    it("saves the scrolling of the user who stopped the restore", () => {
+        const scroll = new NavigationScroll(() => "growing");
+        try {
+            scroll.restore(window.history.state);
+            window.dispatchEvent(new Event("wheel"));
+
+            (window as { scrollY: number }).scrollY = 1200;
+            window.dispatchEvent(new Event("scroll"));
+            jest.advanceTimersByTime(200);
+
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 1200 });
+        }
+        finally {
+            scroll.destroy();
+        }
+    });
+
     it("gives up after the timeout and leaves the saved position in place", () => {
         const scroll = new NavigationScroll(() => "growing");
         try {
@@ -179,6 +222,111 @@ describe("restore on a document still growing", () => {
             jest.advanceTimersByTime(1000);
             expect(window.scrollY).toEqual(1500);
             expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 3000 });
+        }
+        finally {
+            scroll.destroy();
+        }
+    });
+});
+
+describe("saving the position while scrolling", () => {
+    let replaceStateSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        Object.defineProperty(window, "scrollY", { configurable: true, writable: true, value: 0 });
+        window.history.replaceState({ brandup_website: { id: "saving" } }, "");
+        replaceStateSpy = jest.spyOn(window.history, "replaceState");
+    });
+
+    afterEach(() => {
+        replaceStateSpy.mockRestore();
+        jest.useRealTimers();
+    });
+
+    const scrollTo = (y: number) => {
+        (window as { scrollY: number }).scrollY = y;
+        window.dispatchEvent(new Event("scroll"));
+    };
+
+    it("writes once, after the scrolling stops", () => {
+        const scroll = new NavigationScroll(() => "saving");
+        try {
+            for (let y = 100; y <= 1000; y += 100) {
+                scrollTo(y);
+                jest.advanceTimersByTime(50);
+            }
+            expect(replaceStateSpy).not.toHaveBeenCalled();
+
+            jest.advanceTimersByTime(200);
+            expect(replaceStateSpy).toHaveBeenCalledTimes(1);
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 1000 });
+        }
+        finally {
+            scroll.destroy();
+        }
+    });
+
+    it("writes at least once a second while the scrolling goes on", () => {
+        const scroll = new NavigationScroll(() => "saving");
+        try {
+            for (let y = 100; y <= 3000; y += 100) {
+                scrollTo(y);
+                jest.advanceTimersByTime(50);
+            }
+            expect(replaceStateSpy).toHaveBeenCalledTimes(1);
+
+            jest.advanceTimersByTime(200);
+            expect(replaceStateSpy).toHaveBeenCalledTimes(2);
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 3000 });
+        }
+        finally {
+            scroll.destroy();
+        }
+    });
+
+    it("writes on scrollend without waiting for the pause", () => {
+        const scroll = new NavigationScroll(() => "saving");
+        try {
+            scrollTo(400);
+            window.dispatchEvent(new Event("scrollend"));
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 400 });
+
+            jest.advanceTimersByTime(1000);
+            expect(replaceStateSpy).toHaveBeenCalledTimes(1);
+        }
+        finally {
+            scroll.destroy();
+        }
+    });
+
+    it("leaves the write to the focus loss while text is typed", () => {
+        const input = document.body.appendChild(DOM.tag("input")) as HTMLInputElement;
+        const scroll = new NavigationScroll(() => "saving");
+        try {
+            input.focus();
+            scrollTo(400);
+            window.dispatchEvent(new Event("scrollend"));
+            jest.advanceTimersByTime(1000);
+            expect(replaceStateSpy).not.toHaveBeenCalled();
+
+            input.blur();
+            jest.advanceTimersByTime(300);
+            expect(window.history.state.brandup_website.scroll).toEqual({ x: 0, y: 400 });
+        }
+        finally {
+            scroll.destroy();
+            input.remove();
+        }
+    });
+
+    it("ignores scrollend with no pending write", () => {
+        const scroll = new NavigationScroll(() => "saving");
+        try {
+            (window as { scrollY: number }).scrollY = 400;
+            window.dispatchEvent(new Event("scrollend"));
+
+            expect(replaceStateSpy).not.toHaveBeenCalled();
         }
         finally {
             scroll.destroy();
