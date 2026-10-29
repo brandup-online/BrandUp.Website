@@ -185,9 +185,15 @@ export class WebsiteMiddlewareImpl implements WebsiteMiddleware {
         current.page.queue.reset(true);
 
         try {
+            // A form without an action posts to the page address, which already carries the page query:
+            // adding it again would send every parameter twice and double the URL length
+            // (IIS rejects a query over 2048 characters with 404 by default).
+            const urlKeys = new Set(Array.from(new URL(url, location.href).searchParams.keys(), it => it.toLowerCase()));
             var query: { [key: string]: string | string[]; } = {};
-            for (var key in current.model.query)
-                query[key] = current.model.query[key];
+            for (var key in current.model.query) {
+                if (!urlKeys.has(key.toLowerCase()))
+                    query[key] = current.model.query[key];
+            }
 
             const response: AjaxResponse = await FuncHelper.minWaitAsync(() => current.page.queue.enqueue({
                 method, url, query,
